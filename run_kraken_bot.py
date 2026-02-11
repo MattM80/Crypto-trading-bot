@@ -81,8 +81,8 @@ def main():
     config = BotConfig()
     config.exchange = ExchangeConfig(name="kraken", testnet=True)
 
-    strategy_type = (os.getenv("STRATEGY_TYPE", "trend_momentum") or "trend_momentum").strip().lower()
-    symbols = _csv_env("KRAKEN_SYMBOLS", "XRPUSD")
+    strategy_type = (os.getenv("STRATEGY_TYPE", "adaptive") or "adaptive").strip().lower()
+    symbols = _csv_env("KRAKEN_SYMBOLS", "XBTUSD,ETHUSD,XRPUSD,SOLUSD,DOGEUSD,ADAUSD,AVAXUSD,LINKUSD")
     timeframe = (os.getenv("TIMEFRAME", "5m") or "5m").strip()
     grid_levels = _int_env("GRID_LEVELS", 8)
     grid_range = _float_env("GRID_RANGE_PERCENT", 0.02)
@@ -100,7 +100,7 @@ def main():
         # Fallback %-based SL/TP; the strategy provides ATR-based levels which take priority.
         stop_loss_percent=_float_env("STOP_LOSS_PERCENT", 0.015),
         take_profit_percent=_float_env("TAKE_PROFIT_PERCENT", 0.04),
-        max_open_positions=_int_env("MAX_OPEN_POSITIONS", 3),
+        max_open_positions=_int_env("MAX_OPEN_POSITIONS", 5),
     )
     
     # Create bot with Kraken LIVE (Kraken has no sandbox for spot trading)

@@ -341,6 +341,8 @@ class KrakenClient:
             return {
                 "symbol": symbol,
                 "price": float(ticker_data["c"][0]),  # Last closed price
+                "bid": float(ticker_data["b"][0]) if "b" in ticker_data else None,
+                "ask": float(ticker_data["a"][0]) if "a" in ticker_data else None,
                 "timestamp": datetime.now().isoformat()
             }
         except Exception as e:

@@ -56,7 +56,7 @@ class RiskManager:
         trailing_stop_callback: float = 0.4,      # trail at 40% of ATR
         min_win_rate_last_n: int = 10,
         min_win_rate_threshold: float = 0.25,
-        max_risk_per_trade_pct: float = 0.01,     # 1% of account per trade risk
+        max_risk_per_trade_pct: float = 0.02,     # 2% of account per trade risk
     ):
         self.initial_balance = initial_balance
         self.current_balance = initial_balance
@@ -85,6 +85,11 @@ class RiskManager:
         # Per-trade risk cap
         self.max_risk_per_trade_pct = max_risk_per_trade_pct
 
+        # Adaptive Kelly sizing (set externally by trading bot when journal available)
+        self._kelly_fraction: Optional[float] = None  # None = use default risk%
+        self.kelly_min_risk = 0.005   # 0.5 % floor
+        self.kelly_max_risk = 0.03    # 3.0 % ceiling
+
     # -----------------------------------------------------------------
     # Position sizing
     # -----------------------------------------------------------------
@@ -98,16 +103,24 @@ class RiskManager:
         atr: float = 0.0,
     ) -> float:
         """
-        Calculate position size using fixed-fractional risk model.
+        Calculate position size using fixed-fractional risk model,
+        optionally enhanced with Kelly Criterion sizing.
+
+        When a Kelly fraction is available (from the trade journal),
+        quarter-Kelly is used and bounded between 0.5 % and 3.0 %
+        of account balance.  This dynamically sizes positions larger
+        when the bot is objectively winning and smaller when losing.
 
         risk_amount = balance * risk_percent
         position_size = risk_amount / |entry - stop_loss|
-
-        When ATR is provided and high (volatile market), the stop is wider,
-        which automatically gives a *smaller* position -- no extra scaling needed.
         """
         if risk_percent is None:
-            risk_percent = self.max_risk_per_trade_pct
+            # Kelly-adaptive risk when available
+            if self._kelly_fraction is not None and self._kelly_fraction > 0:
+                quarter_kelly = self._kelly_fraction * 0.25
+                risk_percent = max(self.kelly_min_risk, min(self.kelly_max_risk, quarter_kelly))
+            else:
+                risk_percent = self.max_risk_per_trade_pct
 
         effective_balance = self.current_balance if account_balance is None else float(account_balance)
         risk_amount = effective_balance * risk_percent
@@ -119,8 +132,15 @@ class RiskManager:
 
         position_size = risk_amount / risk_per_unit
 
-        # Hard cap: never exceed 10% of portfolio in notional value
-        max_nominal = effective_balance * 0.10 / entry_price
+        # Hard cap: scale with account size (small accounts get more leverage room)
+        # <$1000: 25% max notional, $1000-$5000: 15%, >$5000: 10%
+        if effective_balance < 1000:
+            max_notional_pct = 0.25
+        elif effective_balance < 5000:
+            max_notional_pct = 0.15
+        else:
+            max_notional_pct = 0.10
+        max_nominal = effective_balance * max_notional_pct / entry_price
         position_size = min(position_size, max_nominal)
 
         # Volatility scaling: shrink further when ATR is unusually high
@@ -319,6 +339,7 @@ class RiskManager:
             "entry_time": position.entry_time,
             "exit_time": datetime.now().isoformat(),
             "trailing_stop_used": position.trailing_stop_active,
+            "atr_at_entry": position.atr_at_entry,
         }
         self.trade_history.append(trade_record)
 

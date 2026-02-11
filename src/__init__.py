@@ -30,8 +30,9 @@ __title__ = "Crypto Trading Bot"
 # Package imports
 from src.trading_bot import TradingBot
 from src.exchange_client import ExchangeClient
-from src.strategies import GridTradingStrategy, MeanReversionStrategy, StatisticalArbitrageStrategy
+from src.strategies import GridTradingStrategy, MeanReversionStrategy, StatisticalArbitrageStrategy, AdaptiveQuantStrategy
 from src.risk_manager import RiskManager, Position
+from src.trade_journal import TradeJournal
 from config.config import BotConfig
 
 __all__ = [
@@ -40,7 +41,9 @@ __all__ = [
     'GridTradingStrategy',
     'MeanReversionStrategy',
     'StatisticalArbitrageStrategy',
+    'AdaptiveQuantStrategy',
     'RiskManager',
     'Position',
+    'TradeJournal',
     'BotConfig',
 ]

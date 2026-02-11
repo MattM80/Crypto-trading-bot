@@ -24,6 +24,7 @@ from risk_manager import RiskManager, Position
 from config.config import BotConfig, DEFAULT_CONFIG
 from kraken_client import KrakenClient
 from state_persistence import save_state, load_state
+from trade_journal import TradeJournal
 
 class TradingBot:
     """Main bot engine"""
@@ -242,6 +243,34 @@ class TradingBot:
                 logger.info("Previous bot state restored successfully.")
         except Exception as e:
             logger.warning(f"Could not restore previous state: {e}")
+
+        # --- Trade Journal (adaptive learning system) ---
+        self.trade_journal = TradeJournal()
+        try:
+            self.trade_journal.load()
+            journal_summary = self.trade_journal.get_summary()
+            logger.info(f"Trade Journal: {journal_summary}")
+        except Exception as e:
+            logger.warning(f"Could not load trade journal: {e}")
+
+        # Update Kelly fraction from journal history
+        self._update_kelly_from_journal()
+
+        # --- Higher-timeframe (HTF) data caching ---
+        self._htf_cache: Dict[str, pd.DataFrame] = {}
+        self._htf_cache_ts: Dict[str, float] = {}
+        self._htf_cache_ttl = _float_env("HTF_CACHE_TTL_SECONDS", 900.0)  # 15 min
+        self._htf_timeframe = os.getenv("HTF_TIMEFRAME", "1h").strip() or "1h"
+
+        # BTC data cache for alt-pair filtering
+        self._btc_data_cache: Optional[pd.DataFrame] = None
+        self._btc_data_cache_ts: float = 0.0
+        self._btc_cache_ttl = _float_env("BTC_CACHE_TTL_SECONDS", 300.0)  # 5 min
+        self._btc_symbol = os.getenv("BTC_SYMBOL", "XBTUSD").strip() or "XBTUSD"
+
+        # Configurable position timeout (default 8h for adaptive, 60 min for others)
+        default_timeout = 480 if self.config.trading_strategy.strategy_type == "adaptive" else 60
+        self._position_timeout_minutes = _int_env("POSITION_TIMEOUT_MINUTES", default_timeout)
 
         logger.info(f"Bot initialized with {self.config.trading_strategy.strategy_type} strategy")
 
@@ -517,7 +546,8 @@ class TradingBot:
                     if info and str(info.get("status", "")).lower() == "closed":
                         exit_price = self._compute_fill_price(info, p.entry_price)
                         # Close local position only after Kraken confirms exit filled
-                        self.risk_manager.close_position(symbol, exit_price, p.exit_reason or "Exit", position_id=p.id)
+                        trade_rec = self.risk_manager.close_position(symbol, exit_price, p.exit_reason or "Exit", position_id=p.id)
+                        self._record_exit_in_journal(trade_rec)
                         logger.info(f"Exit filled on Kraken: {p.symbol} @ {exit_price:.2f}")
 
     def _get_daily_realized_pnl(self) -> float:
@@ -677,6 +707,97 @@ class TradingBot:
         if parts:
             logger.info("Kraken balances: " + ", ".join(parts))
 
+    # ------------------------------------------------------------------
+    # Adaptive / Multi-Timeframe helpers
+    # ------------------------------------------------------------------
+
+    def _update_kelly_from_journal(self) -> None:
+        """Update the risk manager's Kelly fraction from the trade journal."""
+        try:
+            kelly = self.trade_journal.get_overall_kelly()
+            if kelly is not None and kelly > 0:
+                self.risk_manager._kelly_fraction = kelly
+                logger.info(f"Kelly fraction updated: {kelly:.4f} (quarter-Kelly risk: {kelly*0.25:.4f})")
+            else:
+                self.risk_manager._kelly_fraction = None
+        except Exception:
+            self.risk_manager._kelly_fraction = None
+
+    def _fetch_htf_data(self, symbol: str) -> Optional[pd.DataFrame]:
+        """Fetch higher-timeframe (e.g. 1h) candle data with caching."""
+        now = datetime.now().timestamp()
+        cached_ts = self._htf_cache_ts.get(symbol, 0.0)
+        if (now - cached_ts) < self._htf_cache_ttl and symbol in self._htf_cache:
+            return self._htf_cache[symbol]
+        try:
+            klines = self.exchange.get_klines(
+                symbol=symbol,
+                interval=self._htf_timeframe,
+                limit=100,
+            )
+            if klines:
+                df = pd.DataFrame(klines)
+                self._htf_cache[symbol] = df
+                self._htf_cache_ts[symbol] = now
+                return df
+        except Exception as e:
+            logger.debug(f"Could not fetch HTF data for {symbol}: {e}")
+        return self._htf_cache.get(symbol)
+
+    def _fetch_btc_data(self) -> Optional[pd.DataFrame]:
+        """Fetch BTC candle data for alt-pair trend filtering, with caching."""
+        now = datetime.now().timestamp()
+        if (now - self._btc_data_cache_ts) < self._btc_cache_ttl and self._btc_data_cache is not None:
+            return self._btc_data_cache
+        try:
+            klines = self.exchange.get_klines(
+                symbol=self._btc_symbol,
+                interval=self.config.trading_strategy.timeframe,
+                limit=200,
+            )
+            if klines:
+                self._btc_data_cache = pd.DataFrame(klines)
+                self._btc_data_cache_ts = now
+                return self._btc_data_cache
+        except Exception as e:
+            logger.debug(f"Could not fetch BTC data: {e}")
+        return self._btc_data_cache
+
+    def _record_entry_in_journal(self, signal: Signal, position: Position) -> None:
+        """Record a trade entry in the adaptive trade journal."""
+        try:
+            self.trade_journal.record_entry(
+                trade_id=position.id,
+                symbol=signal.symbol,
+                side=signal.action,
+                entry_price=position.entry_price,
+                regime=getattr(signal, "regime", "unknown"),
+                features_active=getattr(signal, "features_active", {}),
+                indicator_snapshot={
+                    k: float(v) for k, v in getattr(signal, "indicator_snapshot", {}).items()
+                    if isinstance(v, (int, float))
+                },
+                htf_trend=getattr(signal, "htf_trend", "unknown"),
+                btc_trend=getattr(signal, "btc_trend", "unknown"),
+            )
+        except Exception as e:
+            logger.debug(f"Journal entry record failed: {e}")
+
+    def _record_exit_in_journal(self, trade_record: Dict) -> None:
+        """Record a trade exit in the adaptive trade journal."""
+        if not trade_record:
+            return
+        try:
+            self.trade_journal.record_exit(
+                trade_id=trade_record.get("position_id", ""),
+                exit_price=float(trade_record.get("exit_price", 0)),
+                pnl=float(trade_record.get("pnl", 0)),
+                pnl_percent=float(trade_record.get("pnl_percent", 0)),
+                exit_reason=trade_record.get("reason", "unknown"),
+            )
+        except Exception as e:
+            logger.debug(f"Journal exit record failed: {e}")
+
     def _format_pct(self, value: float) -> str:
         try:
             return f"{value:+.2f}%"
@@ -734,8 +855,33 @@ class TradingBot:
             return
     
     def analyze_signals(self) -> List[Signal]:
-        """Analyze all symbols and generate trading signals"""
+        """Analyze all symbols and generate trading signals.
+        
+        For the adaptive strategy, this also:
+          1. Fetches higher-timeframe (1h) data for each symbol
+          2. Fetches BTC data for alt-pair trend filtering
+          3. Sets the multi-TF / journal context on the strategy
+        """
         all_signals = []
+
+        # --- Set adaptive context if strategy supports it ---
+        if hasattr(self.strategy, 'set_context'):
+            htf_data = {}
+            for symbol in self.active_symbols:
+                try:
+                    htf_df = self._fetch_htf_data(symbol)
+                    if htf_df is not None:
+                        htf_data[symbol] = htf_df
+                except Exception:
+                    pass
+
+            btc_data = self._fetch_btc_data()
+
+            self.strategy.set_context(
+                htf_data=htf_data,
+                btc_data=btc_data,
+                trade_journal=self.trade_journal,
+            )
         
         for symbol in self.active_symbols:
             try:
@@ -965,8 +1111,22 @@ class TradingBot:
         
         # Place entry order.
         # NOTE: LIMIT orders can remain open; MARKET orders should fill immediately but may slip.
+        # Smart limit pricing: use bid for BUY, ask for SELL to ensure maker fees.
         entry_order_type = self.entry_order_type
-        entry_price = None if entry_order_type == "MARKET" else float(signal.entry_price)
+        entry_price = None
+        if entry_order_type != "MARKET":
+            entry_price = float(signal.entry_price)
+            # Try to use bid/ask for better fill pricing (maker fee = 0.16% vs taker 0.26%)
+            if self.use_kraken:
+                try:
+                    t = self.exchange.get_ticker(signal.symbol)
+                    if t:
+                        if (signal.action or "").upper() == "BUY" and t.get("bid"):
+                            entry_price = float(t["bid"])
+                        elif (signal.action or "").upper() == "SELL" and t.get("ask"):
+                            entry_price = float(t["ask"])
+                except Exception:
+                    pass  # Fall back to signal price
         order = self.exchange.place_order(
             symbol=signal.symbol,
             side=signal.action,
@@ -1017,6 +1177,9 @@ class TradingBot:
         # If using Kraken pending entry, brackets will be recalculated on fill.
         # For non-Kraken, the signal-based SL/TP is already set above.
         self.risk_manager.record_position(position)
+
+        # --- Record in adaptive trade journal ---
+        self._record_entry_in_journal(signal, position)
         
         if self.use_kraken and self.live_trading_enabled:
             logger.info(
@@ -1053,24 +1216,25 @@ class TradingBot:
                 # --- TRAILING STOP UPDATE ---
                 self.risk_manager.update_trailing_stop(position, current_price)
 
-                # --- TIME-BASED EXIT LOGIC (60m timeout, only if profitable) ---
+                # --- TIME-BASED EXIT LOGIC (configurable timeout, only if profitable) ---
                 try:
                     entry_time = datetime.fromisoformat(position.entry_time)
                 except Exception:
                     entry_time = datetime.now()
                 now = datetime.now()
-                timeout = timedelta(minutes=60)
+                timeout = timedelta(minutes=self._position_timeout_minutes)
                 if now - entry_time >= timeout:
                     if (
                         (position.side == "BUY" and current_price >= position.entry_price)
                         or (position.side == "SELL" and current_price <= position.entry_price)
                     ):
-                        reason = "Time-based exit (60m, profitable)"
+                        reason = f"Time-based exit ({self._position_timeout_minutes}m, profitable)"
                         if self.use_kraken and self.live_trading_enabled:
                             self._place_exit_order(position, current_price, reason)
                         else:
-                            self.risk_manager.close_position(symbol, current_price, reason, position_id=position.id)
-                        logger.info(f"Time-based exit for {symbol} after 60m at favorable price.")
+                            trade_rec = self.risk_manager.close_position(symbol, current_price, reason, position_id=position.id)
+                            self._record_exit_in_journal(trade_rec)
+                        logger.info(f"Time-based exit for {symbol} after {self._position_timeout_minutes}m at favorable price.")
                         continue
 
                 # --- STOP-LOSS / TAKE-PROFIT / TRAILING STOP CHECK ---
@@ -1078,7 +1242,8 @@ class TradingBot:
                     if self.use_kraken and self.live_trading_enabled:
                         self._place_exit_order(pos, price, reason)
                     else:
-                        self.risk_manager.close_position(symbol, price, reason, position_id=pos.id)
+                        trade_rec = self.risk_manager.close_position(symbol, price, reason, position_id=pos.id)
+                        self._record_exit_in_journal(trade_rec)
 
                 if position.side == "BUY":
                     if current_price <= position.stop_loss:
@@ -1200,6 +1365,15 @@ class TradingBot:
                 except Exception as e:
                     logger.warning(f"State save failed: {e}")
 
+                # Persist trade journal (adaptive learning state)
+                try:
+                    self.trade_journal.save()
+                except Exception as e:
+                    logger.warning(f"Journal save failed: {e}")
+
+                # Update Kelly fraction from accumulated trade history
+                self._update_kelly_from_journal()
+
                 # Wait for next check
                 await asyncio.sleep(interval)
         
@@ -1214,11 +1388,17 @@ class TradingBot:
                     self.risk_manager,
                     extra={"kraken_equity_baseline": self._kraken_equity_baseline},
                 )
+                self.trade_journal.save()
                 logger.info("Final state saved.")
             except Exception:
                 pass
             self._warn_open_positions()
             self.log_final_stats()
+            # Log learning summary
+            try:
+                logger.info(f"Adaptive Learning Summary:\n{self.trade_journal.get_summary()}")
+            except Exception:
+                pass
     
     def _warn_open_positions(self) -> None:
         """On shutdown, log any positions that remain open (unmanaged on exchange)."""

@@ -27,6 +27,11 @@ class Signal:
     reason: str
     regime: str = "unknown"  # "trending_up", "trending_down", "ranging", "high_volatility"
     atr: float = 0.0  # Current ATR value for the signal
+    # Adaptive learning fields (populated by AdaptiveQuantStrategy)
+    features_active: Dict[str, bool] = field(default_factory=dict)
+    indicator_snapshot: Dict[str, float] = field(default_factory=dict)
+    htf_trend: str = "unknown"
+    btc_trend: str = "unknown"
 
 
 # ---------------------------------------------------------------------------
@@ -939,6 +944,255 @@ class StatisticalArbitrageStrategy(Strategy):
 
 
 # ---------------------------------------------------------------------------
+# Scalp-Momentum Strategy (designed for small accounts $100-$1000)
+# ---------------------------------------------------------------------------
+
+class ScalpMomentumStrategy(Strategy):
+    """
+    Fast scalp-momentum strategy optimised for small accounts.
+
+    Key differences from TrendMomentumStrategy:
+      - Faster indicators: EMA 9/21, MACD 8/17/9, RSI 7
+      - Lower confidence threshold → more trades than trend_momentum
+      - Wide TP (3.0× ATR) to ensure per-trade edge > fee drag
+      - SL at 1.5× ATR — not too tight (avoids noise stop-outs)
+      - Works in trending AND ranging markets (only skips high_volatility)
+      - 2-bar cooldown to avoid overtrading
+      - Fewer required confirmations = higher signal frequency
+      - Still maintains positive expectancy via:
+        * R:R ≥ 1.5 minimum (most trades ~1:2)
+        * Volume + OBV confirmation bonuses
+        * Regime-aware penalties
+
+    Target: Per-trade edge >1% to clear 0.52% round-trip Kraken fees.
+    Expected: ~1 trade/day across 5 pairs.
+    """
+
+    def __init__(
+        self,
+        ema_fast: int = 9,
+        ema_slow: int = 21,
+        rsi_period: int = 7,
+        atr_period: int = 10,
+        atr_sl_mult: float = 1.5,
+        atr_tp_mult: float = 3.0,
+        adx_threshold: float = 15.0,
+        rsi_overbought: float = 75.0,
+        rsi_oversold: float = 25.0,
+        macd_fast: int = 8,
+        macd_slow: int = 17,
+        macd_signal: int = 9,
+        cooldown_bars: int = 2,
+        min_confidence: float = 0.38,
+        min_rr: float = 1.5,
+    ):
+        self.ema_fast = ema_fast
+        self.ema_slow = ema_slow
+        self.rsi_period = rsi_period
+        self.atr_period = atr_period
+        self.atr_sl_mult = atr_sl_mult
+        self.atr_tp_mult = atr_tp_mult
+        self.adx_threshold = adx_threshold
+        self.rsi_overbought = rsi_overbought
+        self.rsi_oversold = rsi_oversold
+        self.macd_fast = macd_fast
+        self.macd_slow = macd_slow
+        self.macd_signal = macd_signal
+        self.cooldown_bars = cooldown_bars
+        self.min_confidence = min_confidence
+        self.min_rr = min_rr
+        self._last_signal: Dict[str, Dict] = {}
+
+    def generate_signals(self, data: pd.DataFrame, symbol: str) -> List[Signal]:
+        min_rows = max(self.ema_slow, self.macd_slow, self.atr_period) * 2 + 5
+        if len(data) < min_rows:
+            return []
+
+        close = pd.to_numeric(data["close"], errors="coerce")
+        if close.isna().sum() > len(close) * 0.3:
+            return []
+
+        # --- Indicators (fast settings) ---
+        ema_f = calc_ema(close, self.ema_fast)
+        ema_s = calc_ema(close, self.ema_slow)
+        rsi = calc_rsi(close, self.rsi_period)
+        atr = calc_atr(data, self.atr_period)
+        macd_line, signal_line, macd_hist = calc_macd(
+            close, self.macd_fast, self.macd_slow, self.macd_signal
+        )
+        vol_sma = calc_volume_sma(data, 10)
+        obv = calc_obv(data)
+        obv_sma = calc_sma(obv, 10)
+
+        regime = detect_regime(data)
+
+        def _s(s, idx=-1, default=0.0):
+            try:
+                v = float(s.iloc[idx])
+                return default if np.isnan(v) else v
+            except Exception:
+                return default
+
+        c = {
+            "price": _s(close),
+            "ema_f": _s(ema_f), "ema_s": _s(ema_s),
+            "prev_ema_f": _s(ema_f, -2), "prev_ema_s": _s(ema_s, -2),
+            "rsi": _s(rsi),
+            "atr": _s(atr),
+            "macd": _s(macd_line), "macd_sig": _s(signal_line),
+            "hist": _s(macd_hist), "hist_prev": _s(macd_hist, -2),
+            "vol": _s(pd.to_numeric(data["volume"], errors="coerce")),
+            "vol_sma": _s(vol_sma),
+            "obv": _s(obv), "obv_sma": _s(obv_sma),
+        }
+
+        if c["atr"] <= 0 or c["price"] <= 0:
+            return []
+
+        # Skip only high-volatility (crashes) — trade everything else
+        if regime == "high_volatility":
+            return []
+
+        signals: List[Signal] = []
+
+        # --- EMA events ---
+        bull_cross = c["prev_ema_f"] <= c["prev_ema_s"] and c["ema_f"] > c["ema_s"]
+        bear_cross = c["prev_ema_f"] >= c["prev_ema_s"] and c["ema_f"] < c["ema_s"]
+        bull_aligned = c["ema_f"] > c["ema_s"]
+        bear_aligned = c["ema_f"] < c["ema_s"]
+
+        # ===================== BUY =====================
+        buy_conf = 0.0
+        buy_reasons = []
+
+        if bull_cross:
+            buy_conf += 0.25
+            buy_reasons.append("EMA9/21 bull cross")
+        elif bull_aligned:
+            buy_conf += 0.10
+            buy_reasons.append("EMA bullish")
+
+        # MACD above signal
+        if c["macd"] > c["macd_sig"]:
+            buy_conf += 0.15
+            buy_reasons.append("MACD bullish")
+            if c["hist"] > c["hist_prev"]:
+                buy_conf += 0.05
+                buy_reasons.append("Hist rising")
+
+        # RSI not overbought
+        if c["rsi"] < self.rsi_overbought:
+            buy_conf += 0.05
+            if c["rsi"] < 40:
+                buy_conf += 0.10
+                buy_reasons.append(f"RSI low ({c['rsi']:.0f})")
+        else:
+            buy_conf -= 0.15
+            buy_reasons.append("RSI overbought")
+
+        # Volume above average (bonus, not required)
+        if c["vol_sma"] > 0 and c["vol"] > c["vol_sma"]:
+            buy_conf += 0.05
+            buy_reasons.append("Vol+")
+
+        # OBV rising
+        if c["obv"] > c["obv_sma"] and c["obv_sma"] != 0:
+            buy_conf += 0.05
+            buy_reasons.append("OBV+")
+
+        # Regime bonus
+        if regime == "trending_up":
+            buy_conf *= 1.15
+        elif regime == "trending_down":
+            buy_conf *= 0.6
+
+        if buy_conf >= self.min_confidence:
+            sl = c["price"] - self.atr_sl_mult * c["atr"]
+            tp = c["price"] + self.atr_tp_mult * c["atr"]
+            risk = c["price"] - sl
+            reward = tp - c["price"]
+            if risk > 0 and (reward / risk) >= self.min_rr:
+                signals.append(Signal(
+                    symbol=symbol, action="BUY",
+                    confidence=min(buy_conf, 1.0),
+                    entry_price=c["price"], stop_loss=sl, take_profit=tp,
+                    reason=" | ".join(buy_reasons), regime=regime, atr=c["atr"],
+                ))
+
+        # ===================== SELL =====================
+        sell_conf = 0.0
+        sell_reasons = []
+
+        if bear_cross:
+            sell_conf += 0.25
+            sell_reasons.append("EMA9/21 bear cross")
+        elif bear_aligned:
+            sell_conf += 0.10
+            sell_reasons.append("EMA bearish")
+
+        if c["macd"] < c["macd_sig"]:
+            sell_conf += 0.15
+            sell_reasons.append("MACD bearish")
+            if c["hist"] < c["hist_prev"]:
+                sell_conf += 0.05
+                sell_reasons.append("Hist falling")
+
+        if c["rsi"] > self.rsi_oversold:
+            sell_conf += 0.05
+            if c["rsi"] > 60:
+                sell_conf += 0.10
+                sell_reasons.append(f"RSI high ({c['rsi']:.0f})")
+        else:
+            sell_conf -= 0.15
+            sell_reasons.append("RSI oversold")
+
+        if c["vol_sma"] > 0 and c["vol"] > c["vol_sma"]:
+            sell_conf += 0.05
+            sell_reasons.append("Vol+")
+
+        if c["obv"] < c["obv_sma"] and c["obv_sma"] != 0:
+            sell_conf += 0.05
+            sell_reasons.append("OBV-")
+
+        if regime == "trending_down":
+            sell_conf *= 1.15
+        elif regime == "trending_up":
+            sell_conf *= 0.6
+
+        if sell_conf >= self.min_confidence:
+            sl = c["price"] + self.atr_sl_mult * c["atr"]
+            tp = c["price"] - self.atr_tp_mult * c["atr"]
+            risk = sl - c["price"]
+            reward = c["price"] - tp
+            if risk > 0 and (reward / risk) >= self.min_rr:
+                signals.append(Signal(
+                    symbol=symbol, action="SELL",
+                    confidence=min(sell_conf, 1.0),
+                    entry_price=c["price"], stop_loss=sl, take_profit=tp,
+                    reason=" | ".join(sell_reasons), regime=regime, atr=c["atr"],
+                ))
+
+        # Cooldown filter
+        filtered: List[Signal] = []
+        for sig in signals:
+            last = self._last_signal.get(sig.symbol, {}).get(sig.action)
+            if last is not None and last < self.cooldown_bars:
+                continue
+            filtered.append(sig)
+
+        if symbol not in self._last_signal:
+            self._last_signal[symbol] = {}
+        emitted = {s.action for s in filtered}
+        for sig in filtered:
+            self._last_signal[symbol][sig.action] = 0
+        for action in list(self._last_signal.get(symbol, {})):
+            if action not in emitted:
+                self._last_signal[symbol][action] += 1
+
+        return filtered
+
+
+# ---------------------------------------------------------------------------
 # Legacy Grid adapter (kept for backwards compatibility but adds guards)
 # ---------------------------------------------------------------------------
 
@@ -1025,6 +1279,539 @@ class GridTradingStrategy(Strategy):
 
 
 # ---------------------------------------------------------------------------
+# BTC trend detector (used by AdaptiveQuantStrategy for alt filtering)
+# ---------------------------------------------------------------------------
+
+def detect_btc_trend(df: pd.DataFrame) -> str:
+    """Classify BTC's current trend from OHLCV data.
+
+    Returns:
+        "crash"   – BTC dropped >3 % in 10 bars (immediate danger)
+        "bearish" – EMA-20 < EMA-50 (downtrend)
+        "bullish" – EMA-20 > EMA-50 (uptrend)
+        "neutral" – insufficient data
+    """
+    if df is None or len(df) < 55:
+        return "neutral"
+    try:
+        close = pd.to_numeric(df["close"], errors="coerce")
+        if close.isna().sum() > len(close) * 0.3:
+            return "neutral"
+        # Crash detection: >3 % drop in last 10 bars
+        if len(close) >= 10:
+            roc = (float(close.iloc[-1]) - float(close.iloc[-10])) / float(close.iloc[-10])
+            if roc < -0.03:
+                return "crash"
+        ema20 = calc_ema(close, 20)
+        ema50 = calc_ema(close, 50)
+        if float(ema20.iloc[-1]) > float(ema50.iloc[-1]):
+            return "bullish"
+        return "bearish"
+    except Exception:
+        return "neutral"
+
+
+def detect_htf_trend(df: pd.DataFrame) -> str:
+    """Classify higher-timeframe trend from OHLCV data.
+
+    Uses the existing detect_regime() but maps to a simpler
+    bullish / bearish / neutral vocabulary.
+    """
+    if df is None or len(df) < 55:
+        return "neutral"
+    regime = detect_regime(df)
+    if regime == "trending_up":
+        return "bullish"
+    elif regime in ("trending_down", "high_volatility"):
+        return "bearish"
+    return "neutral"
+
+
+# ---------------------------------------------------------------------------
+# Adaptive Quant Strategy (the "personal quant" – learns from history)
+# ---------------------------------------------------------------------------
+
+class AdaptiveQuantStrategy(Strategy):
+    """
+    Adaptive multi-factor quant strategy that learns from trading history.
+
+    Key innovations over TrendMomentumStrategy:
+      1. Learnable feature weights — adjusted based on actual trade outcomes
+         via the TradeJournal.  Features that predict wins get higher weights
+         over time; poor features get dampened.
+      2. Multi-timeframe confirmation — checks higher-TF trend before entry.
+         Goes long on 5 m only when 1 h is bullish or neutral.
+      3. BTC correlation filter — when BTC is crashing, skip all new alt longs.
+         When BTC is bearish, reduce alt-long confidence.
+      4. Dynamic confidence thresholds — per-pair, per-regime thresholds
+         that adapt based on accumulated trade history.
+      5. Wider take-profit (3.5 × ATR) with trailing stops to let winners run.
+      6. All 12 original indicators PLUS higher-TF and BTC context.
+
+    The strategy is fully backward-compatible: without a TradeJournal or
+    multi-TF context it behaves like an improved TrendMomentumStrategy.
+    """
+
+    def __init__(
+        self,
+        ema_fast: int = 20,
+        ema_slow: int = 50,
+        rsi_period: int = 14,
+        atr_period: int = 14,
+        atr_sl_mult: float = 2.0,
+        atr_tp_mult: float = 3.0,      # match trend_momentum; trailing stop lets winners run
+        adx_threshold: float = 20.0,
+        rsi_overbought: float = 70.0,
+        rsi_oversold: float = 30.0,
+        volume_mult: float = 1.0,
+        macd_fast: int = 12,
+        macd_slow: int = 26,
+        macd_signal: int = 9,
+        cooldown_bars: int = 3,
+        min_confidence: float = 0.45,
+    ):
+        self.ema_fast = ema_fast
+        self.ema_slow = ema_slow
+        self.rsi_period = rsi_period
+        self.atr_period = atr_period
+        self.atr_sl_mult = atr_sl_mult
+        self.atr_tp_mult = atr_tp_mult
+        self.adx_threshold = adx_threshold
+        self.rsi_overbought = rsi_overbought
+        self.rsi_oversold = rsi_oversold
+        self.volume_mult = volume_mult
+        self.macd_fast = macd_fast
+        self.macd_slow = macd_slow
+        self.macd_signal = macd_signal
+        self.cooldown_bars = cooldown_bars
+        self.min_confidence = min_confidence
+        self._last_signal: Dict[str, Dict] = {}
+
+        # --- Adaptive context (set by trading bot each cycle) ---
+        self._htf_data: Dict[str, pd.DataFrame] = {}   # symbol -> 1h DataFrame
+        self._btc_data: Optional[pd.DataFrame] = None   # BTC primary-TF data
+        self._trade_journal = None                       # TradeJournal instance
+        self._feature_weights: Dict[str, float] = {}    # learned weights
+
+    def set_context(
+        self,
+        htf_data: Optional[Dict[str, pd.DataFrame]] = None,
+        btc_data: Optional[pd.DataFrame] = None,
+        trade_journal=None,
+    ) -> None:
+        """Set multi-timeframe / adaptive context before signal generation."""
+        if htf_data is not None:
+            self._htf_data = htf_data
+        if btc_data is not None:
+            self._btc_data = btc_data
+        if trade_journal is not None:
+            self._trade_journal = trade_journal
+            self._feature_weights = dict(trade_journal.feature_weights)
+
+    def _w(self, feature: str) -> float:
+        """Get learned weight for a feature (defaults to 1.0)."""
+        return self._feature_weights.get(feature, 1.0)
+
+    @property
+    def _cold_start(self) -> bool:
+        """True when we don't have enough trade history to trust HTF/BTC filters.
+        In cold-start mode, skip multiplicative penalties since they destroy
+        signal quality on insufficient data. Additive bonuses still apply."""
+        if self._trade_journal is None:
+            return True
+        return len(self._trade_journal.completed_trades) < 30
+
+    def generate_signals(self, data: pd.DataFrame, symbol: str) -> List[Signal]:
+        min_rows = max(self.ema_slow, 26, self.atr_period) * 2 + 10
+        if len(data) < min_rows:
+            return []
+
+        close = pd.to_numeric(data["close"], errors="coerce")
+        if close.isna().sum() > len(close) * 0.3:
+            return []
+
+        # ---- Core indicators (same as TrendMomentum) ----
+        ema_f = calc_ema(close, self.ema_fast)
+        ema_s = calc_ema(close, self.ema_slow)
+        rsi = calc_rsi(close, self.rsi_period)
+        atr = calc_atr(data, self.atr_period)
+        adx = calc_adx(data, self.atr_period)
+        macd_line, signal_line, macd_hist = calc_macd(
+            close, self.macd_fast, self.macd_slow, self.macd_signal,
+        )
+        vol_sma = calc_volume_sma(data, 20)
+        vwap = calc_vwap(data)
+        obv = calc_obv(data)
+        obv_sma = calc_sma(obv, 20)
+        bb_width = calc_bb_width(data, 20, 2.0)
+        plus_di, minus_di = calc_di(data, self.atr_period)
+        divergence = detect_rsi_divergence(close, rsi, lookback=self.rsi_period)
+        regime = detect_regime(data)
+
+        # ---- HTF & BTC context ----
+        htf_trend = "neutral"
+        if symbol in self._htf_data:
+            htf_trend = detect_htf_trend(self._htf_data[symbol])
+
+        btc_trend = "neutral"
+        is_btc = symbol.upper().startswith("XBT") or symbol.upper().startswith("BTC")
+        if is_btc:
+            btc_trend = "bullish"  # BTC doesn't filter itself
+        elif self._btc_data is not None:
+            btc_trend = detect_btc_trend(self._btc_data)
+
+        # ---- Snapshot current bar ----
+        def _safe(s, idx=-1, default=0.0):
+            try:
+                v = float(s.iloc[idx])
+                return default if np.isnan(v) else v
+            except Exception:
+                return default
+
+        cur = {
+            "price": _safe(close),
+            "ema_f": _safe(ema_f), "ema_s": _safe(ema_s),
+            "prev_ema_f": _safe(ema_f, -2), "prev_ema_s": _safe(ema_s, -2),
+            "rsi": _safe(rsi),
+            "atr": _safe(atr),
+            "adx": _safe(adx),
+            "plus_di": _safe(plus_di), "minus_di": _safe(minus_di),
+            "macd": _safe(macd_line), "macd_signal": _safe(signal_line),
+            "macd_hist": _safe(macd_hist),
+            "macd_hist_prev": _safe(macd_hist, -2),
+            "macd_hist_prev2": _safe(macd_hist, -3),
+            "volume": _safe(pd.to_numeric(data["volume"], errors="coerce")),
+            "vol_sma": _safe(vol_sma),
+            "vwap": _safe(vwap),
+            "obv": _safe(obv), "obv_sma": _safe(obv_sma),
+            "bb_width": _safe(bb_width),
+            "bb_width_prev": _safe(bb_width, -2),
+        }
+
+        if cur["atr"] <= 0 or cur["price"] <= 0:
+            return []
+
+        signals: List[Signal] = []
+
+        # ---- detect crossover events ----
+        ema_bull_cross = cur["prev_ema_f"] <= cur["prev_ema_s"] and cur["ema_f"] > cur["ema_s"]
+        ema_bear_cross = cur["prev_ema_f"] >= cur["prev_ema_s"] and cur["ema_f"] < cur["ema_s"]
+        ema_bull_aligned = cur["ema_f"] > cur["ema_s"]
+        ema_bear_aligned = cur["ema_f"] < cur["ema_s"]
+
+        bb_squeeze = cur["bb_width"] < cur["bb_width_prev"] and cur["bb_width"] > 0
+        macd_bull_fading = (
+            cur["macd_hist"] > 0
+            and cur["macd_hist"] < cur["macd_hist_prev"]
+            and cur["macd_hist_prev"] < cur["macd_hist_prev2"]
+        )
+
+        # =================================================================
+        # BUY scoring  (base values match TrendMomentum; _w() adapts them)
+        # =================================================================
+        buy_reasons: List[str] = []
+        buy_conf = 0.0
+        buy_features: Dict[str, bool] = {}
+
+        # 1) EMA crossover / alignment
+        if ema_bull_cross:
+            buy_conf += 0.20 * self._w("ema_cross")
+            buy_reasons.append("EMA bullish crossover")
+            buy_features["ema_cross"] = True
+        elif ema_bull_aligned:
+            buy_conf += 0.10 * self._w("ema_aligned")
+            buy_reasons.append("EMA bullish aligned")
+            buy_features["ema_aligned"] = True
+
+        # 2) MACD
+        if cur["macd"] > cur["macd_signal"] and cur["macd_hist"] > cur["macd_hist_prev"]:
+            buy_conf += 0.15 * self._w("macd_signal")
+            buy_reasons.append(f"MACD bullish (hist={cur['macd_hist']:.4f})")
+            buy_features["macd_signal"] = True
+            buy_features["macd_histogram"] = True
+        elif cur["macd"] > cur["macd_signal"]:
+            buy_conf += 0.05 * self._w("macd_signal")
+            buy_reasons.append("MACD bullish (weak)")
+            buy_features["macd_signal"] = True
+        elif macd_bull_fading:
+            buy_conf -= 0.05
+            buy_reasons.append("MACD momentum fading")
+
+        # 3) RSI
+        if cur["rsi"] < self.rsi_overbought:
+            buy_conf += 0.05
+            if cur["rsi"] < 40:
+                buy_conf += 0.10 * self._w("rsi_favorable")
+                buy_reasons.append(f"RSI favorable ({cur['rsi']:.1f})")
+                buy_features["rsi_favorable"] = True
+            else:
+                buy_reasons.append(f"RSI OK ({cur['rsi']:.1f})")
+        else:
+            buy_conf -= 0.10
+            buy_reasons.append(f"RSI overbought ({cur['rsi']:.1f})")
+
+        # 4) +DI > -DI
+        if cur["plus_di"] > cur["minus_di"]:
+            buy_conf += 0.10 * self._w("di_aligned")
+            buy_reasons.append(f"+DI>{-1}DI ({cur['plus_di']:.1f}/{cur['minus_di']:.1f})")
+            buy_features["di_aligned"] = True
+
+        # 5) ADX
+        if cur["adx"] > self.adx_threshold:
+            buy_conf += 0.10 * self._w("adx_strong")
+            buy_reasons.append(f"ADX strong ({cur['adx']:.1f})")
+            buy_features["adx_strong"] = True
+
+        # 6) Volume
+        if cur["vol_sma"] > 0 and cur["volume"] >= cur["vol_sma"] * self.volume_mult:
+            buy_conf += 0.05 * self._w("volume_confirmed")
+            buy_reasons.append("Volume confirmed")
+            buy_features["volume_confirmed"] = True
+
+        # 7) OBV
+        if cur["obv"] > cur["obv_sma"] and cur["obv_sma"] != 0:
+            buy_conf += 0.05 * self._w("obv_aligned")
+            buy_reasons.append("OBV rising")
+            buy_features["obv_aligned"] = True
+
+        # 8) VWAP
+        if cur["vwap"] > 0:
+            if cur["price"] <= cur["vwap"] * 1.002:
+                buy_conf += 0.05 * self._w("vwap_favorable")
+                buy_reasons.append("Price near/below VWAP")
+                buy_features["vwap_favorable"] = True
+            elif cur["price"] > cur["vwap"] * 1.01:
+                buy_conf -= 0.05
+                buy_reasons.append("Price above VWAP")
+
+        # 9) RSI divergence
+        if divergence == "bullish":
+            buy_conf += 0.15 * self._w("rsi_divergence")
+            buy_reasons.append("RSI bullish divergence")
+            buy_features["rsi_divergence"] = True
+
+        # 10) BB squeeze
+        if bb_squeeze and ema_bull_aligned:
+            buy_conf += 0.05 * self._w("bb_squeeze")
+            buy_reasons.append("BB squeeze + bullish")
+            buy_features["bb_squeeze"] = True
+
+        # 11) HTF alignment — only after cold-start (need history to trust)
+        if not self._cold_start:
+            if htf_trend == "bullish":
+                buy_conf += 0.12 * self._w("htf_aligned")
+                buy_reasons.append("1h trend bullish ▲")
+                buy_features["htf_aligned"] = True
+            elif htf_trend == "bearish":
+                buy_conf *= 0.80
+                buy_reasons.append("1h trend bearish ▼ (discount)")
+
+        # 12) BTC filter — only after cold-start
+        if not self._cold_start:
+            if btc_trend == "crash":
+                buy_conf *= 0.25
+                buy_reasons.append("BTC CRASH — heavy penalty")
+            elif btc_trend == "bearish" and not is_btc:
+                buy_conf *= 0.80
+                buy_reasons.append("BTC bearish (alt discount)")
+                buy_features["btc_favorable"] = False
+            elif btc_trend == "bullish":
+                buy_conf += 0.08 * self._w("btc_favorable")
+                buy_reasons.append("BTC bullish ▲")
+                buy_features["btc_favorable"] = True
+
+        # 13) Regime adjustment (matches trend_momentum's proven values)
+        if regime == "high_volatility":
+            buy_conf *= 0.35
+            buy_reasons.append("HIGH VOLATILITY penalty")
+        elif regime == "trending_down":
+            buy_conf *= 0.45
+            buy_reasons.append("Downtrend discount")
+        elif regime == "trending_up":
+            buy_conf *= 1.10
+            buy_reasons.append("Uptrend bonus")
+
+        # ---- Dynamic threshold ----
+        dynamic_min = self.min_confidence
+        if self._trade_journal is not None:
+            dynamic_min = self._trade_journal.get_dynamic_confidence_threshold(symbol, regime)
+
+        if buy_conf >= dynamic_min:
+            sl = cur["price"] - self.atr_sl_mult * cur["atr"]
+            tp = cur["price"] + self.atr_tp_mult * cur["atr"]
+            risk = cur["price"] - sl
+            reward = tp - cur["price"]
+            if risk > 0 and (reward / risk) >= 1.5:
+                signals.append(Signal(
+                    symbol=symbol,
+                    action="BUY",
+                    confidence=min(buy_conf, 1.0),
+                    entry_price=cur["price"],
+                    stop_loss=sl,
+                    take_profit=tp,
+                    reason=" | ".join(buy_reasons),
+                    regime=regime,
+                    atr=cur["atr"],
+                    features_active=buy_features,
+                    indicator_snapshot=cur,
+                    htf_trend=htf_trend,
+                    btc_trend=btc_trend,
+                ))
+
+        # =================================================================
+        # SELL scoring (mirror — base values match TrendMomentum)
+        # =================================================================
+        sell_reasons: List[str] = []
+        sell_conf = 0.0
+        sell_features: Dict[str, bool] = {}
+
+        if ema_bear_cross:
+            sell_conf += 0.20 * self._w("ema_cross")
+            sell_reasons.append("EMA bearish crossover")
+            sell_features["ema_cross"] = True
+        elif ema_bear_aligned:
+            sell_conf += 0.10 * self._w("ema_aligned")
+            sell_reasons.append("EMA bearish aligned")
+            sell_features["ema_aligned"] = True
+
+        if cur["macd"] < cur["macd_signal"] and cur["macd_hist"] < cur["macd_hist_prev"]:
+            sell_conf += 0.15 * self._w("macd_signal")
+            sell_reasons.append(f"MACD bearish (hist={cur['macd_hist']:.4f})")
+            sell_features["macd_signal"] = True
+            sell_features["macd_histogram"] = True
+        elif cur["macd"] < cur["macd_signal"]:
+            sell_conf += 0.05 * self._w("macd_signal")
+            sell_reasons.append("MACD bearish (weak)")
+            sell_features["macd_signal"] = True
+
+        if cur["rsi"] > self.rsi_oversold:
+            sell_conf += 0.05
+            if cur["rsi"] > 60:
+                sell_conf += 0.10 * self._w("rsi_favorable")
+                sell_reasons.append(f"RSI high ({cur['rsi']:.1f})")
+                sell_features["rsi_favorable"] = True
+            else:
+                sell_reasons.append(f"RSI OK ({cur['rsi']:.1f})")
+        else:
+            sell_conf -= 0.10
+            sell_reasons.append(f"RSI oversold ({cur['rsi']:.1f})")
+
+        if cur["minus_di"] > cur["plus_di"]:
+            sell_conf += 0.10 * self._w("di_aligned")
+            sell_reasons.append(f"-DI>+DI ({cur['minus_di']:.1f}/{cur['plus_di']:.1f})")
+            sell_features["di_aligned"] = True
+
+        if cur["adx"] > self.adx_threshold:
+            sell_conf += 0.10 * self._w("adx_strong")
+            sell_reasons.append(f"ADX strong ({cur['adx']:.1f})")
+            sell_features["adx_strong"] = True
+
+        if cur["vol_sma"] > 0 and cur["volume"] >= cur["vol_sma"] * self.volume_mult:
+            sell_conf += 0.05 * self._w("volume_confirmed")
+            sell_reasons.append("Volume confirmed")
+            sell_features["volume_confirmed"] = True
+
+        if cur["obv"] < cur["obv_sma"] and cur["obv_sma"] != 0:
+            sell_conf += 0.05 * self._w("obv_aligned")
+            sell_reasons.append("OBV falling")
+            sell_features["obv_aligned"] = True
+
+        if cur["vwap"] > 0:
+            if cur["price"] >= cur["vwap"] * 0.998:
+                sell_conf += 0.05 * self._w("vwap_favorable")
+                sell_reasons.append("Price near/above VWAP")
+                sell_features["vwap_favorable"] = True
+            elif cur["price"] < cur["vwap"] * 0.99:
+                sell_conf -= 0.05
+
+        if divergence == "bearish":
+            sell_conf += 0.15 * self._w("rsi_divergence")
+            sell_reasons.append("RSI bearish divergence")
+            sell_features["rsi_divergence"] = True
+
+        if bb_squeeze and ema_bear_aligned:
+            sell_conf += 0.05 * self._w("bb_squeeze")
+            sell_reasons.append("BB squeeze + bearish")
+            sell_features["bb_squeeze"] = True
+
+        # HTF — only after cold-start
+        if not self._cold_start:
+            if htf_trend == "bearish":
+                sell_conf += 0.12 * self._w("htf_aligned")
+                sell_reasons.append("1h trend bearish ▼")
+                sell_features["htf_aligned"] = True
+            elif htf_trend == "bullish":
+                sell_conf *= 0.80
+                sell_reasons.append("1h trend bullish ▲ (discount)")
+
+        # BTC — only after cold-start
+        if not self._cold_start:
+            if btc_trend == "crash":
+                sell_conf += 0.10
+                sell_reasons.append("BTC crashing (bonus for sell)")
+                sell_features["btc_favorable"] = True
+            elif btc_trend == "bullish" and not is_btc:
+                sell_conf *= 0.80
+                sell_reasons.append("BTC bullish (alt-sell discount)")
+            elif btc_trend == "bearish":
+                sell_conf += 0.08 * self._w("btc_favorable")
+                sell_reasons.append("BTC bearish ▼")
+                sell_features["btc_favorable"] = True
+
+        # Regime (matches trend_momentum's proven values)
+        if regime == "high_volatility":
+            sell_conf *= 0.35
+            sell_reasons.append("HIGH VOLATILITY penalty")
+        elif regime == "trending_up":
+            sell_conf *= 0.45
+            sell_reasons.append("Uptrend discount")
+        elif regime == "trending_down":
+            sell_conf *= 1.10
+            sell_reasons.append("Downtrend bonus")
+
+        if sell_conf >= dynamic_min:
+            sl = cur["price"] + self.atr_sl_mult * cur["atr"]
+            tp = cur["price"] - self.atr_tp_mult * cur["atr"]
+            risk = sl - cur["price"]
+            reward = cur["price"] - tp
+            if risk > 0 and (reward / risk) >= 1.5:
+                signals.append(Signal(
+                    symbol=symbol,
+                    action="SELL",
+                    confidence=min(sell_conf, 1.0),
+                    entry_price=cur["price"],
+                    stop_loss=sl,
+                    take_profit=tp,
+                    reason=" | ".join(sell_reasons),
+                    regime=regime,
+                    atr=cur["atr"],
+                    features_active=sell_features,
+                    indicator_snapshot=cur,
+                    htf_trend=htf_trend,
+                    btc_trend=btc_trend,
+                ))
+
+        # ---- Signal cooldown ----
+        filtered_signals: List[Signal] = []
+        for sig in signals:
+            last_bars = self._last_signal.get(sig.symbol, {}).get(sig.action)
+            if last_bars is not None and last_bars < self.cooldown_bars:
+                continue
+            filtered_signals.append(sig)
+
+        if symbol not in self._last_signal:
+            self._last_signal[symbol] = {}
+        emitted_actions = {s.action for s in filtered_signals}
+        for sig in filtered_signals:
+            self._last_signal[symbol][sig.action] = 0
+        for action in list(self._last_signal.get(symbol, {})):
+            if action not in emitted_actions:
+                self._last_signal[symbol][action] += 1
+
+        return filtered_signals
+
+
+# ---------------------------------------------------------------------------
 # Factory
 # ---------------------------------------------------------------------------
 
@@ -1035,11 +1822,13 @@ def create_strategy(strategy_type: str, **kwargs) -> Strategy:
         "trend_momentum": TrendMomentumStrategy,
         "mean_reversion": MeanReversionStrategy,
         "arbitrage": StatisticalArbitrageStrategy,
+        "scalp": ScalpMomentumStrategy,
+        "adaptive": AdaptiveQuantStrategy,
     }
 
     if strategy_type not in strategies:
-        logger.warning(f"Unknown strategy: {strategy_type}, defaulting to trend_momentum")
-        strategy_type = "trend_momentum"
+        logger.warning(f"Unknown strategy: {strategy_type}, defaulting to adaptive")
+        strategy_type = "adaptive"
 
     # Filter kwargs to only those accepted by the target class
     sig = inspect.signature(strategies[strategy_type].__init__)
