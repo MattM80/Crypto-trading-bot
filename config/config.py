@@ -18,15 +18,15 @@ class RiskManagement:
     """Risk management parameters"""
     max_position_size: float = 0.02  # Max 2% of portfolio per trade
     max_drawdown: float = 0.10  # 10% maximum drawdown
-    stop_loss_percent: float = 0.02  # 2% stop loss
-    take_profit_percent: float = 0.05  # 5% take profit
+    stop_loss_percent: float = 0.015  # 1.5% stop loss (ATR will override when available)
+    take_profit_percent: float = 0.04  # 4% take profit (ATR will override when available)
     max_open_positions: int = 3  # Max concurrent positions
     position_scaling: bool = True  # Scale positions based on volatility
     
 @dataclass
 class TradingStrategy:
     """Trading strategy parameters"""
-    strategy_type: str = "grid"  # "grid", "mean_reversion", "arbitrage"
+    strategy_type: str = "trend_momentum"  # "trend_momentum", "grid", "mean_reversion", "arbitrage"
     symbols: List[str] = None
     timeframe: str = "5m"  # Timeframe: 1m, 5m, 15m, 1h
     

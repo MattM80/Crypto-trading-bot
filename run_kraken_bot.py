@@ -3,13 +3,23 @@ Run the trading bot with Kraken exchange.
 """
 import os
 import sys
+from pathlib import Path
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 from dotenv import load_dotenv
+from loguru import logger
 
 # Load .env from current directory explicitly
 env_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path=env_path)
+
+# Configure logging to file + console
+PROJECT_ROOT = Path(__file__).resolve().parent
+(PROJECT_ROOT / "logs").mkdir(parents=True, exist_ok=True)
+logger.remove()
+logger.add(str(PROJECT_ROOT / "logs" / "trading_bot.log"), rotation="500 MB", retention="10 days")
+logger.add(lambda msg: print(msg, end=""), colorize=True)
 
 from config.config import BotConfig, ExchangeConfig, RiskManagement, TradingStrategy
 from trading_bot import TradingBot
@@ -71,7 +81,7 @@ def main():
     config = BotConfig()
     config.exchange = ExchangeConfig(name="kraken", testnet=True)
 
-    strategy_type = (os.getenv("STRATEGY_TYPE", "grid") or "grid").strip().lower()
+    strategy_type = (os.getenv("STRATEGY_TYPE", "trend_momentum") or "trend_momentum").strip().lower()
     symbols = _csv_env("KRAKEN_SYMBOLS", "XRPUSD")
     timeframe = (os.getenv("TIMEFRAME", "5m") or "5m").strip()
     grid_levels = _int_env("GRID_LEVELS", 8)
@@ -87,11 +97,10 @@ def main():
     config.risk_management = RiskManagement(
         max_position_size=0.02,
         max_drawdown=0.10,
-        # Defaults tuned for more frequent exits.
-        # You can override these in .env with STOP_LOSS_PERCENT and TAKE_PROFIT_PERCENT.
-        stop_loss_percent=_float_env("STOP_LOSS_PERCENT", 0.01),
-        take_profit_percent=_float_env("TAKE_PROFIT_PERCENT", 0.01),
-        max_open_positions=_int_env("MAX_OPEN_POSITIONS", 2),
+        # Fallback %-based SL/TP; the strategy provides ATR-based levels which take priority.
+        stop_loss_percent=_float_env("STOP_LOSS_PERCENT", 0.015),
+        take_profit_percent=_float_env("TAKE_PROFIT_PERCENT", 0.04),
+        max_open_positions=_int_env("MAX_OPEN_POSITIONS", 3),
     )
     
     # Create bot with Kraken LIVE (Kraken has no sandbox for spot trading)

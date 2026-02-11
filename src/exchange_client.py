@@ -182,3 +182,52 @@ class ExchangeClient:
         except BinanceAPIException as e:
             logger.error(f"Error getting order status: {e}")
             return None
+
+    # ------------------------------------------------------------------
+    # Methods required by TradingBot (parity with KrakenClient interface)
+    # ------------------------------------------------------------------
+
+    def get_pair_assets(self, symbol: str) -> Tuple[Optional[str], Optional[str]]:
+        """Return (base_asset, quote_asset) for a Binance symbol.
+
+        e.g. 'BTCUSDT' -> ('BTC', 'USDT')
+        """
+        try:
+            info = self.client.get_symbol_info(symbol)
+            if info:
+                return info.get("baseAsset"), info.get("quoteAsset")
+        except Exception as e:
+            logger.warning(f"get_pair_assets({symbol}): {e}")
+        # Fallback heuristic for common quote assets
+        for quote in ("USDT", "USD", "BTC", "ETH", "BNB", "BUSD"):
+            if symbol.endswith(quote):
+                return symbol[: -len(quote)], quote
+        return None, None
+
+    def get_min_order_volume(self, symbol: str) -> Optional[float]:
+        """Return minimum order quantity for a Binance symbol."""
+        try:
+            info = self.client.get_symbol_info(symbol)
+            if info and "filters" in info:
+                for f in info["filters"]:
+                    if f.get("filterType") == "LOT_SIZE":
+                        return float(f.get("minQty", 0))
+        except Exception as e:
+            logger.warning(f"get_min_order_volume({symbol}): {e}")
+        return None
+
+    def query_orders(self, txids: List[str]) -> Dict[str, Dict]:
+        """Query orders by ID.  Binance uses integer orderIds, not string txids.
+
+        Best-effort: tries to parse each txid as an int and query.
+        Returns a dict keyed by the original txid string.
+        """
+        results: Dict[str, Dict] = {}
+        for txid in txids:
+            try:
+                oid = int(txid)
+                # We'd need the symbol — which we don't have here.
+                # This is a limitation; for now return empty.
+            except (ValueError, TypeError):
+                pass
+        return results

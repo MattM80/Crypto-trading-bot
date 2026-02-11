@@ -23,6 +23,7 @@ from strategies import create_strategy, Signal
 from risk_manager import RiskManager, Position
 from config.config import BotConfig, DEFAULT_CONFIG
 from kraken_client import KrakenClient
+from state_persistence import save_state, load_state
 
 class TradingBot:
     """Main bot engine"""
@@ -169,6 +170,14 @@ class TradingBot:
             max_drawdown=self.config.risk_management.max_drawdown,
             max_open_positions=_int_env("MAX_OPEN_POSITIONS", self.config.risk_management.max_open_positions),
             allow_multiple_positions_per_symbol=self.allow_multiple_positions_per_symbol,
+            # New risk controls
+            consecutive_loss_limit=_int_env("CONSECUTIVE_LOSS_LIMIT", 3),
+            cooldown_minutes=_int_env("COOLDOWN_MINUTES", 60),
+            trailing_stop_activation=_float_env("TRAILING_STOP_ACTIVATION", 0.5),
+            trailing_stop_callback=_float_env("TRAILING_STOP_CALLBACK", 0.4),
+            min_win_rate_last_n=_int_env("MIN_WIN_RATE_LAST_N", 10),
+            min_win_rate_threshold=_float_env("MIN_WIN_RATE_THRESHOLD", 0.25),
+            max_risk_per_trade_pct=_float_env("MAX_RISK_PER_TRADE_PCT", 0.01),
         )
 
         # Cache risk bracket percents for recomputing TP/SL on real fills.
@@ -188,6 +197,11 @@ class TradingBot:
             strategy_params = {
                 "grid_levels": self.config.trading_strategy.grid_levels,
                 "range_percent": self.config.trading_strategy.grid_range_percent,
+                "stop_loss_percent": self.config.risk_management.stop_loss_percent,
+                "take_profit_percent": self.config.risk_management.take_profit_percent,
+            }
+        elif self.config.trading_strategy.strategy_type == "trend_momentum":
+            strategy_params = {
                 "stop_loss_percent": self.config.risk_management.stop_loss_percent,
                 "take_profit_percent": self.config.risk_management.take_profit_percent,
             }
@@ -219,7 +233,16 @@ class TradingBot:
 
         # Kraken equity (mark-to-market) baseline for session-level deltas
         self._kraken_equity_baseline: Optional[float] = None
-        
+
+        # --- Restore persisted state (positions, trade history, counters) ---
+        try:
+            saved = load_state(self.risk_manager)
+            if saved:
+                self._kraken_equity_baseline = saved.get("kraken_equity_baseline")
+                logger.info("Previous bot state restored successfully.")
+        except Exception as e:
+            logger.warning(f"Could not restore previous state: {e}")
+
         logger.info(f"Bot initialized with {self.config.trading_strategy.strategy_type} strategy")
 
     def _compute_kraken_equity_mtm(self, balances: Dict[str, float]) -> Optional[Dict[str, float]]:
@@ -311,23 +334,46 @@ class TradingBot:
             return True
 
     def _recalculate_brackets(self, position: Position) -> None:
-        """Recompute stop_loss/take_profit around position.entry_price using configured percents."""
+        """Recompute SL/TP around the real fill price.
+
+        If the position carries ATR from the original signal, use ATR-based
+        dynamic levels (which are far superior to flat %).  Fall back to
+        configured stop_loss_percent / take_profit_percent only when ATR
+        is unavailable.
+        """
         try:
             entry = float(position.entry_price)
-            slp = float(self.stop_loss_percent)
-            tpp = float(self.take_profit_percent)
         except Exception:
             return
-
         if entry <= 0:
             return
 
-        if (position.side or "").upper() == "BUY":
-            position.stop_loss = entry * (1.0 - slp)
-            position.take_profit = entry * (1.0 + tpp)
+        atr = getattr(position, "atr_at_entry", 0.0) or 0.0
+        side = (position.side or "").upper()
+
+        if atr > 0:
+            # ATR-based brackets (matches strategy logic: 2x ATR SL, 3x ATR TP)
+            sl_mult = float(os.getenv("ATR_SL_MULT", "2.0"))
+            tp_mult = float(os.getenv("ATR_TP_MULT", "3.0"))
+            if side == "BUY":
+                position.stop_loss = entry - sl_mult * atr
+                position.take_profit = entry + tp_mult * atr
+            else:
+                position.stop_loss = entry + sl_mult * atr
+                position.take_profit = entry - tp_mult * atr
         else:
-            position.stop_loss = entry * (1.0 + slp)
-            position.take_profit = entry * (1.0 - tpp)
+            # Flat-% fallback
+            try:
+                slp = float(self.stop_loss_percent)
+                tpp = float(self.take_profit_percent)
+            except Exception:
+                return
+            if side == "BUY":
+                position.stop_loss = entry * (1.0 - slp)
+                position.take_profit = entry * (1.0 + tpp)
+            else:
+                position.stop_loss = entry * (1.0 + slp)
+                position.take_profit = entry * (1.0 - tpp)
 
     def _compute_fill_price(self, order_info: Dict, fallback_price: float) -> float:
         """Best-effort fill price computation from Kraken QueryOrders fields."""
@@ -345,6 +391,83 @@ class TradingBot:
         except Exception:
             pass
         return float(fallback_price)
+
+    def _reconcile_positions_on_startup(self) -> None:
+        """Check restored positions against Kraken on boot.
+
+        For any restored position whose entry/exit order is still tracked,
+        query Kraken to see if it filled or was cancelled while the bot was
+        down.  This prevents orphaned local state.
+        """
+        if not self.use_kraken:
+            return
+
+        active_statuses = {"OPEN", "PENDING_ENTRY", "PENDING_EXIT"}
+        txids_to_query: List[str] = []
+        for positions in self.risk_manager.positions.values():
+            for p in positions:
+                if p.status not in active_statuses:
+                    continue
+                if p.entry_order_id:
+                    txids_to_query.append(p.entry_order_id)
+                if getattr(p, "exit_order_id", None):
+                    txids_to_query.append(p.exit_order_id)
+
+        if not txids_to_query:
+            logger.info("Startup reconciliation: no active positions to check.")
+            return
+
+        logger.info(f"Startup reconciliation: querying {len(txids_to_query)} order(s) on Kraken...")
+        orders = self.exchange.query_orders(list(dict.fromkeys(txids_to_query)))
+        if not orders:
+            logger.warning("Startup reconciliation: could not query orders (API error or empty).")
+            return
+
+        for symbol, positions in list(self.risk_manager.positions.items()):
+            for p in list(positions):
+                if p.status not in active_statuses:
+                    continue
+
+                # Check pending entries
+                if p.status == "PENDING_ENTRY" and p.entry_order_id:
+                    info = orders.get(p.entry_order_id)
+                    if not info:
+                        continue
+                    kraken_status = str(info.get("status", "")).lower()
+                    if kraken_status == "closed":
+                        # Order filled while bot was down
+                        try:
+                            vol_exec = float(info.get("vol_exec") or 0)
+                            if vol_exec > 0:
+                                p.quantity = vol_exec
+                        except Exception:
+                            pass
+                        p.entry_price = self._compute_fill_price(info, p.entry_price)
+                        self._recalculate_brackets(p)
+                        p.status = "OPEN"
+                        logger.info(f"Reconciled: {p.symbol} entry filled @ {p.entry_price:.2f}")
+                    elif kraken_status in ("canceled", "cancelled", "expired"):
+                        p.status = "CLOSED"
+                        p.exit_reason = f"Order {kraken_status} while bot was offline"
+                        logger.warning(f"Reconciled: {p.symbol} entry order was {kraken_status}")
+
+                # Check pending exits
+                if p.status == "PENDING_EXIT" and getattr(p, "exit_order_id", None):
+                    info = orders.get(p.exit_order_id)
+                    if not info:
+                        continue
+                    kraken_status = str(info.get("status", "")).lower()
+                    if kraken_status == "closed":
+                        exit_price = self._compute_fill_price(info, p.entry_price)
+                        self.risk_manager.close_position(symbol, exit_price, "Exit filled while offline", position_id=p.id)
+                        logger.info(f"Reconciled: {p.symbol} exit filled @ {exit_price:.2f}")
+                    elif kraken_status in ("canceled", "cancelled", "expired"):
+                        # Exit order failed — position is still open, need to re-manage
+                        p.status = "OPEN"
+                        p.exit_order_id = None
+                        logger.warning(f"Reconciled: {p.symbol} exit order was {kraken_status}, reverting to OPEN")
+
+        logger.info("Startup reconciliation complete.")
 
     def _sync_positions_from_kraken_orders(self) -> None:
         """For Kraken live trading: update local position statuses based on real order state."""
@@ -620,7 +743,7 @@ class TradingBot:
                 klines = self.exchange.get_klines(
                     symbol=symbol,
                     interval=self.config.trading_strategy.timeframe,
-                    limit=100
+                    limit=200
                 )
                 
                 if not klines:
@@ -696,12 +819,21 @@ class TradingBot:
             except Exception as e:
                 logger.warning(f"Could not fetch Kraken balances for sizing: {e}")
 
+        # Use signal's ATR-based stop-loss if available, else fall back to fixed %
+        if hasattr(signal, 'stop_loss') and signal.stop_loss > 0:
+            sizing_sl = signal.stop_loss
+        elif (signal.action or "").upper() == "BUY":
+            sizing_sl = entry_ref_price * (1.0 - float(self.stop_loss_percent))
+        else:
+            sizing_sl = entry_ref_price * (1.0 + float(self.stop_loss_percent))
+
+        signal_atr = getattr(signal, 'atr', 0.0) or 0.0
+
         position_size = self.risk_manager.calculate_position_size(
             entry_price=entry_ref_price,
-            stop_loss_price=(entry_ref_price * (1.0 - float(self.stop_loss_percent)))
-            if (signal.action or "").upper() == "BUY"
-            else (entry_ref_price * (1.0 + float(self.stop_loss_percent))),
+            stop_loss_price=sizing_sl,
             account_balance=live_quote_balance,
+            atr=signal_atr,
         )
         
         if position_size <= 0:
@@ -854,20 +986,36 @@ class TradingBot:
         except Exception:
             entry_txid = None
 
+        # Use ATR-based SL/TP from signal when available, else fall back to fixed %
+        if hasattr(signal, 'stop_loss') and signal.stop_loss > 0:
+            init_sl = signal.stop_loss
+        elif (signal.action or "").upper() == "BUY":
+            init_sl = entry_ref_price * (1.0 - float(self.stop_loss_percent))
+        else:
+            init_sl = entry_ref_price * (1.0 + float(self.stop_loss_percent))
+
+        if hasattr(signal, 'take_profit') and signal.take_profit > 0:
+            init_tp = signal.take_profit
+        elif (signal.action or "").upper() == "BUY":
+            init_tp = entry_ref_price * (1.0 + float(self.take_profit_percent))
+        else:
+            init_tp = entry_ref_price * (1.0 - float(self.take_profit_percent))
+
         position = Position(
             id=(entry_txid or f"local-{datetime.now().timestamp()}"),
             symbol=signal.symbol,
             entry_price=entry_ref_price,
             quantity=position_size,
-            stop_loss=entry_ref_price,
-            take_profit=entry_ref_price,
+            stop_loss=init_sl,
+            take_profit=init_tp,
             entry_time=datetime.now().isoformat(),
             side=signal.action,
             status=("PENDING_ENTRY" if (self.use_kraken and self.live_trading_enabled) else "OPEN"),
             entry_order_id=entry_txid,
+            atr_at_entry=signal_atr,
         )
-        # Initialize brackets around the chosen entry reference price.
-        self._recalculate_brackets(position)
+        # If using Kraken pending entry, brackets will be recalculated on fill.
+        # For non-Kraken, the signal-based SL/TP is already set above.
         self.risk_manager.record_position(position)
         
         if self.use_kraken and self.live_trading_enabled:
@@ -902,53 +1050,51 @@ class TradingBot:
                 if position.status != "OPEN":
                     continue
 
-                # --- TIME-BASED EXIT LOGIC (30m timeout, only if not at a loss) ---
+                # --- TRAILING STOP UPDATE ---
+                self.risk_manager.update_trailing_stop(position, current_price)
+
+                # --- TIME-BASED EXIT LOGIC (60m timeout, only if profitable) ---
                 try:
                     entry_time = datetime.fromisoformat(position.entry_time)
                 except Exception:
-                    entry_time = datetime.now()  # fallback, should not happen
+                    entry_time = datetime.now()
                 now = datetime.now()
-                timeout = timedelta(minutes=30)
+                timeout = timedelta(minutes=60)
                 if now - entry_time >= timeout:
-                    # For BUY: only close if current_price >= entry_price
-                    # For SELL: only close if current_price <= entry_price
                     if (
                         (position.side == "BUY" and current_price >= position.entry_price)
                         or (position.side == "SELL" and current_price <= position.entry_price)
                     ):
-                        reason = "Time-based exit (30m, no loss)"
+                        reason = "Time-based exit (60m, profitable)"
                         if self.use_kraken and self.live_trading_enabled:
                             self._place_exit_order(position, current_price, reason)
                         else:
                             self.risk_manager.close_position(symbol, current_price, reason, position_id=position.id)
-                        logger.info(f"Time-based exit for {symbol} after 30m at favorable price.")
-                        continue  # skip further checks for this position
+                        logger.info(f"Time-based exit for {symbol} after 60m at favorable price.")
+                        continue
+
+                # --- STOP-LOSS / TAKE-PROFIT / TRAILING STOP CHECK ---
+                def _do_exit(pos, price, reason):
+                    if self.use_kraken and self.live_trading_enabled:
+                        self._place_exit_order(pos, price, reason)
+                    else:
+                        self.risk_manager.close_position(symbol, price, reason, position_id=pos.id)
 
                 if position.side == "BUY":
                     if current_price <= position.stop_loss:
-                        if self.use_kraken and self.live_trading_enabled:
-                            self._place_exit_order(position, current_price, "Stop Loss")
-                        else:
-                            self.risk_manager.close_position(symbol, current_price, "Stop Loss", position_id=position.id)
-                        logger.warning(f"Stop loss triggered for {symbol}")
+                        exit_reason = "Trailing Stop" if position.trailing_stop_active else "Stop Loss"
+                        _do_exit(position, current_price, exit_reason)
+                        logger.warning(f"{exit_reason} triggered for {symbol} (SL={position.stop_loss:.2f})")
                     elif current_price >= position.take_profit:
-                        if self.use_kraken and self.live_trading_enabled:
-                            self._place_exit_order(position, current_price, "Take Profit")
-                        else:
-                            self.risk_manager.close_position(symbol, current_price, "Take Profit", position_id=position.id)
+                        _do_exit(position, current_price, "Take Profit")
                         logger.info(f"Take profit hit for {symbol}")
                 else:  # SELL
                     if current_price >= position.stop_loss:
-                        if self.use_kraken and self.live_trading_enabled:
-                            self._place_exit_order(position, current_price, "Stop Loss")
-                        else:
-                            self.risk_manager.close_position(symbol, current_price, "Stop Loss", position_id=position.id)
-                        logger.warning(f"Stop loss triggered for {symbol}")
+                        exit_reason = "Trailing Stop" if position.trailing_stop_active else "Stop Loss"
+                        _do_exit(position, current_price, exit_reason)
+                        logger.warning(f"{exit_reason} triggered for {symbol} (SL={position.stop_loss:.2f})")
                     elif current_price <= position.take_profit:
-                        if self.use_kraken and self.live_trading_enabled:
-                            self._place_exit_order(position, current_price, "Take Profit")
-                        else:
-                            self.risk_manager.close_position(symbol, current_price, "Take Profit", position_id=position.id)
+                        _do_exit(position, current_price, "Take Profit")
                         logger.info(f"Take profit hit for {symbol}")
     
     async def run_trading_loop(self, interval: int = 60) -> None:
@@ -960,6 +1106,13 @@ class TradingBot:
         """
         self.is_running = True
         logger.info(f"Starting trading bot (check interval: {interval}s)")
+
+        # --- Startup reconciliation: sync restored positions with exchange ---
+        if self.use_kraken and self.live_trading_enabled:
+            try:
+                self._reconcile_positions_on_startup()
+            except Exception as e:
+                logger.warning(f"Startup reconciliation failed: {e}")
         
         try:
             while self.is_running:
@@ -993,8 +1146,10 @@ class TradingBot:
 
                     signals = self.analyze_signals()
                     
-                    # Filter by confidence
-                    high_confidence_signals = [s for s in signals if s.confidence >= 0.7]
+                    # Filter by confidence (must match or exceed strategy's min_confidence;
+                    # strategies already gate at min_confidence, so 0.50 is a safety floor)
+                    min_conf = float(os.getenv("MIN_SIGNAL_CONFIDENCE", "0.50"))
+                    high_confidence_signals = [s for s in signals if s.confidence >= min_conf]
 
                     # Hard safety limit: only execute a small number of signals per cycle
                     if self.max_signals_per_cycle > 0:
@@ -1035,7 +1190,16 @@ class TradingBot:
                 
                 except Exception as e:
                     logger.error(f"Error in trading loop: {e}")
-                # ...existing code...
+
+                # Persist state after every cycle
+                try:
+                    save_state(
+                        self.risk_manager,
+                        extra={"kraken_equity_baseline": self._kraken_equity_baseline},
+                    )
+                except Exception as e:
+                    logger.warning(f"State save failed: {e}")
+
                 # Wait for next check
                 await asyncio.sleep(interval)
         
@@ -1044,8 +1208,44 @@ class TradingBot:
         
         finally:
             self.is_running = False
+            # Final state save before exit
+            try:
+                save_state(
+                    self.risk_manager,
+                    extra={"kraken_equity_baseline": self._kraken_equity_baseline},
+                )
+                logger.info("Final state saved.")
+            except Exception:
+                pass
+            self._warn_open_positions()
             self.log_final_stats()
     
+    def _warn_open_positions(self) -> None:
+        """On shutdown, log any positions that remain open (unmanaged on exchange)."""
+        active_statuses = {"OPEN", "PENDING_ENTRY", "PENDING_EXIT"}
+        open_positions = []
+        for symbol, positions in self.risk_manager.positions.items():
+            for p in positions:
+                if p.status in active_statuses:
+                    open_positions.append(p)
+
+        if not open_positions:
+            return
+
+        logger.warning("=" * 60)
+        logger.warning(f"WARNING: {len(open_positions)} POSITION(S) STILL OPEN AT SHUTDOWN")
+        logger.warning("These positions will NOT be managed while the bot is offline!")
+        logger.warning("Consider manually managing them on the exchange.")
+        for p in open_positions:
+            logger.warning(
+                f"  {p.side} {p.symbol} qty={p.quantity:.8f} entry={p.entry_price:.2f} "
+                f"SL={p.stop_loss:.2f} TP={p.take_profit:.2f} status={p.status}"
+            )
+        logger.warning(
+            "State has been saved. Positions will be restored on next bot start."
+        )
+        logger.warning("=" * 60)
+
     def log_final_stats(self) -> None:
         """Log final trading statistics"""
         stats = self.risk_manager.get_portfolio_stats()
@@ -1062,6 +1262,8 @@ class TradingBot:
         logger.info(f"Max Drawdown: {stats['max_drawdown']:.1%}")
         logger.info(f"Average Win: ${stats['avg_win']:.2f}")
         logger.info(f"Average Loss: ${stats['avg_loss']:.2f}")
+        logger.info(f"Profit Factor: {stats.get('profit_factor', 0):.2f}")
+        logger.info(f"Consecutive Losses: {stats.get('consecutive_losses', 0)}")
         logger.info("=" * 60)
     
     def stop(self) -> None:
@@ -1071,9 +1273,12 @@ class TradingBot:
 
 def main():
     """Run the trading bot"""
+    # Ensure logs directory exists
+    Path(PROJECT_ROOT / "logs").mkdir(parents=True, exist_ok=True)
+
     # Configure logging
     logger.remove()
-    logger.add("logs/trading_bot.log", rotation="500 MB", retention="10 days")
+    logger.add(str(PROJECT_ROOT / "logs" / "trading_bot.log"), rotation="500 MB", retention="10 days")
     logger.add(lambda msg: print(msg, end=""), colorize=True)
     
     # Create and run bot

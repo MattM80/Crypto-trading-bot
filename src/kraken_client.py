@@ -8,6 +8,7 @@ import time
 import hashlib
 import hmac
 import base64
+import threading
 import requests
 from pathlib import Path
 import urllib.parse
@@ -43,6 +44,14 @@ class KrakenClient:
         
         self.api_version = "0"
         self.session = requests.Session()
+
+        # Rate limiter: Kraken allows ~15 private API calls per rolling window.
+        # We use a simple counter that decays over time.
+        self._rate_lock = threading.Lock()
+        self._rate_counter: float = 0.0  # weighted call counter
+        self._rate_last_time: float = time.monotonic()
+        self._rate_max: float = 15.0     # max counter before we sleep
+        self._rate_decay_per_sec: float = 0.33  # counter decays ~1 per 3 sec
 
         # Cache for pair metadata (precision, min order, etc.)
         self._asset_pairs_cache: Optional[Dict] = None
@@ -213,6 +222,31 @@ class KrakenClient:
         if t == "l":
             return "limit"
         return "limit" if "limit" in t else "market"
+
+    def _rate_limit_wait(self, cost: float = 1.0) -> None:
+        """Block until we have enough rate-limit headroom for a private API call.
+
+        Uses a leaky-bucket model: the counter increments by ``cost`` per call
+        and decays by ``_rate_decay_per_sec`` every second.  If the counter
+        would exceed ``_rate_max``, we sleep until it decays enough.
+        """
+        with self._rate_lock:
+            now = time.monotonic()
+            elapsed = now - self._rate_last_time
+            self._rate_counter = max(0.0, self._rate_counter - elapsed * self._rate_decay_per_sec)
+            self._rate_last_time = now
+
+            if self._rate_counter + cost > self._rate_max:
+                wait = (self._rate_counter + cost - self._rate_max) / self._rate_decay_per_sec
+                logger.debug(f"Kraken rate limit: sleeping {wait:.1f}s")
+                time.sleep(wait)
+                # Recalculate after sleep
+                now2 = time.monotonic()
+                elapsed2 = now2 - self._rate_last_time
+                self._rate_counter = max(0.0, self._rate_counter - elapsed2 * self._rate_decay_per_sec)
+                self._rate_last_time = now2
+
+            self._rate_counter += cost
     
     def _request(
         self,
@@ -224,7 +258,11 @@ class KrakenClient:
         try:
             if params is None:
                 params = {}
-            
+
+            # Rate-limit private calls
+            if private:
+                self._rate_limit_wait()
+
             url = f"{self.base_url}/0/{endpoint}"
             headers = {}
             
