@@ -11,7 +11,9 @@ crash mid-write won't corrupt the file.
 """
 import json
 import os
+import stat
 import tempfile
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -130,7 +132,30 @@ def save_state(
         try:
             with os.fdopen(fd, "w") as f:
                 json.dump(state, f, indent=2, default=str)
-            os.replace(tmp_path, str(path))
+
+            # Try atomic replace with a few retries (Windows can lock files briefly)
+            replaced = False
+            for attempt in range(3):
+                try:
+                    if path.exists():
+                        try:
+                            os.chmod(path, stat.S_IWRITE)
+                        except OSError:
+                            pass
+                    os.replace(tmp_path, str(path))
+                    replaced = True
+                    break
+                except PermissionError:
+                    time.sleep(0.2 * (attempt + 1))
+
+            if not replaced:
+                # Fallback: write directly to target (non-atomic) if replace keeps failing
+                with open(path, "w") as f:
+                    json.dump(state, f, indent=2, default=str)
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
         except Exception:
             # Clean up temp file on failure
             try:

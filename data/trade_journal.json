@@ -1,0 +1,304 @@
+{
+  "saved_at": "2026-03-10T23:44:03.080578",
+  "feature_weights": {
+    "ema_cross": 1.0,
+    "ema_aligned": 1.0,
+    "macd_signal": 1.0,
+    "macd_histogram": 1.0,
+    "rsi_favorable": 1.0,
+    "adx_strong": 1.0,
+    "di_aligned": 1.0,
+    "volume_confirmed": 1.0,
+    "obv_aligned": 1.0,
+    "vwap_favorable": 1.0,
+    "bb_squeeze": 1.0,
+    "rsi_divergence": 1.0,
+    "htf_aligned": 1.0,
+    "btc_favorable": 1.0
+  },
+  "open_entries": {},
+  "completed_trades": [
+    {
+      "trade_id": "OP7RAN-Y7QZ4-GBJG3B",
+      "symbol": "XRPUSD",
+      "side": "BUY",
+      "entry_price": 1.39319,
+      "entry_time": "2026-02-12T07:25:05.087703",
+      "regime": "ranging",
+      "features_active": {},
+      "indicator_snapshot": {},
+      "htf_trend": "unknown",
+      "btc_trend": "unknown",
+      "exit_price": 1.385389999684591,
+      "exit_time": "2026-02-12T08:27:06.643362",
+      "pnl": -0.08301094000000149,
+      "pnl_percent": -0.5534420190211053,
+      "exit_reason": "Stop Loss",
+      "is_win": false
+    },
+    {
+      "trade_id": "O7GOJA-VYP32-XUGEBK",
+      "symbol": "XRPUSD",
+      "side": "BUY",
+      "entry_price": 1.39348,
+      "entry_time": "2026-02-12T07:33:12.662179",
+      "regime": "ranging",
+      "features_active": {},
+      "indicator_snapshot": {},
+      "htf_trend": "unknown",
+      "btc_trend": "unknown",
+      "exit_price": 1.385319999778455,
+      "exit_time": "2026-02-12T08:27:06.645219",
+      "pnl": -0.08794529000000105,
+      "pnl_percent": -0.5862977260608581,
+      "exit_reason": "Stop Loss",
+      "is_win": false
+    },
+    {
+      "trade_id": "OL43VE-JHPLU-RUT7MO",
+      "symbol": "XRPUSD",
+      "side": "BUY",
+      "entry_price": 1.36022,
+      "entry_time": "2026-02-12T23:31:59.149874",
+      "regime": "ranging",
+      "features_active": {},
+      "indicator_snapshot": {},
+      "htf_trend": "unknown",
+      "btc_trend": "unknown",
+      "exit_price": 1.3537700004436493,
+      "exit_time": "2026-02-13T00:59:16.218144",
+      "pnl": -0.07145901999999922,
+      "pnl_percent": -0.47638296019926857,
+      "exit_reason": "Stop Loss",
+      "is_win": false
+    },
+    {
+      "trade_id": "OI7UBA-4DTTA-ENVDNK",
+      "symbol": "XRPUSD",
+      "side": "BUY",
+      "entry_price": 1.41626,
+      "entry_time": "2026-02-19T22:06:11.252150",
+      "regime": "ranging",
+      "features_active": {},
+      "indicator_snapshot": {},
+      "htf_trend": "unknown",
+      "btc_trend": "unknown",
+      "exit_price": 1.4115100003520729,
+      "exit_time": "2026-02-19T22:53:03.956463",
+      "pnl": -0.05041446999999805,
+      "pnl_percent": -0.33609409361829007,
+      "exit_reason": "Stop Loss",
+      "is_win": false
+    },
+    {
+      "trade_id": "OXVNDO-ZI4UX-N6OLPH",
+      "symbol": "XRPUSD",
+      "side": "BUY",
+      "entry_price": 1.4167,
+      "entry_time": "2026-02-20T03:24:28.982852",
+      "regime": "ranging",
+      "features_active": {},
+      "indicator_snapshot": {},
+      "htf_trend": "unknown",
+      "btc_trend": "unknown",
+      "exit_price": 1.4267599996560631,
+      "exit_time": "2026-02-20T04:04:04.189361",
+      "pnl": 0.10621239000000111,
+      "pnl_percent": 0.7080683092933437,
+      "exit_reason": "Take Profit",
+      "is_win": true
+    },
+    {
+      "trade_id": "OF277J-VRVR3-ZLVQSY",
+      "symbol": "XRPUSD",
+      "side": "BUY",
+      "entry_price": 1.41645,
+      "entry_time": "2026-02-20T03:27:32.073910",
+      "regime": "ranging",
+      "features_active": {},
+      "indicator_snapshot": {},
+      "htf_trend": "unknown",
+      "btc_trend": "unknown",
+      "exit_price": 1.4266699995798149,
+      "exit_time": "2026-02-20T04:04:04.191163",
+      "pnl": 0.10822831000000109,
+      "pnl_percent": 0.7215220671476886,
+      "exit_reason": "Take Profit",
+      "is_win": true
+    },
+    {
+      "trade_id": "OWT7Z5-4KFO6-DTXLIK",
+      "symbol": "XRPUSD",
+      "side": "BUY",
+      "entry_price": 1.45802,
+      "entry_time": "2026-02-25T14:31:41.764312",
+      "regime": "ranging",
+      "features_active": {},
+      "indicator_snapshot": {},
+      "htf_trend": "unknown",
+      "btc_trend": "unknown",
+      "exit_price": 1.4662200001656116,
+      "exit_time": "2026-02-25T15:11:29.025096",
+      "pnl": 0.08446386000000174,
+      "pnl_percent": 0.5630962624649747,
+      "exit_reason": "Trailing Stop",
+      "is_win": true
+    },
+    {
+      "trade_id": "ODTNWA-HYHB5-AIWIVP",
+      "symbol": "XRPUSD",
+      "side": "BUY",
+      "entry_price": 1.35091,
+      "entry_time": "2026-03-08T17:05:37.290193",
+      "regime": "ranging",
+      "features_active": {},
+      "indicator_snapshot": {},
+      "htf_trend": "unknown",
+      "btc_trend": "unknown",
+      "exit_price": 1.3438999997553953,
+      "exit_time": "2026-03-08T18:00:33.159600",
+      "pnl": -0.0788357500000007,
+      "pnl_percent": -0.5255366547140188,
+      "exit_reason": "Stop Loss",
+      "is_win": false
+    },
+    {
+      "trade_id": "ODWRIT-EQMXG-ELPQBW",
+      "symbol": "XRPUSD",
+      "side": "BUY",
+      "entry_price": 1.34974,
+      "entry_time": "2026-03-08T17:06:41.012459",
+      "regime": "ranging",
+      "features_active": {},
+      "indicator_snapshot": {},
+      "htf_trend": "unknown",
+      "btc_trend": "unknown",
+      "exit_price": 1.3431899998476053,
+      "exit_time": "2026-03-08T18:01:34.679125",
+      "pnl": -0.0723472699999987,
+      "pnl_percent": -0.48232942732668005,
+      "exit_reason": "Stop Loss",
+      "is_win": false
+    },
+    {
+      "trade_id": "O2OSTC-YV2VS-WYEILH",
+      "symbol": "XRPUSD",
+      "side": "BUY",
+      "entry_price": 1.42078,
+      "entry_time": "2026-03-10T13:34:29.941334",
+      "regime": "ranging",
+      "features_active": {},
+      "indicator_snapshot": {},
+      "htf_trend": "unknown",
+      "btc_trend": "unknown",
+      "exit_price": 1.4093199998775476,
+      "exit_time": "2026-03-10T13:45:39.466114",
+      "pnl": -0.11953995999999924,
+      "pnl_percent": -0.7970101072576494,
+      "exit_reason": "Stop Loss",
+      "is_win": false
+    }
+  ],
+  "pair_stats": {
+    "XRPUSD": {
+      "wins": 3,
+      "losses": 7,
+      "total_pnl": -0.2646481399999945,
+      "avg_win": 0.09963485333333465,
+      "avg_loss": 0.08050752857142834
+    }
+  },
+  "regime_stats": {
+    "ranging": {
+      "wins": 3,
+      "losses": 7,
+      "total_pnl": -0.2646481399999945
+    }
+  },
+  "feature_outcomes": {
+    "ema_cross": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    },
+    "ema_aligned": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    },
+    "macd_signal": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    },
+    "macd_histogram": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    },
+    "rsi_favorable": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    },
+    "adx_strong": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    },
+    "di_aligned": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    },
+    "volume_confirmed": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    },
+    "obv_aligned": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    },
+    "vwap_favorable": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    },
+    "bb_squeeze": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    },
+    "rsi_divergence": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    },
+    "htf_aligned": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    },
+    "btc_favorable": {
+      "win_present": 0,
+      "win_absent": 3,
+      "loss_present": 0,
+      "loss_absent": 7
+    }
+  }
+}

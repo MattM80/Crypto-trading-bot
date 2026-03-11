@@ -16,7 +16,9 @@ Learning approach (online Bayesian-inspired):
 
 import json
 import os
+import stat
 import tempfile
+import time
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -336,7 +338,30 @@ class TradeJournal:
             try:
                 with os.fdopen(fd, "w") as f:
                     json.dump(state, f, indent=2, default=str)
-                os.replace(tmp_path, str(path))
+
+                # Try atomic replace with retries (Windows can lock files briefly)
+                replaced = False
+                for attempt in range(3):
+                    try:
+                        if path.exists():
+                            try:
+                                os.chmod(path, stat.S_IWRITE)
+                            except OSError:
+                                pass
+                        os.replace(tmp_path, str(path))
+                        replaced = True
+                        break
+                    except PermissionError:
+                        time.sleep(0.2 * (attempt + 1))
+
+                if not replaced:
+                    # Fallback: write directly to target (non-atomic) if replace keeps failing
+                    with open(path, "w") as f:
+                        json.dump(state, f, indent=2, default=str)
+                    try:
+                        os.unlink(tmp_path)
+                    except OSError:
+                        pass
             except Exception:
                 try:
                     os.unlink(tmp_path)
