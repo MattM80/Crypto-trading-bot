@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-03-11T18:07:26.544838",
+  "timeframe": "5m",
+  "days": 14,
+  "results": [
+    {
+      "total_trades": 0,
+      "verdict": "NO TRADES GENERATED",
+      "symbol": "SOLUSD"
+    },
+    {
+      "total_trades": 0,
+      "verdict": "NO TRADES GENERATED",
+      "symbol": "UNIUSD"
+    },
+    {
+      "total_trades": 0,
+      "verdict": "NO TRADES GENERATED",
+      "symbol": "ETHUSD"
+    },
+    {
+      "total_trades": 0,
+      "verdict": "NO TRADES GENERATED",
+      "symbol": "XLMUSD"
+    },
+    {
+      "total_trades": 0,
+      "verdict": "NO TRADES GENERATED",
+      "symbol": "ADAUSD"
+    },
+    {
+      "total_trades": 0,
+      "verdict": "NO TRADES GENERATED",
+      "symbol": "XRPUSD"
+    },
+    {
+      "total_trades": 0,
+      "verdict": "NO TRADES GENERATED",
+      "symbol": "AVAXUSD"
+    },
+    {
+      "total_trades": 0,
+      "verdict": "NO TRADES GENERATED",
+      "symbol": "NEARUSD"
+    }
+  ],
+  "profitable_symbols": []
+}

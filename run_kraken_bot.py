@@ -82,8 +82,12 @@ def main():
     config.exchange = ExchangeConfig(name="kraken", testnet=True)
 
     strategy_type = (os.getenv("STRATEGY_TYPE", "adaptive") or "adaptive").strip().lower()
-    symbols = _csv_env("KRAKEN_SYMBOLS", "XBTUSD,ETHUSD,XRPUSD,SOLUSD,DOGEUSD,ADAUSD,AVAXUSD,LINKUSD")
-    timeframe = (os.getenv("TIMEFRAME", "5m") or "5m").strip()
+    # Optimal symbols per edge scan (15m backtest, 30d):
+    # STRONG: SOLUSD (PF 6.92), UNIUSD (PF 2.82)
+    # MARGINAL: XLMUSD (PF 1.42), ETHUSD (PF 1.23)
+    # Reserve: XRPUSD, XBTUSD (positive EV but too few trades to confirm)
+    symbols = _csv_env("KRAKEN_SYMBOLS", "SOLUSD,UNIUSD,XLMUSD,ETHUSD,XRPUSD,XBTUSD")
+    timeframe = (os.getenv("TIMEFRAME", "15m") or "15m").strip()
     grid_levels = _int_env("GRID_LEVELS", 8)
     grid_range = _float_env("GRID_RANGE_PERCENT", 0.02)
 
@@ -95,12 +99,12 @@ def main():
         grid_range_percent=grid_range,
     )
     config.risk_management = RiskManagement(
-        max_position_size=0.02,
-        max_drawdown=0.10,
+        max_position_size=0.03,
+        max_drawdown=0.15,
         # Fallback %-based SL/TP; the strategy provides ATR-based levels which take priority.
         stop_loss_percent=_float_env("STOP_LOSS_PERCENT", 0.015),
-        take_profit_percent=_float_env("TAKE_PROFIT_PERCENT", 0.04),
-        max_open_positions=_int_env("MAX_OPEN_POSITIONS", 5),
+        take_profit_percent=_float_env("TAKE_PROFIT_PERCENT", 0.045),
+        max_open_positions=_int_env("MAX_OPEN_POSITIONS", 8),
     )
     
     # Create bot with Kraken LIVE (Kraken has no sandbox for spot trading)

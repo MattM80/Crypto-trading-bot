@@ -48,12 +48,17 @@ DEFAULT_FEATURE_WEIGHTS = {
     "rsi_divergence": 1.0,
     "htf_aligned": 1.0,
     "btc_favorable": 1.0,
+    "stoch_rsi": 1.0,
+    "roc_momentum": 1.0,
+    "keltner_signal": 1.0,
+    "momentum_burst": 1.0,
+    "pivot_level": 1.0,
 }
 
-LEARNING_RATE = 0.05          # Weight adjustment speed (0.01 slow … 0.10 fast)
-MIN_TRADES_FOR_LEARNING = 10  # Minimum completed trades before adjusting weights
-WEIGHT_FLOOR = 0.20           # Never let a weight go below this
-WEIGHT_CEILING = 3.0          # Never let a weight go above this
+LEARNING_RATE = 0.08          # Weight adjustment speed (faster learning)
+MIN_TRADES_FOR_LEARNING = 8   # Start learning sooner
+WEIGHT_FLOOR = 0.15           # Allow weaker dampening of bad features
+WEIGHT_CEILING = 3.5          # Allow stronger boosting of winning features
 
 
 class TradeJournal:
@@ -291,10 +296,11 @@ class TradeJournal:
     def get_dynamic_confidence_threshold(self, symbol: str, regime: str) -> float:
         """Dynamic confidence threshold based on pair + regime performance.
 
-        Well-performing pair/regime combos get a slightly lower threshold
+        Well-performing pair/regime combos get a lower threshold
         (take more trades).  Poor combos get a higher threshold (be picky).
+        Aggressive: lower base threshold to capture more opportunities.
         """
-        base = 0.45
+        base = 0.40
 
         pair_wr = self.get_pair_win_rate(symbol)
         regime_wr = self.get_regime_win_rate(regime)
@@ -302,17 +308,19 @@ class TradeJournal:
         adjustment = 0.0
         if pair_wr is not None:
             if pair_wr > 0.55:
-                adjustment -= 0.03
-            elif pair_wr < 0.35:
+                adjustment -= 0.05  # more aggressive for winning pairs
+            elif pair_wr > 0.45:
+                adjustment -= 0.02
+            elif pair_wr < 0.30:
                 adjustment += 0.05
 
         if regime_wr is not None:
             if regime_wr > 0.55:
-                adjustment -= 0.02
-            elif regime_wr < 0.35:
+                adjustment -= 0.03
+            elif regime_wr < 0.30:
                 adjustment += 0.03
 
-        return max(0.35, min(0.60, base + adjustment))
+        return max(0.30, min(0.55, base + adjustment))
 
     # ------------------------------------------------------------------
     # Persistence

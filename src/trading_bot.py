@@ -39,7 +39,7 @@ class TradingBot:
         self.config = config or DEFAULT_CONFIG
         self.use_kraken = use_kraken
         self.live_trading_enabled = True
-        self.max_signals_per_cycle = int(os.getenv("MAX_SIGNALS_PER_CYCLE", "2"))
+        self.max_signals_per_cycle = int(os.getenv("MAX_SIGNALS_PER_CYCLE", "4"))
 
         # Safety controls (env-configurable)
         self.allow_multiple_positions_per_symbol = os.getenv("ALLOW_MULTIPLE_POSITIONS_PER_SYMBOL", "").strip().lower() in {
@@ -133,16 +133,23 @@ class TradingBot:
                 testnet=self.config.exchange.testnet
             )
 
-        # More conservative defaults when live trading is enabled.
+        # Scalable notional caps — percentages of balance, not fixed dollar amounts.
+        # This ensures when you add more money, exposure scales proportionally.
         if self.use_kraken and self.live_trading_enabled:
-            self.max_notional_per_trade = _float_env("MAX_NOTIONAL_PER_TRADE", 10.0)
-            self.max_total_exposure = _float_env("MAX_TOTAL_EXPOSURE", 20.0)
-            self.daily_loss_limit = _float_env("DAILY_LOSS_LIMIT", 5.0)
+            self.max_notional_per_trade = _float_env("MAX_NOTIONAL_PER_TRADE", 0.0)  # 0 = use % of balance
+            self.max_total_exposure = _float_env("MAX_TOTAL_EXPOSURE", 0.0)  # 0 = use % of balance
+            self.daily_loss_limit = _float_env("DAILY_LOSS_LIMIT", 0.0)  # 0 = use % of balance
+            # Percentage-based caps (used when dollar caps are 0)
+            self.max_notional_pct_of_balance = _float_env("MAX_NOTIONAL_PCT", 0.20)  # 20% of balance per trade
+            self.max_exposure_pct_of_balance = _float_env("MAX_EXPOSURE_PCT", 0.70)  # 70% total exposure
+            self.daily_loss_pct_of_balance = _float_env("DAILY_LOSS_PCT", 0.05)  # 5% daily loss limit
         else:
-            # Disabled by default unless the user sets them.
             self.max_notional_per_trade = _float_env("MAX_NOTIONAL_PER_TRADE", 0.0)
             self.max_total_exposure = _float_env("MAX_TOTAL_EXPOSURE", 0.0)
             self.daily_loss_limit = _float_env("DAILY_LOSS_LIMIT", 0.0)
+            self.max_notional_pct_of_balance = _float_env("MAX_NOTIONAL_PCT", 0.20)
+            self.max_exposure_pct_of_balance = _float_env("MAX_EXPOSURE_PCT", 0.70)
+            self.daily_loss_pct_of_balance = _float_env("DAILY_LOSS_PCT", 0.05)
         
         # Determine a starting balance for risk sizing.
         # Note: this bot does NOT reconcile fills/balances with the exchange yet.
@@ -172,13 +179,13 @@ class TradingBot:
             max_open_positions=_int_env("MAX_OPEN_POSITIONS", self.config.risk_management.max_open_positions),
             allow_multiple_positions_per_symbol=self.allow_multiple_positions_per_symbol,
             # New risk controls
-            consecutive_loss_limit=_int_env("CONSECUTIVE_LOSS_LIMIT", 3),
-            cooldown_minutes=_int_env("COOLDOWN_MINUTES", 60),
-            trailing_stop_activation=_float_env("TRAILING_STOP_ACTIVATION", 0.5),
-            trailing_stop_callback=_float_env("TRAILING_STOP_CALLBACK", 0.4),
+            consecutive_loss_limit=_int_env("CONSECUTIVE_LOSS_LIMIT", 4),
+            cooldown_minutes=_int_env("COOLDOWN_MINUTES", 20),
+            trailing_stop_activation=_float_env("TRAILING_STOP_ACTIVATION", 0.35),
+            trailing_stop_callback=_float_env("TRAILING_STOP_CALLBACK", 0.35),
             min_win_rate_last_n=_int_env("MIN_WIN_RATE_LAST_N", 10),
-            min_win_rate_threshold=_float_env("MIN_WIN_RATE_THRESHOLD", 0.25),
-            max_risk_per_trade_pct=_float_env("MAX_RISK_PER_TRADE_PCT", 0.01),
+            min_win_rate_threshold=_float_env("MIN_WIN_RATE_THRESHOLD", 0.20),
+            max_risk_per_trade_pct=_float_env("MAX_RISK_PER_TRADE_PCT", 0.03),
         )
 
         # Cache risk bracket percents for recomputing TP/SL on real fills.
@@ -268,8 +275,8 @@ class TradingBot:
         self._btc_cache_ttl = _float_env("BTC_CACHE_TTL_SECONDS", 300.0)  # 5 min
         self._btc_symbol = os.getenv("BTC_SYMBOL", "XBTUSD").strip() or "XBTUSD"
 
-        # Configurable position timeout (default 8h for adaptive, 60 min for others)
-        default_timeout = 480 if self.config.trading_strategy.strategy_type == "adaptive" else 60
+        # Configurable position timeout (default 12h for adaptive, 120 min for others)
+        default_timeout = 720 if self.config.trading_strategy.strategy_type == "adaptive" else 120
         self._position_timeout_minutes = _int_env("POSITION_TIMEOUT_MINUTES", default_timeout)
 
         logger.info(f"Bot initialized with {self.config.trading_strategy.strategy_type} strategy")
@@ -588,6 +595,24 @@ class TradingBot:
             return exposure
         return exposure
 
+    def _get_effective_notional_cap(self, balance: float) -> float:
+        """Get the effective max notional per trade, scaling with balance."""
+        if self.max_notional_per_trade > 0:
+            return self.max_notional_per_trade
+        return balance * self.max_notional_pct_of_balance
+
+    def _get_effective_exposure_cap(self, balance: float) -> float:
+        """Get the effective max total exposure, scaling with balance."""
+        if self.max_total_exposure > 0:
+            return self.max_total_exposure
+        return balance * self.max_exposure_pct_of_balance
+
+    def _get_effective_daily_loss_limit(self, balance: float) -> float:
+        """Get the effective daily loss limit, scaling with balance."""
+        if self.daily_loss_limit > 0:
+            return self.daily_loss_limit
+        return balance * self.daily_loss_pct_of_balance
+
     def _place_exit_order(self, position: Position, current_price: float, reason: str) -> bool:
         """Place the real exit order on Kraken for an OPEN position."""
         if not (self.use_kraken and self.live_trading_enabled):
@@ -648,6 +673,62 @@ class TradingBot:
         position.exit_order_id = txid
         position.exit_reason = reason
         logger.info(f"Exit order submitted: {exit_side} {position.symbol} (txid={txid})")
+        return True
+
+    def _place_partial_exit(self, position: Position, current_price: float, partial_qty: float) -> bool:
+        """Place a partial exit order on Kraken (sell half the position to lock in profit)."""
+        if not (self.use_kraken and self.live_trading_enabled):
+            return False
+
+        exit_side = "SELL" if position.side == "BUY" else "BUY"
+        order_type = self.exit_order_type
+        price = None if order_type == "MARKET" else float(current_price)
+
+        # Clamp to available balance
+        try:
+            base_asset, _ = self.exchange.get_pair_assets(position.symbol)
+            balances = self._get_live_balances()
+            available = float(balances.get(base_asset, 0) or 0)
+            if available > 0 and partial_qty > available:
+                partial_qty = available * 0.5  # Take half of whatever is available
+        except Exception:
+            pass
+
+        # Respect Kraken minimum order volume
+        try:
+            min_vol = self.exchange.get_min_order_volume(position.symbol)
+            if min_vol is not None and partial_qty < float(min_vol):
+                logger.debug(f"Partial TP qty {partial_qty} below Kraken min {min_vol} for {position.symbol}, skipping")
+                return False
+        except Exception:
+            pass
+
+        if partial_qty <= 0:
+            return False
+
+        order = self.exchange.place_order(
+            symbol=position.symbol,
+            side=exit_side,
+            order_type=order_type,
+            quantity=partial_qty,
+            price=price,
+        )
+        if not order:
+            logger.warning(f"Failed to place partial exit for {position.symbol}")
+            return False
+
+        # Update local position quantity (remaining half)
+        position.quantity -= partial_qty
+        # Book the partial P&L
+        if position.side == "BUY":
+            pnl = (current_price - position.entry_price) * partial_qty
+        else:
+            pnl = (position.entry_price - current_price) * partial_qty
+        self.risk_manager.current_balance += pnl
+        self.risk_manager.peak_balance = max(
+            self.risk_manager.peak_balance, self.risk_manager.current_balance
+        )
+        logger.info(f"Partial exit placed for {position.symbol}: qty={partial_qty:.8f}, P&L=${pnl:.2f}")
         return True
 
     def _get_live_balances(self, force: bool = False) -> Dict[str, float]:
@@ -854,6 +935,56 @@ class TradingBot:
         except Exception:
             return
     
+    # ------------------------------------------------------------------
+    # Circuit breakers
+    # ------------------------------------------------------------------
+
+    def _check_exchange_health(self) -> bool:
+        """Quick health check — verify we can reach the exchange."""
+        try:
+            if self.use_kraken:
+                # Use SystemStatus endpoint (public, lightweight)
+                result = self.exchange._request("public/SystemStatus")
+                if result and result.get("status") == "online":
+                    return True
+                status = result.get("status", "unknown") if result else "unreachable"
+                logger.warning(f"Kraken system status: {status}")
+                return status == "online"
+            else:
+                # Binance: simple ping
+                t = self.exchange.get_ticker(self.active_symbols[0])
+                return t is not None
+        except Exception as e:
+            logger.error(f"Exchange health check failed: {e}")
+            return False
+
+    def _is_data_fresh(self, df: pd.DataFrame, max_stale_minutes: int = 15) -> bool:
+        """Check whether the latest candle is reasonably recent."""
+        try:
+            if df is None or df.empty:
+                return False
+            # Kraken OHLC returns 'time' as unix timestamp
+            last_time = None
+            for col in ("time", "timestamp", "close_time"):
+                if col in df.columns:
+                    last_time = df[col].iloc[-1]
+                    break
+            if last_time is None:
+                return True  # Can't check, assume fresh
+            if isinstance(last_time, (int, float)):
+                from datetime import timezone
+                last_dt = datetime.fromtimestamp(float(last_time), tz=timezone.utc)
+            else:
+                last_dt = pd.Timestamp(last_time).to_pydatetime()
+                if last_dt.tzinfo is None:
+                    from datetime import timezone
+                    last_dt = last_dt.replace(tzinfo=timezone.utc)
+            now_utc = datetime.now(tz=last_dt.tzinfo)
+            age_minutes = (now_utc - last_dt).total_seconds() / 60
+            return age_minutes <= max_stale_minutes
+        except Exception:
+            return True  # Can't determine, assume fresh
+
     def analyze_signals(self) -> List[Signal]:
         """Analyze all symbols and generate trading signals.
         
@@ -898,6 +1029,11 @@ class TradingBot:
                 
                 # Convert to DataFrame
                 df = pd.DataFrame(klines)
+
+                # Stale data guard: skip if latest candle is too old
+                if not self._is_data_fresh(df, max_stale_minutes=15):
+                    logger.warning(f"Stale data for {symbol} — skipping signal generation this cycle")
+                    continue
                 
                 # Generate signals
                 signals = self.strategy.generate_signals(df, symbol)
@@ -931,6 +1067,15 @@ class TradingBot:
                     f"Max trades per day reached ({self.max_trades_per_day}); skipping new entry for {signal.symbol}"
                 )
                 return False
+
+        # Drawdown tier gating: in high drawdown, only take highest-confidence signals
+        dd_tier = self.risk_manager.drawdown_tier
+        if dd_tier >= 2 and signal.confidence < 0.55:
+            logger.info(f"Skipping {signal.symbol}: drawdown tier {dd_tier}, confidence {signal.confidence:.2f} too low")
+            return False
+        if dd_tier >= 3 and signal.confidence < 0.65:
+            logger.info(f"Skipping {signal.symbol}: drawdown tier {dd_tier}, need confidence >= 0.65")
+            return False
 
         if self.use_kraken and not self.live_trading_enabled:
             logger.warning(
@@ -986,7 +1131,7 @@ class TradingBot:
             logger.warning(f"Invalid position size for {signal.symbol}")
             return False
 
-        # Safety cap: max notional per trade (quote currency; applies to USD/USDT pairs)
+        # Safety cap: max notional per trade — scales with balance
         try:
             _, quote_asset = self.exchange.get_pair_assets(signal.symbol)
         except Exception:
@@ -997,19 +1142,21 @@ class TradingBot:
         except Exception:
             notional = 0.0
 
-        if self.max_notional_per_trade > 0 and quote_asset in {"USD", "USDT"} and notional > self.max_notional_per_trade:
-            new_qty = float(self.max_notional_per_trade) / float(entry_ref_price)
+        effective_notional_cap = self._get_effective_notional_cap(live_quote_balance or self.risk_manager.current_balance)
+        if effective_notional_cap > 0 and quote_asset in {"USD", "USDT"} and notional > effective_notional_cap:
+            new_qty = float(effective_notional_cap) / float(entry_ref_price)
             logger.info(
-                f"Capping notional for {signal.symbol} from {notional:.2f} to {self.max_notional_per_trade:.2f} {quote_asset}"
+                f"Capping notional for {signal.symbol} from {notional:.2f} to {effective_notional_cap:.2f} {quote_asset}"
             )
             position_size = max(new_qty, 0)
 
-        # Safety cap: max total exposure (USD/USDT pairs only)
-        if self.max_total_exposure > 0 and quote_asset in {"USD", "USDT"}:
+        # Safety cap: max total exposure — scales with balance
+        effective_exposure_cap = self._get_effective_exposure_cap(live_quote_balance or self.risk_manager.current_balance)
+        if effective_exposure_cap > 0 and quote_asset in {"USD", "USDT"}:
             exposure = self._current_total_exposure_quote()
-            if exposure + (float(entry_ref_price) * float(position_size)) > self.max_total_exposure:
+            if exposure + (float(entry_ref_price) * float(position_size)) > effective_exposure_cap:
                 logger.warning(
-                    f"Exposure cap hit: current={exposure:.2f}, cap={self.max_total_exposure:.2f} {quote_asset}. Skipping {signal.symbol}."
+                    f"Exposure cap hit: current={exposure:.2f}, cap={effective_exposure_cap:.2f} {quote_asset}. Skipping {signal.symbol}."
                 )
                 return False
 
@@ -1069,25 +1216,27 @@ class TradingBot:
                 desired_qty = float(min_vol)
                 desired_notional = float(entry_ref_price) * desired_qty
 
-                # Notional cap check (USD/USDT pairs)
+                # Notional cap check (USD/USDT pairs) — scalable
                 try:
                     _, q = self.exchange.get_pair_assets(signal.symbol)
                 except Exception:
                     q = None
-                if self.max_notional_per_trade > 0 and q in {"USD", "USDT"} and desired_notional > self.max_notional_per_trade:
+                eff_notional_cap = self._get_effective_notional_cap(live_quote_balance or self.risk_manager.current_balance)
+                if eff_notional_cap > 0 and q in {"USD", "USDT"} and desired_notional > eff_notional_cap:
                     logger.warning(
                         f"Skipping {signal.symbol}: Kraken minimum size requires ~{desired_notional:.2f} {q}, "
-                        f"but MAX_NOTIONAL_PER_TRADE={self.max_notional_per_trade:.2f}"
+                        f"but notional cap={eff_notional_cap:.2f}"
                     )
                     return False
 
-                # Exposure cap check (USD/USDT pairs)
-                if self.max_total_exposure > 0 and q in {"USD", "USDT"}:
+                # Exposure cap check (USD/USDT pairs) — scalable
+                eff_exposure_cap = self._get_effective_exposure_cap(live_quote_balance or self.risk_manager.current_balance)
+                if eff_exposure_cap > 0 and q in {"USD", "USDT"}:
                     exposure = self._current_total_exposure_quote()
-                    if exposure + desired_notional > self.max_total_exposure:
+                    if exposure + desired_notional > eff_exposure_cap:
                         logger.warning(
-                            f"Skipping {signal.symbol}: Kraken minimum size would exceed MAX_TOTAL_EXPOSURE "
-                            f"(current={exposure:.2f}, add={desired_notional:.2f}, cap={self.max_total_exposure:.2f} {q})"
+                            f"Skipping {signal.symbol}: Kraken minimum size would exceed exposure cap "
+                            f"(current={exposure:.2f}, add={desired_notional:.2f}, cap={eff_exposure_cap:.2f} {q})"
                         )
                         return False
 
@@ -1133,6 +1282,7 @@ class TradingBot:
             order_type=entry_order_type,
             quantity=position_size,
             price=entry_price,
+            post_only=(entry_order_type != "MARKET"),
         )
         
         if not order:
@@ -1222,6 +1372,8 @@ class TradingBot:
                 except Exception:
                     entry_time = datetime.now()
                 now = datetime.now()
+                position_age_minutes = (now - entry_time).total_seconds() / 60
+
                 timeout = timedelta(minutes=self._position_timeout_minutes)
                 if now - entry_time >= timeout:
                     if (
@@ -1236,6 +1388,56 @@ class TradingBot:
                             self._record_exit_in_journal(trade_rec)
                         logger.info(f"Time-based exit for {symbol} after {self._position_timeout_minutes}m at favorable price.")
                         continue
+
+                # --- BREAKEVEN TIMEOUT: free capital if trade is going nowhere ---
+                # After 4 hours, if within 0.3% of entry, close to redeploy capital
+                if position_age_minutes >= 240:
+                    pnl_pct = abs(current_price - position.entry_price) / position.entry_price
+                    if pnl_pct < 0.003:
+                        reason = "Breakeven timeout (4h+ near entry, freeing capital)"
+                        if self.use_kraken and self.live_trading_enabled:
+                            self._place_exit_order(position, current_price, reason)
+                        else:
+                            trade_rec = self.risk_manager.close_position(symbol, current_price, reason, position_id=position.id)
+                            self._record_exit_in_journal(trade_rec)
+                        logger.info(f"Breakeven timeout for {symbol}: {position_age_minutes:.0f}m, {pnl_pct:.2%} from entry")
+                        continue
+
+                # --- PARTIAL TAKE-PROFIT CHECK ---
+                # DISABLED by default: backtest proves partial TP clips winners
+                # too small relative to full SL losses, destroying the R:R edge.
+                # Set ENABLE_PARTIAL_TP=true in .env to re-enable.
+                enable_partial_tp = os.getenv("ENABLE_PARTIAL_TP", "false").strip().lower() == "true"
+                partial_tp_price = self.risk_manager.get_partial_tp_price(position) if enable_partial_tp else None
+                if partial_tp_price is not None:
+                    hit_partial = (
+                        (position.side == "BUY" and current_price >= partial_tp_price)
+                        or (position.side == "SELL" and current_price <= partial_tp_price)
+                    )
+                    if hit_partial:
+                        partial_qty = position.quantity * 0.5
+                        if partial_qty > 0:
+                            if self.use_kraken and self.live_trading_enabled:
+                                self._place_partial_exit(position, current_price, partial_qty)
+                            else:
+                                # Simulate partial by halving quantity and booking realized P&L
+                                if position.side == "BUY":
+                                    pnl = (current_price - position.entry_price) * partial_qty
+                                else:
+                                    pnl = (position.entry_price - current_price) * partial_qty
+                                self.risk_manager.current_balance += pnl
+                                self.risk_manager.peak_balance = max(
+                                    self.risk_manager.peak_balance, self.risk_manager.current_balance
+                                )
+                                position.quantity -= partial_qty
+                            position.partial_tp_taken = True
+                            # Move stop to breakeven (lock in the remaining half risk-free)
+                            position.stop_loss = position.entry_price
+                            logger.info(
+                                f"PARTIAL TP hit for {symbol}: sold 50% @ {current_price:.2f}, "
+                                f"SL moved to breakeven ({position.entry_price:.2f})"
+                            )
+                            continue
 
                 # --- STOP-LOSS / TAKE-PROFIT / TRAILING STOP CHECK ---
                 def _do_exit(pos, price, reason):
@@ -1284,13 +1486,22 @@ class TradingBot:
                 try:
                     logger.info("Analyzing signals...")
 
-                    # Daily loss kill-switch (realized PnL from local history)
-                    if self.daily_loss_limit > 0:
+                    # Exchange health check — skip trading if exchange is down
+                    if not self._check_exchange_health():
+                        logger.warning("Exchange health check failed — skipping this cycle")
+                        await asyncio.sleep(interval)
+                        continue
+
+                    # Daily loss kill-switch — scales with balance
+                    eff_daily_limit = self._get_effective_daily_loss_limit(
+                        self.risk_manager.current_balance
+                    )
+                    if eff_daily_limit > 0:
                         daily_pnl = self._get_daily_realized_pnl()
-                        if daily_pnl <= -abs(self.daily_loss_limit):
+                        if daily_pnl <= -abs(eff_daily_limit):
                             self.trading_paused = True
                             logger.error(
-                                f"KILL SWITCH: daily realized PnL {daily_pnl:.2f} <= -{abs(self.daily_loss_limit):.2f}. Pausing new entries."
+                                f"KILL SWITCH: daily realized PnL {daily_pnl:.2f} <= -{abs(eff_daily_limit):.2f}. Pausing new entries."
                             )
                             if self.kill_switch_stop_bot:
                                 logger.error("KILL SWITCH configured to stop bot. Exiting loop.")
@@ -1311,9 +1522,9 @@ class TradingBot:
 
                     signals = self.analyze_signals()
                     
-                    # Filter by confidence (must match or exceed strategy's min_confidence;
-                    # strategies already gate at min_confidence, so 0.50 is a safety floor)
-                    min_conf = float(os.getenv("MIN_SIGNAL_CONFIDENCE", "0.50"))
+                    # Filter by confidence (strategies already gate at min_confidence;
+                    # lower floor to capture more opportunities)
+                    min_conf = float(os.getenv("MIN_SIGNAL_CONFIDENCE", "0.40"))
                     high_confidence_signals = [s for s in signals if s.confidence >= min_conf]
 
                     # Hard safety limit: only execute a small number of signals per cycle
@@ -1352,6 +1563,19 @@ class TradingBot:
                             f"Win rate {stats['win_rate']:.1%} "
                             "(this is NOT Kraken; use 'Kraken money (REAL)' above)"
                         )
+
+                    # Daily income summary
+                    try:
+                        daily = self.risk_manager.get_daily_stats()
+                        if daily["trades"] > 0:
+                            logger.info(
+                                f"TODAY's P&L: ${daily['net_pnl']:+.2f} "
+                                f"({daily['trades']} trades, {daily['wins']}W/{daily['losses']}L, "
+                                f"WR {daily['win_rate']:.0%}) | "
+                                f"DD tier: {self.risk_manager.drawdown_tier}"
+                            )
+                    except Exception:
+                        pass
                 
                 except Exception as e:
                     logger.error(f"Error in trading loop: {e}")

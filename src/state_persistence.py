@@ -52,6 +52,8 @@ def _position_to_dict(pos) -> Dict:
         "lowest_price": getattr(pos, "lowest_price", None),
         "trailing_stop_active": getattr(pos, "trailing_stop_active", False),
         "atr_at_entry": getattr(pos, "atr_at_entry", 0.0),
+        "partial_tp_taken": getattr(pos, "partial_tp_taken", False),
+        "original_quantity": getattr(pos, "original_quantity", 0.0),
     }
 
 
@@ -76,6 +78,8 @@ def _dict_to_position(d: Dict):
         lowest_price=d.get("lowest_price"),
         trailing_stop_active=d.get("trailing_stop_active", False),
         atr_at_entry=float(d.get("atr_at_entry", 0.0)),
+        partial_tp_taken=d.get("partial_tp_taken", False),
+        original_quantity=float(d.get("original_quantity", 0.0)),
     )
 
 
@@ -115,11 +119,17 @@ def save_state(
             "current_balance": risk_manager.current_balance,
             "peak_balance": risk_manager.peak_balance,
             "consecutive_losses": risk_manager._consecutive_losses,
+            "consecutive_wins": getattr(risk_manager, "_consecutive_wins", 0),
             "cooldown_until": (
                 risk_manager._cooldown_until.isoformat()
                 if risk_manager._cooldown_until
                 else None
             ),
+            "daily_stats": {
+                "date": getattr(risk_manager, "_current_day", None),
+                "gross_profit": getattr(risk_manager, "_daily_gross_profit", 0.0),
+                "gross_loss": getattr(risk_manager, "_daily_gross_loss", 0.0),
+            },
         }
 
         if extra:
@@ -212,6 +222,7 @@ def load_state(
         risk_manager.current_balance = float(state.get("current_balance", risk_manager.current_balance))
         risk_manager.peak_balance = float(state.get("peak_balance", risk_manager.peak_balance))
         risk_manager._consecutive_losses = int(state.get("consecutive_losses", 0))
+        risk_manager._consecutive_wins = int(state.get("consecutive_wins", 0))
 
         cooldown_str = state.get("cooldown_until")
         if cooldown_str:
@@ -219,6 +230,13 @@ def load_state(
                 risk_manager._cooldown_until = datetime.fromisoformat(cooldown_str)
             except Exception:
                 risk_manager._cooldown_until = None
+
+        # Restore daily stats (if same calendar day)
+        daily = state.get("daily_stats", {})
+        if daily and daily.get("date") == datetime.now().strftime("%Y-%m-%d"):
+            risk_manager._current_day = daily["date"]
+            risk_manager._daily_gross_profit = float(daily.get("gross_profit", 0.0))
+            risk_manager._daily_gross_loss = float(daily.get("gross_loss", 0.0))
 
         logger.info(
             f"State restored from {path} — "

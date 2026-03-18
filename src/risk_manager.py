@@ -1,12 +1,15 @@
 """
 Risk management system for the trading bot.
 
-Key improvements over the original:
-  - ATR-aware position sizing (scale down in high volatility)
-  - Consecutive-loss cooldown (pause trading after N losses in a row)
-  - Trailing stop support (lock in profits as price moves favourably)
-  - Win-rate / profit-factor gate (refuse new trades when recent performance is bad)
-  - Improved drawdown calculation using running peak balance
+Production-grade features:
+  - Scalable position sizing (linear with account balance, no hardcoded caps)
+  - Daily income tracking with adaptive aggression
+  - Tiered drawdown response (reduce size before halting)
+  - ATR-aware position sizing with volatility scaling
+  - Consecutive-loss cooldown with progressive recovery
+  - Trailing stop support with progressive tightening
+  - Win-rate / profit-factor gate
+  - Running peak balance drawdown tracking
 """
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -37,6 +40,8 @@ class Position:
     lowest_price: Optional[float] = None   # For SELL positions (track trough)
     trailing_stop_active: bool = False
     atr_at_entry: float = 0.0  # ATR when the position was opened
+    partial_tp_taken: bool = False  # Whether first partial take-profit has been taken
+    original_quantity: float = 0.0  # Quantity before partial exits
 
 
 class RiskManager:
@@ -72,6 +77,7 @@ class RiskManager:
         self.consecutive_loss_limit = consecutive_loss_limit
         self.cooldown_minutes = cooldown_minutes
         self._consecutive_losses = 0
+        self._consecutive_wins = 0
         self._cooldown_until: Optional[datetime] = None
 
         # Trailing stop
@@ -87,11 +93,82 @@ class RiskManager:
 
         # Adaptive Kelly sizing (set externally by trading bot when journal available)
         self._kelly_fraction: Optional[float] = None  # None = use default risk%
-        self.kelly_min_risk = 0.005   # 0.5 % floor
-        self.kelly_max_risk = 0.03    # 3.0 % ceiling
+        self.kelly_min_risk = 0.008   # 0.8 % floor
+        self.kelly_max_risk = 0.05    # 5.0 % ceiling
+
+        # --- Daily income tracking ---
+        self._daily_trades: List[Dict] = []   # trades closed today
+        self._daily_gross_profit: float = 0.0
+        self._daily_gross_loss: float = 0.0
+        self._current_day: Optional[str] = None  # YYYY-MM-DD
+
+        # --- Drawdown tier state ---
+        # 0=normal, 1=caution, 2=reduced, 3=minimal
+        self._drawdown_tier: int = 0
+        self._drawdown_tier_multipliers = [1.0, 0.65, 0.35, 0.15]
 
     # -----------------------------------------------------------------
-    # Position sizing
+    # Daily tracking (resets automatically on new calendar day)
+    # -----------------------------------------------------------------
+
+    def _check_day_reset(self) -> None:
+        """Reset daily counters if the calendar day changed."""
+        today = datetime.now().strftime("%Y-%m-%d")
+        if self._current_day != today:
+            self._current_day = today
+            self._daily_trades = []
+            self._daily_gross_profit = 0.0
+            self._daily_gross_loss = 0.0
+
+    def get_daily_stats(self) -> Dict:
+        """Return today's realized trading stats."""
+        self._check_day_reset()
+        net = self._daily_gross_profit - abs(self._daily_gross_loss)
+        wins = sum(1 for t in self._daily_trades if t.get("pnl", 0) > 0)
+        losses = len(self._daily_trades) - wins
+        return {
+            "date": self._current_day,
+            "trades": len(self._daily_trades),
+            "wins": wins,
+            "losses": losses,
+            "gross_profit": self._daily_gross_profit,
+            "gross_loss": abs(self._daily_gross_loss),
+            "net_pnl": net,
+            "win_rate": wins / len(self._daily_trades) if self._daily_trades else 0.0,
+        }
+
+    # -----------------------------------------------------------------
+    # Drawdown tier system
+    # -----------------------------------------------------------------
+
+    def _update_drawdown_tier(self) -> None:
+        """Update drawdown tier based on current vs peak balance.
+
+        Tier 0 (< 3% DD):  Full risk — normal operation
+        Tier 1 (3-7% DD):  Caution — reduce position size to 65%
+        Tier 2 (7-12% DD): Reduced — 35% size, skip low-confidence signals
+        Tier 3 (>12% DD):  Minimal — 15% size, only highest-conviction trades
+        """
+        dd = self.calculate_drawdown()
+        if dd < 0.03:
+            self._drawdown_tier = 0
+        elif dd < 0.07:
+            self._drawdown_tier = 1
+        elif dd < 0.12:
+            self._drawdown_tier = 2
+        else:
+            self._drawdown_tier = 3
+
+    @property
+    def drawdown_tier(self) -> int:
+        return self._drawdown_tier
+
+    @property
+    def drawdown_size_multiplier(self) -> float:
+        return self._drawdown_tier_multipliers[min(self._drawdown_tier, 3)]
+
+    # -----------------------------------------------------------------
+    # Position sizing — scales linearly with balance
     # -----------------------------------------------------------------
 
     def calculate_position_size(
@@ -103,26 +180,40 @@ class RiskManager:
         atr: float = 0.0,
     ) -> float:
         """
-        Calculate position size using fixed-fractional risk model,
-        optionally enhanced with Kelly Criterion sizing.
+        Calculate position size using fixed-fractional risk model.
 
-        When a Kelly fraction is available (from the trade journal),
-        quarter-Kelly is used and bounded between 0.5 % and 3.0 %
-        of account balance.  This dynamically sizes positions larger
-        when the bot is objectively winning and smaller when losing.
+        Scales linearly with account balance — putting more money in
+        means proportionally larger positions (and proportionally
+        larger dollar returns) while keeping risk percentage constant.
 
-        risk_amount = balance * risk_percent
-        position_size = risk_amount / |entry - stop_loss|
+        Enhancements:
+        - Kelly Criterion from trade history
+        - Anti-martingale streak sizing
+        - Tiered drawdown response
+        - ATR volatility scaling
         """
         if risk_percent is None:
-            # Kelly-adaptive risk when available
             if self._kelly_fraction is not None and self._kelly_fraction > 0:
-                quarter_kelly = self._kelly_fraction * 0.25
-                risk_percent = max(self.kelly_min_risk, min(self.kelly_max_risk, quarter_kelly))
+                half_kelly = self._kelly_fraction * 0.5
+                risk_percent = max(self.kelly_min_risk, min(self.kelly_max_risk, half_kelly))
             else:
                 risk_percent = self.max_risk_per_trade_pct
 
+        # Anti-martingale: boost risk after consecutive wins
+        if self._consecutive_wins >= 3:
+            streak_bonus = min(self._consecutive_wins - 2, 3) * 0.005
+            risk_percent = min(risk_percent + streak_bonus, self.kelly_max_risk)
+        elif self._consecutive_losses >= 2:
+            risk_percent *= 0.75
+
+        # Apply drawdown tier multiplier (gradually reduce, don't slam to zero)
+        self._update_drawdown_tier()
+        risk_percent *= self.drawdown_size_multiplier
+
         effective_balance = self.current_balance if account_balance is None else float(account_balance)
+        if effective_balance <= 0:
+            return 0
+
         risk_amount = effective_balance * risk_percent
 
         risk_per_unit = abs(entry_price - stop_loss_price)
@@ -132,23 +223,18 @@ class RiskManager:
 
         position_size = risk_amount / risk_per_unit
 
-        # Hard cap: scale with account size (small accounts get more leverage room)
-        # <$1000: 25% max notional, $1000-$5000: 15%, >$5000: 10%
-        if effective_balance < 1000:
-            max_notional_pct = 0.25
-        elif effective_balance < 5000:
-            max_notional_pct = 0.15
-        else:
-            max_notional_pct = 0.10
+        # Scale-friendly max notional: always 20% of balance per position
+        # This scales linearly — $500 account -> $100 max, $50k -> $10k max
+        max_notional_pct = 0.20
         max_nominal = effective_balance * max_notional_pct / entry_price
         position_size = min(position_size, max_nominal)
 
         # Volatility scaling: shrink further when ATR is unusually high
         if atr > 0 and entry_price > 0:
             atr_pct = atr / entry_price
-            if atr_pct > 0.03:  # >3% ATR -- very volatile
-                scale = 0.03 / atr_pct  # linear scale down
-                position_size *= max(scale, 0.25)  # never shrink below 25%
+            if atr_pct > 0.04:
+                scale = 0.04 / atr_pct
+                position_size *= max(scale, 0.30)
 
         return max(position_size, 0)
 
@@ -182,7 +268,8 @@ class RiskManager:
             ):
                 return False, f"Position already open for {symbol}"
 
-        # Drawdown check
+        # Drawdown check — tiered, not binary
+        self._update_drawdown_tier()
         drawdown = self.calculate_drawdown()
         if drawdown >= self.max_drawdown:
             return False, f"Maximum drawdown reached ({drawdown:.2%})"
@@ -212,10 +299,30 @@ class RiskManager:
         else:
             position.lowest_price = position.entry_price
 
+        # Store original quantity for partial TP tracking
+        position.original_quantity = position.quantity
+
         if position.symbol not in self.positions:
             self.positions[position.symbol] = []
         self.positions[position.symbol].append(position)
         logger.info(f"Position recorded: {position.symbol} @ {position.entry_price:.2f}")
+
+    def get_partial_tp_price(self, position: Position) -> Optional[float]:
+        """Calculate the partial take-profit level (halfway between entry and TP).
+
+        Returns None if ATR data isn't available or partial TP doesn't make sense.
+        """
+        if position.partial_tp_taken:
+            return None
+        if position.atr_at_entry <= 0:
+            return None
+
+        # Partial TP at 1.5x ATR (half the distance to full 3x ATR TP)
+        atr = position.atr_at_entry
+        if position.side == "BUY":
+            return position.entry_price + 1.5 * atr
+        else:
+            return position.entry_price - 1.5 * atr
 
     # -----------------------------------------------------------------
     # Trailing stop management
@@ -227,7 +334,8 @@ class RiskManager:
 
         Activation:  once price has moved trailing_stop_activation of the
                      distance toward take_profit, activate the trail.
-        Trail:       move stop to lock in some profit (callback = ATR * factor).
+        Trail:       move stop to lock in profit using ATR-based callback.
+        Progressive: as price moves further in profit, tighten the trail.
         """
         if position.status != "OPEN":
             return
@@ -247,7 +355,15 @@ class RiskManager:
                     position.trailing_stop_active = True
 
             if position.trailing_stop_active and atr_cb > 0:
-                new_sl = position.highest_price - atr_cb
+                # Progressive tightening: as profit grows, trail tighter
+                profit_pct = (position.highest_price - position.entry_price) / position.entry_price
+                if profit_pct > 0.04:  # >4% profit: trail at 60% of normal callback
+                    effective_cb = atr_cb * 0.60
+                elif profit_pct > 0.02:  # >2% profit: trail at 80% of normal callback
+                    effective_cb = atr_cb * 0.80
+                else:
+                    effective_cb = atr_cb
+                new_sl = position.highest_price - effective_cb
                 if new_sl > position.stop_loss:
                     position.stop_loss = new_sl
 
@@ -263,7 +379,14 @@ class RiskManager:
                     position.trailing_stop_active = True
 
             if position.trailing_stop_active and atr_cb > 0:
-                new_sl = position.lowest_price + atr_cb
+                profit_pct = (position.entry_price - position.lowest_price) / position.entry_price
+                if profit_pct > 0.04:
+                    effective_cb = atr_cb * 0.60
+                elif profit_pct > 0.02:
+                    effective_cb = atr_cb * 0.80
+                else:
+                    effective_cb = atr_cb
+                new_sl = position.lowest_price + effective_cb
                 if new_sl < position.stop_loss:
                     position.stop_loss = new_sl
 
@@ -312,18 +435,8 @@ class RiskManager:
         self.current_balance += pnl
         self.peak_balance = max(self.peak_balance, self.current_balance)
 
-        # Track consecutive losses / wins
-        if pnl < 0:
-            self._consecutive_losses += 1
-            if self._consecutive_losses >= self.consecutive_loss_limit:
-                self._cooldown_until = datetime.now() + timedelta(minutes=self.cooldown_minutes)
-                logger.warning(
-                    f"COOLDOWN activated: {self._consecutive_losses} consecutive losses. "
-                    f"Pausing new entries for {self.cooldown_minutes} minutes."
-                )
-        else:
-            self._consecutive_losses = 0
-            self._cooldown_until = None
+        # Update drawdown tier
+        self._update_drawdown_tier()
 
         # Record trade
         trade_record = {
@@ -342,6 +455,31 @@ class RiskManager:
             "atr_at_entry": position.atr_at_entry,
         }
         self.trade_history.append(trade_record)
+
+        # Track daily stats (must come after trade_record is built)
+        self._check_day_reset()
+        self._daily_trades.append(trade_record)
+        if pnl > 0:
+            self._daily_gross_profit += pnl
+        else:
+            self._daily_gross_loss += abs(pnl)
+
+        # Track consecutive losses / wins
+        if pnl < 0:
+            self._consecutive_losses += 1
+            self._consecutive_wins = 0
+            if self._consecutive_losses >= self.consecutive_loss_limit:
+                cooldown_mult = 1 + (self._consecutive_losses - self.consecutive_loss_limit) * 0.5
+                cooldown_mins = int(self.cooldown_minutes * cooldown_mult)
+                self._cooldown_until = datetime.now() + timedelta(minutes=cooldown_mins)
+                logger.warning(
+                    f"COOLDOWN activated: {self._consecutive_losses} consecutive losses. "
+                    f"Pausing new entries for {cooldown_mins} minutes."
+                )
+        else:
+            self._consecutive_wins += 1
+            self._consecutive_losses = 0
+            self._cooldown_until = None
 
         # Update position
         position.status = "CLOSED"

@@ -16,11 +16,11 @@ class ExchangeConfig:
 @dataclass
 class RiskManagement:
     """Risk management parameters"""
-    max_position_size: float = 0.02  # Max 2% of portfolio per trade
-    max_drawdown: float = 0.10  # 10% maximum drawdown
+    max_position_size: float = 0.03  # Max 3% of portfolio per trade
+    max_drawdown: float = 0.15  # 15% maximum drawdown (aggressive growth)
     stop_loss_percent: float = 0.015  # 1.5% stop loss (ATR will override when available)
-    take_profit_percent: float = 0.04  # 4% take profit (ATR will override when available)
-    max_open_positions: int = 5  # Max concurrent positions
+    take_profit_percent: float = 0.045  # 4.5% take profit (ATR will override when available)
+    max_open_positions: int = 8  # Max concurrent positions
     position_scaling: bool = True  # Scale positions based on volatility
     
 @dataclass
@@ -28,7 +28,7 @@ class TradingStrategy:
     """Trading strategy parameters"""
     strategy_type: str = "adaptive"  # "adaptive", "trend_momentum", "scalp", "grid", "mean_reversion", "arbitrage"
     symbols: List[str] = None
-    timeframe: str = "5m"  # Timeframe: 1m, 5m, 15m, 1h
+    timeframe: str = "15m"  # 15m: best edge per backtest (5m has too little ATR% for BTC)
     
     # Grid Trading
     grid_levels: int = 10  # Number of grid levels
@@ -68,7 +68,7 @@ class BotConfig:
         if self.risk_management is None:
             self.risk_management = RiskManagement()
         if self.trading_strategy is None:
-            self.trading_strategy = TradingStrategy(symbols=["BTCUSDT", "ETHUSDT"])
+            self.trading_strategy = TradingStrategy(symbols=["SOLUSDT", "ETHUSDT", "DOGEUSDT", "XRPUSDT", "BTCUSDT"])
 
 # Default configuration
 DEFAULT_CONFIG = BotConfig()

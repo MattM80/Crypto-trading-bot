@@ -252,52 +252,91 @@ class KrakenClient:
         self,
         endpoint: str,
         params: dict = None,
-        private: bool = False
+        private: bool = False,
+        _retries: int = 3,
     ) -> Optional[Dict]:
-        """Make API request to Kraken"""
-        try:
-            if params is None:
-                params = {}
+        """Make API request to Kraken with automatic retry on transient failures."""
+        if params is None:
+            params = {}
 
-            # Rate-limit private calls
-            if private:
-                self._rate_limit_wait()
+        last_error = None
+        for attempt in range(1, _retries + 1):
+            try:
+                # Rate-limit private calls
+                if private:
+                    self._rate_limit_wait()
 
-            url = f"{self.base_url}/0/{endpoint}"
-            headers = {}
-            
-            if private:
-                nonce = str(int(time.time() * 1000))
-                signed_params = params.copy()
-                signed_params["nonce"] = nonce
-                headers = {
-                    "API-Sign": self._get_kraken_signature(f"/0/{endpoint}", signed_params, nonce),
-                    "API-Key": self.api_key
-                }
-                response = self.session.post(url, headers=headers, data=signed_params, timeout=30)
-            else:
-                # Public endpoints should use GET with query params
-                response = self.session.get(url, params=params, timeout=30)
-            
-            if response.status_code == 200:
-                result = response.json()
-                if result.get("error"):
-                    if "EGeneral:Permission denied" in result.get("error", []):
-                        logger.error(
-                            "Kraken API permission denied. Your API key likely lacks required permissions "
-                            f"for this endpoint ({endpoint}). Enable the relevant permissions in Kraken API settings "
-                            "(e.g., 'Query Funds' for Balance, 'Trade' for placing orders)."
-                        )
-                    logger.error(f"Kraken API error: {result['error']}")
+                url = f"{self.base_url}/0/{endpoint}"
+                headers = {}
+                
+                if private:
+                    nonce = str(int(time.time() * 1000))
+                    signed_params = params.copy()
+                    signed_params["nonce"] = nonce
+                    headers = {
+                        "API-Sign": self._get_kraken_signature(f"/0/{endpoint}", signed_params, nonce),
+                        "API-Key": self.api_key
+                    }
+                    response = self.session.post(url, headers=headers, data=signed_params, timeout=30)
+                else:
+                    # Public endpoints should use GET with query params
+                    response = self.session.get(url, params=params, timeout=30)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    errors = result.get("error", [])
+                    if errors:
+                        # Non-retriable errors — don't retry
+                        for err in errors:
+                            err_str = str(err)
+                            if any(k in err_str for k in ("Permission denied", "Invalid key", "Invalid nonce",
+                                                          "Unknown asset pair", "Invalid arguments",
+                                                          "Insufficient funds")):
+                                logger.error(f"Kraken API error (non-retriable): {errors}")
+                                return None
+                        # Retriable errors (rate limits, temporary issues)
+                        if attempt < _retries:
+                            wait = 2 ** attempt
+                            logger.warning(f"Kraken API error (attempt {attempt}/{_retries}): {errors} — retrying in {wait}s")
+                            time.sleep(wait)
+                            continue
+                        logger.error(f"Kraken API error after {_retries} attempts: {errors}")
+                        return None
+                    return result.get("result")
+                elif response.status_code in (408, 429, 500, 502, 503, 504):
+                    # Retriable HTTP status codes
+                    if attempt < _retries:
+                        wait = 2 ** attempt
+                        logger.warning(f"Kraken HTTP {response.status_code} (attempt {attempt}/{_retries}) — retrying in {wait}s")
+                        time.sleep(wait)
+                        continue
+                    logger.error(f"Kraken API HTTP {response.status_code} after {_retries} attempts")
                     return None
-                return result.get("result")
-            else:
-                logger.error(f"API error: {response.status_code}")
+                else:
+                    logger.error(f"Kraken API HTTP error: {response.status_code}")
+                    return None
+            
+            except requests.exceptions.Timeout:
+                last_error = "timeout"
+                if attempt < _retries:
+                    wait = 2 ** attempt
+                    logger.warning(f"Kraken request timeout (attempt {attempt}/{_retries}) — retrying in {wait}s")
+                    time.sleep(wait)
+                    continue
+            except requests.exceptions.ConnectionError:
+                last_error = "connection error"
+                if attempt < _retries:
+                    wait = 2 ** attempt
+                    logger.warning(f"Kraken connection error (attempt {attempt}/{_retries}) — retrying in {wait}s")
+                    time.sleep(wait)
+                    continue
+            except Exception as e:
+                last_error = str(e)
+                logger.error(f"Kraken request failed: {e}")
                 return None
-        
-        except Exception as e:
-            logger.error(f"Request failed: {e}")
-            return None
+
+        logger.error(f"Kraken request failed after {_retries} attempts: {last_error}")
+        return None
     
     def get_account_balance(self) -> Dict[str, float]:
         """Get account balances"""
@@ -402,7 +441,8 @@ class KrakenClient:
         side: str,  # "buy" or "sell"
         order_type: str,  # "market" or "limit"
         quantity: float,
-        price: Optional[float] = None
+        price: Optional[float] = None,
+        post_only: bool = False
     ) -> Optional[Dict]:
         """
         Place an order.
@@ -413,6 +453,8 @@ class KrakenClient:
             order_type: 'market' or 'limit'
             quantity: Amount to trade
             price: Price for limit orders
+            post_only: If True, set post-only flag (guarantees maker fee, order
+                       is cancelled if it would cross the spread)
         """
         try:
             if quantity <= 0:
@@ -448,6 +490,11 @@ class KrakenClient:
             
             if price:
                 params["price"] = self._format_price(symbol, float(price))
+
+            # Post-only flag: guarantees maker fee (0.16%) by cancelling
+            # the order if it would immediately match (cross the spread).
+            if post_only and order_type_norm == "limit":
+                params["oflags"] = "post"
             
             logger.info(
                 f"Placing {side_norm} {order_type_norm} order: {params['volume']} {symbol} @ {params.get('price', price)}"
