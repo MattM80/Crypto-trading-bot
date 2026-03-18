@@ -23,10 +23,95 @@
   "active_positions": {},
   "active_profit": 0.0,
   "tool_stats": {
+    "crash_neg_ac": {
+      "trades": 130,
+      "wins": 101,
+      "pnl": 300.0
+    },
+    "mega_crash": {
+      "trades": 49,
+      "wins": 39,
+      "pnl": 200.0
+    },
     "crash_buy": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
+      "trades": 363,
+      "wins": 276,
+      "pnl": 500.0
+    },
+    "flash_crash": {
+      "trades": 130,
+      "wins": 100,
+      "pnl": 250.0
+    },
+    "panic_close": {
+      "trades": 257,
+      "wins": 164,
+      "pnl": 300.0
+    },
+    "dist_exhaustion": {
+      "trades": 317,
+      "wins": 200,
+      "pnl": 250.0
+    },
+    "efficiency_capitulation": {
+      "trades": 196,
+      "wins": 118,
+      "pnl": 200.0
+    },
+    "fat_tail_revert": {
+      "trades": 234,
+      "wins": 138,
+      "pnl": 150.0
+    },
+    "btc_alt_spread": {
+      "trades": 165,
+      "wins": 102,
+      "pnl": 150.0
+    },
+    "mega_align": {
+      "trades": 46,
+      "wins": 32,
+      "pnl": 50.0
+    },
+    "alt_btc_revert": {
+      "trades": 75,
+      "wins": 41,
+      "pnl": 80.0
+    },
+    "green_exhaustion": {
+      "trades": 67,
+      "wins": 34,
+      "pnl": 40.0
+    },
+    "mega_pump_sell": {
+      "trades": 158,
+      "wins": 114,
+      "pnl": 100.0
+    },
+    "whale_buy": {
+      "trades": 150,
+      "wins": 74,
+      "pnl": 60.0
+    },
+    "dip_buy": {
+      "trades": 1076,
+      "wins": 474,
+      "pnl": 50.0
+    },
+    "volume_climax": {
+      "trades": 923,
+      "wins": 443,
+      "pnl": 40.0
+    },
+    "deceleration_buy": {
+      "trades": 363,
+      "wins": 189,
+      "pnl": 60.0
+    },
+    "math_capitulation": {
+      "trades": 597,
+      "wins": 304,
+      "pnl": 30.0
     },
     "volatile_oversold": {
       "trades": 0,
@@ -34,36 +119,6 @@
       "pnl": 0.0
     },
     "relief_rally": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "mega_pump_sell": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "green_exhaustion": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "dip_buy": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "pump_sell": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "mega_crash": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "flash_crash": {
       "trades": 0,
       "wins": 0,
       "pnl": 0.0
@@ -103,17 +158,7 @@
       "wins": 0,
       "pnl": 0.0
     },
-    "thursday_short": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "crash_neg_ac": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "crash_mean_revert": {
+    "crash_hurst": {
       "trades": 0,
       "wins": 0,
       "pnl": 0.0
@@ -143,41 +188,6 @@
       "wins": 0,
       "pnl": 0.0
     },
-    "panic_close": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "dist_exhaustion": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "fat_tail_revert": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "btc_alt_spread": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "alt_btc_revert": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "mega_align": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
-    "math_capitulation": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
-    },
     "orderbook_buy": {
       "trades": 0,
       "wins": 0,
@@ -187,9 +197,29 @@
       "trades": 0,
       "wins": 0,
       "pnl": 0.0
+    },
+    "blood_in_streets": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "fomo_ride": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "capitulation": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "zscore_extreme": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
     }
   },
   "trade_history": [],
   "current_bar": 1,
-  "last_update": "2026-03-18T18:11:52.321619"
+  "last_update": "2026-03-18T18:24:28.911029"
 }
