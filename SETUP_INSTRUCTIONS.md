@@ -9,7 +9,7 @@ cd "C:\Users\Matthew V Mady\Lucas code\crypto-trading-bot"
 git pull origin main
 venv\Scripts\activate
 pip install -r requirements.txt
-python run_kraken_bot.py
+python3 run_master_bot.py  
 ```
 
 That's it — the bot will start running. You'll see log output showing what it's doing.

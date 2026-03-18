@@ -317,7 +317,7 @@ class AdaptiveBot:
         
     def run_grid_strategy(self, market_data: dict):
         """Run grid strategy for trending_up regime."""
-        if self.current_regime != "trending_up":
+        if not market_data:
             return
             
         allocation_per_pair = self.balance / len(GRID_PAIRS)
@@ -377,8 +377,8 @@ class AdaptiveBot:
             self.grid_inventory[pair] = remaining_inventory
             
     def run_rsi_strategy(self, market_data: dict):
-        """Run RSI mean reversion for trending_down regime."""
-        if self.current_regime != "trending_down":
+        """Run RSI mean reversion for trending_down pairs."""
+        if not market_data:
             return
             
         max_positions = 3
@@ -461,7 +461,7 @@ class AdaptiveBot:
                     
     def run_momentum_strategy(self, market_data: dict):
         """Run momentum breakout for volatile regime."""
-        if self.current_regime != "volatile":
+        if not market_data:
             return
             
         max_positions = 3
@@ -681,28 +681,65 @@ class AdaptiveBot:
                 logger.warning("No market data received, skipping cycle")
                 return
                 
-            # 2. Detect regime using BTC data (or first available pair)
-            primary_pair = "XBTUSD" if "XBTUSD" in market_data else list(market_data.keys())[0]
-            new_regime = self.detect_regime(market_data[primary_pair]["df"])
+            # 2. Detect regime PER PAIR — each coin moves independently
+            pair_regimes = {}
+            for pair, data in market_data.items():
+                regime = self.detect_regime(data["df"])
+                pair_regimes[pair] = regime
+                
+                # Track regime transitions per pair
+                prev = self.state.get("pair_regimes", {}).get(pair, "unknown")
+                if prev != regime and prev != "unknown":
+                    logger.info(f"[SWITCH] {pair}: {prev} → {regime}")
+                    # Close any positions for this pair from the old strategy
+                    if pair in self.active_positions:
+                        pos = self.active_positions[pair]
+                        self._close_position(pair, pos, data["price"],
+                                           f"Regime switch {prev}→{regime}")
             
-            logger.info(f"[REGIME DETECTION] Primary pair: {primary_pair} → {new_regime}")
+            self.state["pair_regimes"] = pair_regimes
             
-            # 3. Handle regime transitions (CRITICAL - this is where money is made/lost)
-            self.handle_regime_transition(new_regime, market_data)
+            regime_summary = " ".join(f"{p}={r}" for p, r in sorted(pair_regimes.items()))
+            logger.info(f"[REGIME] {regime_summary}")
             
-            # 4. Execute the active strategy based on current regime
-            if self.current_regime == "trending_up":
-                # Grid strategy - ALL capital to grid
-                self.run_grid_strategy(market_data)
-            elif self.current_regime == "trending_down":  
-                # RSI mean reversion - ALL capital to RSI
-                self.run_rsi_strategy(market_data)
-            elif self.current_regime == "volatile":
-                # Momentum breakout - ALL capital to momentum
-                self.run_momentum_strategy(market_data)
-            elif self.current_regime == "ranging":
-                # Cash mode - do nothing, log why
-                logger.info("[CASH MODE] No profitable strategy for ranging markets")
+            # Count regimes
+            regime_counts = {}
+            for r in pair_regimes.values():
+                regime_counts[r] = regime_counts.get(r, 0) + 1
+            logger.info(f"[REGIME DIST] {regime_counts}")
+            
+            # 3. For each pair, run the strategy that matches ITS regime
+            #    Grid pairs: only those in trending_up
+            #    RSI pairs: only those in trending_down
+            #    Momentum pairs: only those in volatile
+            #    Ranging pairs: stay flat
+            
+            grid_pairs = {p: d for p, d in market_data.items() 
+                         if pair_regimes.get(p) == "trending_up"}
+            rsi_pairs = {p: d for p, d in market_data.items()
+                        if pair_regimes.get(p) == "trending_down"}
+            momentum_pairs = {p: d for p, d in market_data.items()
+                            if pair_regimes.get(p) == "volatile"}
+            cash_pairs = {p: d for p, d in market_data.items()
+                         if pair_regimes.get(p) == "ranging"}
+            
+            # Close positions for pairs that switched to ranging
+            for pair in cash_pairs:
+                if pair in self.active_positions:
+                    self._close_position(pair, self.active_positions[pair],
+                                       cash_pairs[pair]["price"],
+                                       "Regime→ranging, going flat")
+            
+            # Run strategies on their respective pairs
+            if grid_pairs:
+                self.run_grid_strategy(grid_pairs)
+            if rsi_pairs:
+                self.run_rsi_strategy(rsi_pairs)
+            if momentum_pairs:
+                self.run_momentum_strategy(momentum_pairs)
+            
+            if not grid_pairs and not rsi_pairs and not momentum_pairs:
+                logger.info("[CASH MODE] All pairs ranging, staying flat")
                 
             # 5. Log status (human-readable decision log)
             self.log_status()
