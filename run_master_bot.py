@@ -24,7 +24,7 @@ import time
 import signal
 import requests
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
@@ -898,7 +898,41 @@ class AllSeeingEye:
         signals = final_signals
         
         return signals
-        
+    
+    def get_fear_greed(self) -> int:
+        """Get crypto Fear & Greed Index (0=extreme fear, 100=extreme greed). Cached 1h."""
+        now = datetime.now(timezone.utc).timestamp()
+        if hasattr(self, '_fng_cache') and now - self._fng_cache_ts < 3600:
+            return self._fng_cache
+        try:
+            r = requests.get('https://api.alternative.me/fng/?limit=1', timeout=5)
+            val = int(r.json()['data'][0]['value'])
+            self._fng_cache = val
+            self._fng_cache_ts = now
+            return val
+        except:
+            return 50  # Neutral on error
+    
+    def get_whale_flow(self, pair: str) -> float:
+        """Detect whale buying/selling from recent trades. Returns buy/sell ratio of large trades."""
+        try:
+            r = requests.get('https://api.kraken.com/0/public/Trades',
+                           params={'pair': pair, 'count': 100}, timeout=5)
+            result = r.json().get('result', {})
+            for key, trades in result.items():
+                if not isinstance(trades, list) or len(trades) < 20:
+                    return 1.0
+                volumes = [float(t[1]) for t in trades[-100:]]
+                avg_vol = np.mean(volumes)
+                if avg_vol <= 0:
+                    return 1.0
+                large_buys = sum(float(t[1]) for t in trades[-100:] if float(t[1]) > avg_vol * 3 and t[3] == 'b')
+                large_sells = sum(float(t[1]) for t in trades[-100:] if float(t[1]) > avg_vol * 3 and t[3] == 's')
+                return large_buys / large_sells if large_sells > 0 else (3.0 if large_buys > 0 else 1.0)
+            return 1.0
+        except:
+            return 1.0
+
     def update_grids(self, market_data: dict):
         """Update grid engine (Tool 1) - runs continuously."""
         grid_balance_per_pair = self.grid_balance / len(PAIRS)
@@ -1257,15 +1291,58 @@ class AllSeeingEye:
                 signals = self.scan_signals(pair, data)  # Returns list of (signal_dict, score)
                 all_signals.extend(signals)
             
-            # 5. Rank by score (highest first)
+            # 5. Macro overlay: Fear & Greed Index
+            fng = self.get_fear_greed()
+            logger.info(f"[MACRO] Fear & Greed Index: {fng} ({'Extreme Fear' if fng < 20 else 'Fear' if fng < 40 else 'Neutral' if fng < 60 else 'Greed' if fng < 80 else 'Extreme Greed'})")
+            
+            # Boost ALL long signals during extreme fear, ALL short signals during extreme greed
+            macro_adjusted = []
+            for sig, sc in all_signals:
+                if fng < 20:  # Extreme fear = best time to buy
+                    if sig['direction'] == 'long':
+                        sc *= 1.5  # 50% boost for longs
+                        logger.debug(f"  Extreme fear boost: {sig['pair']} {sig['tool']} +50%")
+                    elif sig['direction'] == 'short':
+                        sc *= 0.5  # 50% penalty for shorts (don't short into fear)
+                elif fng < 30:  # Fear
+                    if sig['direction'] == 'long':
+                        sc *= 1.2
+                elif fng > 80:  # Extreme greed = best time to sell
+                    if sig['direction'] == 'short':
+                        sc *= 1.5
+                    elif sig['direction'] == 'long':
+                        sc *= 0.5
+                elif fng > 70:  # Greed
+                    if sig['direction'] == 'short':
+                        sc *= 1.2
+                macro_adjusted.append((sig, sc))
+            all_signals = macro_adjusted
+            
+            # 6. Rank by score (highest first)
             all_signals.sort(key=lambda x: x[1], reverse=True)
             
-            # 6. Execute top signals (limited by available positions and capital)
+            # 7. Execute top signals with whale flow check
             for signal, score in all_signals:
                 if len(self.active_positions) >= MAX_ACTIVE_POSITIONS:
                     break
                 if signal['pair'] in self.active_positions:
                     continue  # 1 position per pair
+                
+                # Whale flow check on top candidates (only check for trades we're about to make)
+                whale_ratio = self.get_whale_flow(signal['pair'])
+                if signal['direction'] == 'long' and whale_ratio < 0.3:
+                    logger.info(f"  [WHALE BLOCK] {signal['pair']} long blocked — whale sell ratio {whale_ratio:.2f}")
+                    continue  # Whales are dumping, don't buy
+                elif signal['direction'] == 'short' and whale_ratio > 3.0:
+                    logger.info(f"  [WHALE BLOCK] {signal['pair']} short blocked — whale buy ratio {whale_ratio:.2f}")
+                    continue  # Whales are buying, don't short
+                
+                if whale_ratio > 2.0 and signal['direction'] == 'long':
+                    score *= 1.3  # Whales buying = boost long
+                    logger.info(f"  [WHALE BOOST] {signal['pair']} long boosted — whale buy ratio {whale_ratio:.2f}")
+                elif whale_ratio < 0.5 and signal['direction'] == 'short':
+                    score *= 1.3  # Whales selling = boost short
+                
                 self.execute_signal(signal, score)
             
             # 7. Log everything
