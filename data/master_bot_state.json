@@ -20,28 +20,7 @@
   },
   "grid_profit": 0.0,
   "grid_round_trips": 0,
-  "active_positions": {
-    "XRPUSD": {
-      "tool": "whale_buy",
-      "direction": "long",
-      "entry": 1.46844,
-      "qty": 204.2984391599248,
-      "entry_bar": 1,
-      "sl_pct": 0.03,
-      "hold": 8,
-      "reason": "WHALE BUY: 7.5x volume on green candle"
-    },
-    "XLMUSD": {
-      "tool": "whale_buy",
-      "direction": "long",
-      "entry": 0.16993,
-      "qty": 1765.432825280998,
-      "entry_bar": 1,
-      "sl_pct": 0.03,
-      "hold": 8,
-      "reason": "WHALE BUY: 5.2x volume on green candle"
-    }
-  },
+  "active_positions": {},
   "active_profit": 0.0,
   "tool_stats": {
     "crash_buy": {
@@ -198,9 +177,19 @@
       "trades": 0,
       "wins": 0,
       "pnl": 0.0
+    },
+    "orderbook_buy": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "orderbook_sell": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
     }
   },
   "trade_history": [],
   "current_bar": 1,
-  "last_update": "2026-03-18T17:57:24.586682"
+  "last_update": "2026-03-18T18:05:28.977464"
 }

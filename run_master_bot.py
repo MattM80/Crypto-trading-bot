@@ -22,6 +22,7 @@ import os
 import json
 import time
 import signal
+import requests
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
@@ -107,7 +108,7 @@ class AllSeeingEye:
         for tool in ["crash_buy", "volatile_oversold", "relief_rally", "mega_pump_sell", "green_exhaustion",
                       "dip_buy", "pump_sell", "mega_crash", "flash_crash", "quick_crash",
                       "deep_dip_8h", "deep_dip_12h", "deep_dip_24h", "quick_dip",
-                      "btc_eth_diverge", "rsi_divergence", "thursday_short", "crash_neg_ac", "crash_mean_revert", "hurst_trend", "vpin_toxic", "vpin_dip", "entropy_dip", "triple_math", "panic_close", "dist_exhaustion", "fat_tail_revert", "btc_alt_spread", "alt_btc_revert", "mega_align", "math_capitulation"]:
+                      "btc_eth_diverge", "rsi_divergence", "thursday_short", "crash_neg_ac", "crash_mean_revert", "hurst_trend", "vpin_toxic", "vpin_dip", "entropy_dip", "triple_math", "panic_close", "dist_exhaustion", "fat_tail_revert", "btc_alt_spread", "alt_btc_revert", "mega_align", "math_capitulation", "orderbook_buy", "orderbook_sell"]:
             if tool not in self.tool_stats:
                 self.tool_stats[tool] = {"trades": 0, "wins": 0, "pnl": 0.0}
         
@@ -255,6 +256,26 @@ class AllSeeingEye:
             atr[i] = (atr[i-1] * (period-1) + tr[i]) / period
             
         return atr
+    
+    def get_orderbook_imbalance(self, pair: str) -> float:
+        """Get bid/ask value ratio from Kraken public orderbook.
+        > 1.5 = buyers dominating, < 0.67 = sellers dominating.
+        Returns 1.0 on error."""
+        try:
+            r = requests.get('https://api.kraken.com/0/public/Depth',
+                            params={'pair': pair, 'count': 10}, timeout=5)
+            result = r.json().get('result', {})
+            for key, data in result.items():
+                bids = data.get('bids', [])
+                asks = data.get('asks', [])
+                if not bids or not asks:
+                    return 1.0
+                bid_value = sum(float(b[0]) * float(b[1]) for b in bids[:10])
+                ask_value = sum(float(a[0]) * float(a[1]) for a in asks[:10])
+                return bid_value / ask_value if ask_value > 0 else 1.0
+            return 1.0
+        except:
+            return 1.0
         
     def scan_signals(self, pair: str, data: dict) -> List[Tuple[dict, float]]:
         """Scan all tools for signals on this pair. Return [(signal, score), ...]"""
@@ -278,6 +299,17 @@ class AllSeeingEye:
         cur_vs_sma50 = (price - sma50[-1]) / sma50[-1] * 100 if not np.isnan(sma50[-1]) and sma50[-1] > 0 else 0
         ret_4h = (price - close[-5]) / close[-5] * 100 if len(close) >= 5 else 0
         ret_24h = (price - close[-25]) / close[-25] * 100 if len(close) >= 25 else 0
+        
+        # Multi-timeframe: derive 4h trend from 1h data
+        if len(close) >= 50:
+            # 4h trend: is 12-bar SMA rising or falling?
+            sma12 = np.mean(close[-12:])
+            sma12_prev = np.mean(close[-16:-4])
+            higher_tf_bullish = sma12 > sma12_prev
+            higher_tf_bearish = sma12 < sma12_prev
+        else:
+            higher_tf_bullish = False
+            higher_tf_bearish = False
         
         # Tool 2: Crash Buy (BEST EDGE)
         if ret_24h < -10 and cur_rsi < 20:
@@ -810,6 +842,61 @@ class AllSeeingEye:
                     'reason': f"VOLUME CLIMAX: vol_trend={vol_trend:.1f}x rising, {ret_4h:.1f}% dip"
                 }, score))
         
+        # Tool 40: Orderbook Imbalance — bid/ask ratio signals
+        # Only check orderbook for pairs that already have other signals (save API calls)
+        # OR check the top 4 most volatile pairs each cycle
+        if len(signals) > 0 or pair in ["XBTUSD", "ETHUSD", "SOLUSD", "AVAXUSD"]:
+            ob_ratio = self.get_orderbook_imbalance(pair)
+            
+            # Strong buyer imbalance + dip = smart money accumulating
+            if ob_ratio > 2.0 and ret_4h < -1:
+                score = ob_ratio * abs(ret_4h) * 5
+                signals.append(({
+                    'pair': pair, 'tool': 'orderbook_buy', 'direction': 'long',
+                    'hold': 8, 'sl_pct': 0.03,
+                    'reason': f"ORDERBOOK BUY: {ob_ratio:.1f}x bid/ask + {ret_4h:.1f}% dip"
+                }, score))
+            
+            # Strong seller imbalance + pump = distribution
+            elif ob_ratio < 0.5 and ret_4h > 1:
+                score = (1/ob_ratio) * ret_4h * 3
+                signals.append(({
+                    'pair': pair, 'tool': 'orderbook_sell', 'direction': 'short',
+                    'hold': 8, 'sl_pct': 0.99,
+                    'reason': f"ORDERBOOK SELL: {ob_ratio:.2f}x bid/ask + {ret_4h:.1f}% pump"
+                }, score))
+            
+            # B) Use orderbook as FILTER: boost score of existing signals
+            # if orderbook agrees with direction
+            boosted = []
+            for sig, existing_score in signals:
+                if sig['pair'] == pair:
+                    if sig['direction'] == 'long' and ob_ratio > 1.5:
+                        existing_score *= 1.3  # 30% boost when orderbook agrees
+                    elif sig['direction'] == 'short' and ob_ratio < 0.67:
+                        existing_score *= 1.3
+                    elif sig['direction'] == 'long' and ob_ratio < 0.5:
+                        existing_score *= 0.5  # 50% penalty when orderbook disagrees
+                    elif sig['direction'] == 'short' and ob_ratio > 2.0:
+                        existing_score *= 0.5
+                boosted.append((sig, existing_score))
+            signals = boosted
+        
+        # Multi-timeframe confirmation boost
+        final_signals = []
+        for sig, sc in signals:
+            if sig['pair'] == pair:
+                if sig['direction'] == 'long' and higher_tf_bullish:
+                    sc *= 1.2  # 20% boost for higher TF alignment
+                elif sig['direction'] == 'short' and higher_tf_bearish:
+                    sc *= 1.2
+                elif sig['direction'] == 'long' and higher_tf_bearish:
+                    sc *= 0.7  # 30% penalty for fighting higher TF
+                elif sig['direction'] == 'short' and higher_tf_bullish:
+                    sc *= 0.7
+            final_signals.append((sig, sc))
+        signals = final_signals
+        
         return signals
         
     def update_grids(self, market_data: dict):
@@ -934,8 +1021,39 @@ class AllSeeingEye:
         direction = signal['direction']
         tool = signal['tool']
         
-        # Calculate position size
-        risk_amount = self.active_balance * RISK_PER_TRADE
+        # Adaptive Kelly sizing — bet more on higher-conviction tools
+        tool_record = self.tool_stats.get(tool, {})
+        tool_trades = tool_record.get('trades', 0)
+        tool_wins = tool_record.get('wins', 0)
+        
+        if tool_trades >= 5:
+            # Use actual tool performance for Kelly
+            win_rate = tool_wins / tool_trades
+            # Estimate avg win/loss ratio from tool PnL
+            avg_win_loss_ratio = 2.0  # Default assumption
+            kelly = win_rate - (1 - win_rate) / avg_win_loss_ratio
+            kelly = max(0.02, min(0.15, kelly))  # Cap between 2% and 15%
+        else:
+            # Use preset Kelly fractions based on backtest data
+            kelly_map = {
+                'mega_pump_sell': 0.12,    # 75% WR → aggressive
+                'crash_neg_ac': 0.12,      # 78% WR → aggressive
+                'mega_crash': 0.10,        # 80% WR → aggressive
+                'crash_buy': 0.10,         # 76% WR
+                'flash_crash': 0.10,       # 77% WR
+                'panic_close': 0.08,       # 64% WR
+                'dist_exhaustion': 0.08,   # 63% WR
+                'efficiency_capitulation': 0.08,  # 60% WR
+                'btc_alt_spread': 0.08,    # 62% WR
+                'mega_align': 0.10,        # 70% WR
+                'green_exhaustion': 0.06,  # 42% WR
+                'whale_buy': 0.06,         # 49% WR
+                'dip_buy': 0.04,           # 44% WR
+                'volume_climax': 0.04,     # 48% WR
+            }
+            kelly = kelly_map.get(tool, 0.05)  # Default 5%
+        
+        risk_amount = self.active_balance * kelly
         sl_pct = signal['sl_pct']
         
         # For margin shorts, use leverage=2
