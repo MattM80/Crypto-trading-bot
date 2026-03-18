@@ -968,6 +968,58 @@ class AllSeeingEye:
         except:
             return 1.0
 
+    def scan_funding_rates(self) -> list:
+        """Scan Kraken Futures for funding rate arbitrage opportunities.
+        Returns list of opportunities sorted by annual yield."""
+        try:
+            r = requests.get('https://futures.kraken.com/derivatives/api/v3/tickers', timeout=10)
+            tickers = r.json().get('tickers', [])
+            
+            opportunities = []
+            for t in tickers:
+                sym = t.get('symbol', '')
+                if not sym.startswith('PF_') and not sym.startswith('PI_'):
+                    continue
+                fr = t.get('fundingRate', 0)
+                vol = t.get('vol24h', 0)
+                annual = abs(fr) * 3 * 365 * 100
+                
+                # Only consider if >15% annualized and has decent volume
+                if annual > 15 and vol > 10000:
+                    direction = 'short_perp' if fr > 0 else 'long_perp'
+                    opportunities.append({
+                        'symbol': sym,
+                        'funding_rate': fr,
+                        'annual_pct': annual,
+                        'volume': vol,
+                        'direction': direction,
+                        'daily_yield_per_100': abs(fr) * 3 * 100,  # $/day per $100 deployed
+                    })
+            
+            opportunities.sort(key=lambda x: -x['annual_pct'])
+            return opportunities[:10]  # Top 10
+        except Exception as e:
+            logger.debug(f"Funding rate scan failed: {e}")
+            return []
+    
+    def log_funding_opportunities(self):
+        """Log current funding rate opportunities."""
+        opps = self.scan_funding_rates()
+        if not opps:
+            return
+        
+        total_daily = sum(o['daily_yield_per_100'] for o in opps[:5])
+        logger.info(f"[FUNDING] Top {len(opps)} opportunities (annual yield):")
+        for o in opps[:5]:
+            logger.info(f"  {o['symbol']:20s} {o['annual_pct']:>+7.1f}%/yr "
+                       f"(${o['daily_yield_per_100']:.2f}/day per $100) → {o['direction']}")
+        logger.info(f"  Combined top-5: ${total_daily:.2f}/day per $100 each = ${total_daily*30:.0f}/mo on $500")
+        
+        # NOTE: Executing funding rate trades requires Kraken Futures API keys
+        # (separate from spot API). The bot logs opportunities; execution
+        # needs futures account setup.
+        # TODO: Add futures execution when Kraken Futures API keys are available
+
     def update_grids(self, market_data: dict):
         """Update grid engine (Tool 1) - runs continuously."""
         grid_balance_per_pair = self.grid_balance / len(PAIRS)
@@ -1441,7 +1493,10 @@ class AllSeeingEye:
             # 7. Log everything
             self.log_status()
             
-            # 8. Save state
+            # 8. Scan funding rate opportunities (every cycle)
+            self.log_funding_opportunities()
+            
+            # 9. Save state
             self.save_state()
             
         except Exception as e:
