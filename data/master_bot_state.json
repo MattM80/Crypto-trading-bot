@@ -6,7 +6,13 @@
     "AVAXUSD": [],
     "LINKUSD": [],
     "AAVEUSD": [],
-    "SOLUSD": [],
+    "SOLUSD": [
+      {
+        "buy_price": 90.00916,
+        "qty": 0.027774950904996782,
+        "bar": 1
+      }
+    ],
     "ETHUSD": [],
     "XBTUSD": [],
     "DOTUSD": [],
@@ -24,12 +30,12 @@
     "UNIUSD": {
       "tool": "deep_dip_24h",
       "direction": "long",
-      "entry": 3.633,
-      "qty": 49.5458298926507,
+      "entry": 3.669,
+      "qty": 49.0596892886345,
       "entry_bar": 1,
       "sl_pct": 0.05,
       "hold": 24,
-      "reason": "DEEP DIP: -9.3% drop 24h \u2014 64% WR"
+      "reason": "DEEP DIP: -8.4% drop 24h \u2014 64% WR"
     }
   },
   "active_profit": 0.0,
@@ -113,9 +119,44 @@
       "trades": 0,
       "wins": 0,
       "pnl": 0.0
+    },
+    "crash_neg_ac": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "crash_mean_revert": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "hurst_trend": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "vpin_toxic": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "vpin_dip": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "entropy_dip": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "triple_math": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
     }
   },
   "trade_history": [],
   "current_bar": 1,
-  "last_update": "2026-03-18T14:56:42.934837"
+  "last_update": "2026-03-18T17:11:34.496384"
 }
