@@ -24,12 +24,22 @@
     "XRPUSD": {
       "tool": "whale_buy",
       "direction": "long",
-      "entry": 1.46864,
-      "qty": 204.27061771434796,
+      "entry": 1.46844,
+      "qty": 204.2984391599248,
       "entry_bar": 1,
       "sl_pct": 0.03,
       "hold": 8,
-      "reason": "WHALE BUY: 7.4x volume on green candle"
+      "reason": "WHALE BUY: 7.5x volume on green candle"
+    },
+    "XLMUSD": {
+      "tool": "whale_buy",
+      "direction": "long",
+      "entry": 0.16993,
+      "qty": 1765.432825280998,
+      "entry_bar": 1,
+      "sl_pct": 0.03,
+      "hold": 8,
+      "reason": "WHALE BUY: 5.2x volume on green candle"
     }
   },
   "active_profit": 0.0,
@@ -153,9 +163,44 @@
       "trades": 0,
       "wins": 0,
       "pnl": 0.0
+    },
+    "panic_close": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "dist_exhaustion": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "fat_tail_revert": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "btc_alt_spread": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "alt_btc_revert": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "mega_align": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "math_capitulation": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
     }
   },
   "trade_history": [],
   "current_bar": 1,
-  "last_update": "2026-03-18T17:44:13.206738"
+  "last_update": "2026-03-18T17:57:24.586682"
 }
