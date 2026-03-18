@@ -1,0 +1,121 @@
+{
+  "total_balance": 300.0,
+  "grid_positions": {
+    "NEARUSD": [],
+    "UNIUSD": [],
+    "AVAXUSD": [],
+    "LINKUSD": [],
+    "AAVEUSD": [],
+    "SOLUSD": [],
+    "ETHUSD": [],
+    "XBTUSD": [],
+    "DOTUSD": [],
+    "XLMUSD": [],
+    "XRPUSD": [],
+    "ADAUSD": [],
+    "ATOMUSD": [],
+    "DOGEUSD": [],
+    "FILUSD": [],
+    "LTCUSD": []
+  },
+  "grid_profit": 0.0,
+  "grid_round_trips": 0,
+  "active_positions": {
+    "UNIUSD": {
+      "tool": "deep_dip_24h",
+      "direction": "long",
+      "entry": 3.651,
+      "qty": 49.30156121610518,
+      "entry_bar": 1,
+      "sl_pct": 0.05,
+      "hold": 24,
+      "reason": "DEEP DIP: -8.9% drop 24h \u2014 64% WR"
+    }
+  },
+  "active_profit": 0.0,
+  "tool_stats": {
+    "crash_buy": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "volatile_oversold": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "relief_rally": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "overbought_sell": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "dip_buy": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "pump_sell": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "mega_crash": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "flash_crash": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "quick_crash": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "deep_dip_8h": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "deep_dip_12h": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "deep_dip_24h": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "quick_dip": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "btc_eth_diverge": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "rsi_divergence": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "thursday_short": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    }
+  },
+  "trade_history": [],
+  "current_bar": 1,
+  "last_update": "2026-03-18T14:24:35.239874"
+}

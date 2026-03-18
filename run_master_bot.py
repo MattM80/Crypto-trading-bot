@@ -102,14 +102,17 @@ class AllSeeingEye:
         self.active_profit = self.state.get("active_profit", 0.0)
         
         # Tool performance tracking
-        self.tool_stats = self.state.get("tool_stats", {
-            "crash_buy": {"trades": 0, "wins": 0, "pnl": 0.0},
-            "volatile_oversold": {"trades": 0, "wins": 0, "pnl": 0.0},
-            "relief_rally": {"trades": 0, "wins": 0, "pnl": 0.0},
-            "overbought_sell": {"trades": 0, "wins": 0, "pnl": 0.0},
-            "dip_buy": {"trades": 0, "wins": 0, "pnl": 0.0},
-            "pump_sell": {"trades": 0, "wins": 0, "pnl": 0.0}
-        })
+        self.tool_stats = self.state.get("tool_stats", {})
+        # Ensure all tools have stats entries
+        for tool in ["crash_buy", "volatile_oversold", "relief_rally", "overbought_sell",
+                      "dip_buy", "pump_sell", "mega_crash", "flash_crash", "quick_crash",
+                      "deep_dip_8h", "deep_dip_12h", "deep_dip_24h", "quick_dip",
+                      "btc_eth_diverge", "rsi_divergence", "thursday_short"]:
+            if tool not in self.tool_stats:
+                self.tool_stats[tool] = {"trades": 0, "wins": 0, "pnl": 0.0}
+        
+        # Price cache for cross-pair signals (e.g. BTC/ETH divergence)
+        self._price_cache = {}  # pair -> close_array
         
         # Trade history
         self.trade_history = self.state.get("trade_history", [])
@@ -183,6 +186,8 @@ class AllSeeingEye:
                     "low": float(df['low'].iloc[-1]),
                     "df": df
                 }
+                # Cache close prices for cross-pair signals
+                self._price_cache[pair] = df['close'].values.astype(float)
                 
             except Exception as e:
                 logger.error(f"Failed to get data for {pair}: {e}")
@@ -327,6 +332,103 @@ class AllSeeingEye:
                 'hold': 8, 'sl_pct': 0.03,
                 'reason': f"PUMP SELL: RSI={cur_rsi:.1f}, +{ret_4h:.1f}% in 4h"
             }, score))
+        
+        # ── NEW TOOLS FROM DEEP QUANT ──
+        
+        # Compute additional features
+        ret_8h = (price - close[-9]) / close[-9] * 100 if len(close) >= 9 else 0
+        ret_12h = (price - close[-13]) / close[-13] * 100 if len(close) >= 13 else 0
+        
+        # Tool 8: Mega Crash Buy (>15% drop 24h) — 80% WR, +12.87% avg 24h
+        if ret_24h < -15:
+            score = abs(ret_24h) * 3  # Highest priority signal
+            signals.append(({
+                'pair': pair, 'tool': 'mega_crash', 'direction': 'long',
+                'hold': 24, 'sl_pct': 0.08,
+                'reason': f"MEGA CRASH: {ret_24h:.1f}% drop 24h — 80% WR historically"
+            }, score))
+        
+        # Tool 9: Flash Crash Buy (>10% in 12h) — 77% WR, +7.87% avg 24h
+        if ret_12h < -10:
+            score = abs(ret_12h) * 2.5
+            signals.append(({
+                'pair': pair, 'tool': 'flash_crash', 'direction': 'long',
+                'hold': 24, 'sl_pct': 0.07,
+                'reason': f"FLASH CRASH: {ret_12h:.1f}% drop 12h — 77% WR"
+            }, score))
+        
+        # Tool 10: Quick Crash (>10% in 8h) — 69% WR, +7.05% avg 24h
+        if ret_8h < -10:
+            score = abs(ret_8h) * 2
+            signals.append(({
+                'pair': pair, 'tool': 'quick_crash', 'direction': 'long',
+                'hold': 24, 'sl_pct': 0.07,
+                'reason': f"QUICK CRASH: {ret_8h:.1f}% drop 8h — 69% WR"
+            }, score))
+        
+        # Tool 11: Deep Dip (>8% in various timeframes) — 61-66% WR
+        for tf_name, ret_val, tf_label in [("8h", ret_8h, "8h"), ("12h", ret_12h, "12h"), ("24h", ret_24h, "24h")]:
+            if ret_val < -8 and ret_val >= -10:  # 8-10% drop (don't overlap with 10%+ tools)
+                score = abs(ret_val) * 1.5
+                signals.append(({
+                    'pair': pair, 'tool': f'deep_dip_{tf_label}', 'direction': 'long',
+                    'hold': 24, 'sl_pct': 0.05,
+                    'reason': f"DEEP DIP: {ret_val:.1f}% drop {tf_label} — 64% WR"
+                }, score))
+        
+        # Tool 12: Quick Dip (>5% in 4h) — 58% WR, +3.15% avg 24h
+        if ret_4h < -5:
+            score = abs(ret_4h) * 2
+            signals.append(({
+                'pair': pair, 'tool': 'quick_dip', 'direction': 'long',
+                'hold': 8, 'sl_pct': 0.04,
+                'reason': f"QUICK DIP: {ret_4h:.1f}% drop 4h — 58% WR"
+            }, score))
+        
+        # Tool 13: BTC/ETH Divergence — when BTC outperforms ETH by 3%+, short (sell ETH catchup)
+        if pair == "ETHUSD" and "XBTUSD" in self._price_cache:
+            btc_prices = self._price_cache.get("XBTUSD")
+            if btc_prices is not None and len(btc_prices) >= 25 and len(close) >= 25:
+                btc_ret24 = (btc_prices[-1] - btc_prices[-25]) / btc_prices[-25] * 100
+                eth_ret24 = ret_24h
+                if btc_ret24 - eth_ret24 > 3:
+                    score = (btc_ret24 - eth_ret24) * 2
+                    signals.append(({
+                        'pair': pair, 'tool': 'btc_eth_diverge', 'direction': 'short',
+                        'hold': 8, 'sl_pct': 0.03,
+                        'reason': f"BTC/ETH DIVERGE: BTC {btc_ret24:+.1f}% vs ETH {eth_ret24:+.1f}% 24h"
+                    }, score))
+        
+        # Tool 14: RSI Divergence (bullish) — price lower low but RSI higher low
+        if len(close) >= 30:
+            rsi14 = self.calc_rsi(close, 14)
+            if not np.isnan(rsi14[-1]) and not np.isnan(rsi14[-14]):
+                recent_price_low = np.min(close[-14:])
+                prior_price_low = np.min(close[-28:-14]) if len(close) >= 28 else recent_price_low
+                recent_rsi_low = np.min(rsi14[-14:])
+                prior_rsi_low = np.min(rsi14[-28:-14]) if len(rsi14) >= 28 else recent_rsi_low
+                
+                if recent_price_low < prior_price_low and recent_rsi_low > prior_rsi_low and rsi14[-1] < 35:
+                    score = (prior_rsi_low - recent_rsi_low + 10) * 0.5  # Lower score, but valid
+                    signals.append(({
+                        'pair': pair, 'tool': 'rsi_divergence', 'direction': 'short',
+                        'hold': 8, 'sl_pct': 0.03,
+                        'reason': f"RSI DIVERGENCE: price lower low, RSI higher low"
+                    }, score))
+        
+        # Tool 15: Day-of-week filter (Thursday/Sunday short bias)
+        try:
+            import time as _t
+            dow = datetime.now(timezone.utc).weekday()
+            if dow == 3 and cur_rsi > 50:  # Thursday + not oversold
+                score = 3  # Low priority, but consistent
+                signals.append(({
+                    'pair': pair, 'tool': 'thursday_short', 'direction': 'short',
+                    'hold': 24, 'sl_pct': 0.03,
+                    'reason': f"THURSDAY SHORT: consistent weekly pattern"
+                }, score))
+        except:
+            pass
         
         return signals
         
