@@ -1,0 +1,156 @@
+{
+  "balance": 300.0,
+  "grid_balance": 120.0,
+  "active_balance": 180.0,
+  "positions": {},
+  "grid_states": {
+    "NEARUSD": {
+      "buy_orders": [
+        {
+          "price": 1.3741199999999998,
+          "qty": 4.322766570605188,
+          "filled": true
+        },
+        {
+          "price": 1.36024,
+          "qty": 4.322766570605188,
+          "filled": false
+        },
+        {
+          "price": 1.3463599999999998,
+          "qty": 4.322766570605188,
+          "filled": false
+        },
+        {
+          "price": 1.3324799999999999,
+          "qty": 4.322766570605188,
+          "filled": false
+        },
+        {
+          "price": 1.3185999999999998,
+          "qty": 4.322766570605188,
+          "filled": false
+        },
+        {
+          "price": 1.3741199999999998,
+          "qty": 4.322766570605188,
+          "filled": false
+        }
+      ],
+      "filled_buys": [],
+      "completed_trades": [
+        {
+          "buy_price": 1.3741199999999998,
+          "sell_price": 1.3878612,
+          "qty": 4.322766570605188,
+          "profit": 0.04029696000000052,
+          "timestamp": "2026-03-18T13:27:25.219627"
+        }
+      ],
+      "total_profit": 0.04029696000000052
+    },
+    "AVAXUSD": {
+      "buy_orders": [
+        {
+          "price": 9.50336,
+          "qty": 0.6263048016701461,
+          "filled": false
+        },
+        {
+          "price": 9.42672,
+          "qty": 0.6263048016701461,
+          "filled": false
+        },
+        {
+          "price": 9.35008,
+          "qty": 0.6263048016701461,
+          "filled": false
+        },
+        {
+          "price": 9.273439999999999,
+          "qty": 0.6263048016701461,
+          "filled": false
+        },
+        {
+          "price": 9.1968,
+          "qty": 0.6263048016701461,
+          "filled": false
+        }
+      ],
+      "filled_buys": [],
+      "completed_trades": [],
+      "total_profit": 0.0
+    },
+    "DOTUSD": {
+      "buy_orders": [
+        {
+          "price": 1.5313795,
+          "qty": 3.8592654531420854,
+          "filled": false
+        },
+        {
+          "price": 1.508059,
+          "qty": 3.8592654531420854,
+          "filled": false
+        },
+        {
+          "price": 1.4847385,
+          "qty": 3.8592654531420854,
+          "filled": false
+        },
+        {
+          "price": 1.4614179999999999,
+          "qty": 3.8592654531420854,
+          "filled": false
+        },
+        {
+          "price": 1.4380975,
+          "qty": 3.8592654531420854,
+          "filled": false
+        }
+      ],
+      "filled_buys": [],
+      "completed_trades": [],
+      "total_profit": 0.0
+    },
+    "UNIUSD": {
+      "buy_orders": [
+        {
+          "price": 3.61101,
+          "qty": 1.6366612111292962,
+          "filled": false
+        },
+        {
+          "price": 3.5560199999999997,
+          "qty": 1.6366612111292962,
+          "filled": false
+        },
+        {
+          "price": 3.5010299999999996,
+          "qty": 1.6366612111292962,
+          "filled": false
+        },
+        {
+          "price": 3.4460399999999995,
+          "qty": 1.6366612111292962,
+          "filled": false
+        },
+        {
+          "price": 3.39105,
+          "qty": 1.6366612111292962,
+          "filled": false
+        }
+      ],
+      "filled_buys": [],
+      "completed_trades": [],
+      "total_profit": 0.0
+    }
+  },
+  "performance": {
+    "start_balance": 300.0,
+    "total_grid_profit": 0.04029696000000052,
+    "total_active_profit": 0.0,
+    "active_drawdown": 0.0,
+    "last_update": "2026-03-18T13:27:25.221251"
+  }
+}

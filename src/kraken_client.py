@@ -442,7 +442,8 @@ class KrakenClient:
         order_type: str,  # "market" or "limit"
         quantity: float,
         price: Optional[float] = None,
-        post_only: bool = False
+        post_only: bool = False,
+        leverage: Optional[int] = None
     ) -> Optional[Dict]:
         """
         Place an order.
@@ -455,6 +456,7 @@ class KrakenClient:
             price: Price for limit orders
             post_only: If True, set post-only flag (guarantees maker fee, order
                        is cancelled if it would cross the spread)
+            leverage: Margin leverage (e.g. 2 for 2:1). None = no margin.
         """
         try:
             if quantity <= 0:
@@ -495,6 +497,10 @@ class KrakenClient:
             # the order if it would immediately match (cross the spread).
             if post_only and order_type_norm == "limit":
                 params["oflags"] = "post"
+
+            # Margin leverage (e.g. leverage=2 for 2:1 margin)
+            if leverage is not None and leverage >= 2:
+                params["leverage"] = str(leverage)
             
             logger.info(
                 f"Placing {side_norm} {order_type_norm} order: {params['volume']} {symbol} @ {params.get('price', price)}"
