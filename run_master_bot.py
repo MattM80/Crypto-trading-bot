@@ -104,7 +104,7 @@ class AllSeeingEye:
         # Tool performance tracking
         self.tool_stats = self.state.get("tool_stats", {})
         # Ensure all tools have stats entries
-        for tool in ["crash_buy", "volatile_oversold", "relief_rally", "overbought_sell",
+        for tool in ["crash_buy", "volatile_oversold", "relief_rally", "mega_pump_sell", "green_exhaustion",
                       "dip_buy", "pump_sell", "mega_crash", "flash_crash", "quick_crash",
                       "deep_dip_8h", "deep_dip_12h", "deep_dip_24h", "quick_dip",
                       "btc_eth_diverge", "rsi_divergence", "thursday_short", "crash_neg_ac", "crash_mean_revert", "hurst_trend", "vpin_toxic", "vpin_dip", "entropy_dip", "triple_math"]:
@@ -306,38 +306,33 @@ class AllSeeingEye:
                 'reason': f"RELIEF RALLY: RSI={cur_rsi:.1f}, below SMA50 by {cur_vs_sma50:.1f}%"
             }, score))
         
-        # Tool 5: Overbought Sell
-        if cur_rsi > 85:
-            score = cur_rsi - 85
-            signals.append(({
-                'pair': pair, 'tool': 'overbought_sell', 'direction': 'short',
-                'hold': 8, 'sl_pct': 0.03,
-                'reason': f"OVERBOUGHT SELL: RSI={cur_rsi:.1f}"
-            }, score))
+
         
         # Tool 6: Dip Buy
         if ret_4h < -3:
             score = abs(ret_4h) * 2
             signals.append(({
                 'pair': pair, 'tool': 'dip_buy', 'direction': 'long',
-                'hold': 8, 'sl_pct': 0.03,
+                'hold': 24, 'sl_pct': 0.99,
                 'reason': f"DIP BUY: {ret_4h:.1f}% drop in 4h"
             }, score))
         
-        # Tool 7: Pump Sell
-        if cur_rsi > 80 and ret_4h > 3:
-            score = (cur_rsi - 80) + ret_4h
-            signals.append(({
-                'pair': pair, 'tool': 'pump_sell', 'direction': 'short',
-                'hold': 8, 'sl_pct': 0.03,
-                'reason': f"PUMP SELL: RSI={cur_rsi:.1f}, +{ret_4h:.1f}% in 4h"
-            }, score))
-        
-        # ── NEW TOOLS FROM DEEP QUANT ──
-        
-        # Compute additional features
+        # Compute additional features for pump/crash tools
         ret_8h = (price - close[-9]) / close[-9] * 100 if len(close) >= 9 else 0
         ret_12h = (price - close[-13]) / close[-13] * 100 if len(close) >= 13 else 0
+        
+        # Tool 7a: Mega Pump Sell — RSI>80 + 8% pump 8h → 72% WR, +2.82% avg
+        if cur_rsi > 80 and ret_8h > 8:
+            score = ret_8h * 3 + (cur_rsi - 80)
+            signals.append(({
+                'pair': pair, 'tool': 'mega_pump_sell', 'direction': 'short',
+                'hold': 24, 'sl_pct': 0.99,  # No SL
+                'reason': f"MEGA PUMP SELL: RSI={cur_rsi:.1f}, +{ret_8h:.1f}% 8h — 72% WR"
+            }, score))
+        
+
+        
+        # ── NEW TOOLS FROM DEEP QUANT ──
         
         # Tool 8: Mega Crash Buy (>15% drop 24h) — 80% WR, +12.87% avg 24h
         if ret_24h < -15:
@@ -381,7 +376,7 @@ class AllSeeingEye:
             score = abs(ret_4h) * 2
             signals.append(({
                 'pair': pair, 'tool': 'quick_dip', 'direction': 'long',
-                'hold': 8, 'sl_pct': 0.04,
+                'hold': 24, 'sl_pct': 0.99,
                 'reason': f"QUICK DIP: {ret_4h:.1f}% drop 4h — 58% WR"
             }, score))
         
@@ -669,6 +664,25 @@ class AllSeeingEye:
                 self.grid_positions[pair] = []
                 
             positions = self.grid_positions[pair]
+            
+            # SMA50 filter: Only run grid when price is above SMA50 (uptrend)
+            df = data.get('df')
+            if df is not None and len(df) >= 50:
+                close_arr = df['close'].values
+                sma50 = np.mean(close_arr[-50:]) if len(close_arr) >= 50 else current_price
+                
+                if current_price < sma50:
+                    # Close all grid inventory for this pair (sell at market)
+                    if positions and ENABLE_LIVE_TRADING:
+                        for pos in positions:
+                            self._place_order(pair, "sell", pos["qty"], current_price, "market")
+                            pnl = (current_price - pos["buy_price"]) * pos["qty"] * 0.998  # Minus fees
+                            self.grid_profit += pnl
+                            logger.info(f"[GRID SMA50] {pair} closed @ ${current_price:.4f}, PnL: ${pnl:.2f}")
+                    
+                    # Clear positions and skip new orders
+                    self.grid_positions[pair] = []
+                    continue
             
             # Check for new buy fills (3 levels below price)
             for level in range(1, 4):  # 3 levels

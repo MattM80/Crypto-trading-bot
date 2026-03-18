@@ -6,13 +6,7 @@
     "AVAXUSD": [],
     "LINKUSD": [],
     "AAVEUSD": [],
-    "SOLUSD": [
-      {
-        "buy_price": 90.00916,
-        "qty": 0.027774950904996782,
-        "bar": 1
-      }
-    ],
+    "SOLUSD": [],
     "ETHUSD": [],
     "XBTUSD": [],
     "DOTUSD": [],
@@ -27,15 +21,15 @@
   "grid_profit": 0.0,
   "grid_round_trips": 0,
   "active_positions": {
-    "UNIUSD": {
-      "tool": "deep_dip_24h",
+    "XRPUSD": {
+      "tool": "whale_buy",
       "direction": "long",
-      "entry": 3.669,
-      "qty": 49.0596892886345,
+      "entry": 1.46864,
+      "qty": 204.27061771434796,
       "entry_bar": 1,
-      "sl_pct": 0.05,
-      "hold": 24,
-      "reason": "DEEP DIP: -8.4% drop 24h \u2014 64% WR"
+      "sl_pct": 0.03,
+      "hold": 8,
+      "reason": "WHALE BUY: 7.4x volume on green candle"
     }
   },
   "active_profit": 0.0,
@@ -55,7 +49,12 @@
       "wins": 0,
       "pnl": 0.0
     },
-    "overbought_sell": {
+    "mega_pump_sell": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0
+    },
+    "green_exhaustion": {
       "trades": 0,
       "wins": 0,
       "pnl": 0.0
@@ -158,5 +157,5 @@
   },
   "trade_history": [],
   "current_bar": 1,
-  "last_update": "2026-03-18T17:11:34.496384"
+  "last_update": "2026-03-18T17:44:13.206738"
 }
