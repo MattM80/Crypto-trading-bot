@@ -5,7 +5,7 @@
 3. Run these commands one at a time:
 
 ```
-cd C:\Users\YourName\code\Crypto-trading-bot
+cd "C:\Users\Matthew V Mady\Lucas code\crypto-trading-bot"
 git pull origin main
 venv\Scripts\activate
 pip install -r requirements.txt
