@@ -418,10 +418,9 @@ class AllSeeingEye:
         
         # Tool 15: Day-of-week filter (Thursday/Sunday short bias)
         try:
-            import time as _t
             dow = datetime.now(timezone.utc).weekday()
-            if dow == 3 and cur_rsi > 50:  # Thursday + not oversold
-                score = 3  # Low priority, but consistent
+            if dow == 3 and cur_rsi > 50:
+                score = 3
                 signals.append(({
                     'pair': pair, 'tool': 'thursday_short', 'direction': 'short',
                     'hold': 24, 'sl_pct': 0.03,
@@ -429,6 +428,117 @@ class AllSeeingEye:
                 }, score))
         except:
             pass
+        
+        # ── DEEP QUANT V2 TOOLS ──
+        
+        # Tool 16: Market Panic (90%+ coins dumping >3% in 4h) — 64% WR, +3.39% 24h
+        dropping = 0; total_pairs = 0
+        for p2, cached in self._price_cache.items():
+            if len(cached) >= 5:
+                r2 = (cached[-1] - cached[-5]) / cached[-5] * 100
+                total_pairs += 1
+                if r2 < -3: dropping += 1
+        if total_pairs >= 5:
+            panic_pct = dropping / total_pairs * 100
+            if panic_pct >= 90:
+                score = panic_pct * 0.5
+                signals.append(({
+                    'pair': pair, 'tool': 'market_panic_90', 'direction': 'long',
+                    'hold': 24, 'sl_pct': 0.05,
+                    'reason': f"MARKET PANIC: {panic_pct:.0f}% coins down >3% — blood in streets"
+                }, score))
+            elif panic_pct >= 80:
+                score = panic_pct * 0.4
+                signals.append(({
+                    'pair': pair, 'tool': 'market_panic_80', 'direction': 'long',
+                    'hold': 24, 'sl_pct': 0.05,
+                    'reason': f"MARKET PANIC: {panic_pct:.0f}% coins down >3%"
+                }, score))
+            elif panic_pct >= 70:
+                score = panic_pct * 0.3
+                signals.append(({
+                    'pair': pair, 'tool': 'market_panic_70', 'direction': 'long',
+                    'hold': 8, 'sl_pct': 0.04,
+                    'reason': f"MARKET DIP: {panic_pct:.0f}% coins down >3%"
+                }, score))
+        
+        # Tool 17: Whale Buy (5x+ volume on green candle) — +1.02% 8h
+        if len(df) >= 21:
+            vol = df['volume'].values.astype(float)
+            opn = df['open'].values.astype(float)
+            avg_vol = np.mean(vol[-21:-1]) if len(vol) >= 21 else 0
+            if avg_vol > 0:
+                vol_ratio = vol[-1] / avg_vol
+                is_green = close[-1] > opn[-1]
+                is_red = close[-1] < opn[-1]
+                
+                if vol_ratio >= 5 and is_green:
+                    score = vol_ratio * 2
+                    signals.append(({
+                        'pair': pair, 'tool': 'whale_buy', 'direction': 'long',
+                        'hold': 8, 'sl_pct': 0.03,
+                        'reason': f"WHALE BUY: {vol_ratio:.1f}x volume on green candle"
+                    }, score))
+                
+                # Tool 18: Capitulation (8x+ volume on red candle) — 60% WR
+                if vol_ratio >= 8 and is_red:
+                    score = vol_ratio * 1.5
+                    signals.append(({
+                        'pair': pair, 'tool': 'capitulation', 'direction': 'long',
+                        'hold': 8, 'sl_pct': 0.05,
+                        'reason': f"CAPITULATION: {vol_ratio:.1f}x volume on red candle — selling exhaustion"
+                    }, score))
+        
+        # Tool 19: 7 Green Exhaustion (7 consecutive green candles → short) — 58% WR
+        if len(close) >= 8 and len(df) >= 8:
+            opn = df['open'].values.astype(float)
+            all_green = all(close[-j-1] > opn[-j-1] for j in range(1, 8))
+            cur_red = close[-1] < opn[-1]
+            if all_green and cur_red:
+                score = 15  # High confidence
+                signals.append(({
+                    'pair': pair, 'tool': 'green_exhaustion', 'direction': 'short',
+                    'hold': 8, 'sl_pct': 0.03,
+                    'reason': f"GREEN EXHAUSTION: 7 green then red — reversal signal"
+                }, score))
+        
+        # Tool 20: Z-score -3σ (extreme statistical deviation) — 53% WR
+        if len(close) >= 49:
+            window = close[-48:]
+            mu = np.mean(window); sigma = np.std(window)
+            if sigma > 0:
+                z = (close[-1] - mu) / sigma
+                if z < -3:
+                    score = abs(z) * 5
+                    signals.append(({
+                        'pair': pair, 'tool': 'zscore_extreme', 'direction': 'long',
+                        'hold': 24, 'sl_pct': 0.05,
+                        'reason': f"Z-SCORE EXTREME: {z:.1f}σ below 48h mean"
+                    }, score))
+        
+        # Tool 21: Blood in Streets (market panic + this coin RSI<20) — 57% WR, +1.51% 24h
+        if total_pairs >= 5:
+            dropping_2pct = sum(1 for p2, cached in self._price_cache.items()
+                              if len(cached) >= 5 and (cached[-1]-cached[-5])/cached[-5]*100 < -2)
+            if dropping_2pct / total_pairs >= 0.7 and cur_rsi < 20:
+                score = (20 - cur_rsi) * 3  # Very high priority
+                signals.append(({
+                    'pair': pair, 'tool': 'blood_in_streets', 'direction': 'long',
+                    'hold': 24, 'sl_pct': 0.06,
+                    'reason': f"BLOOD IN STREETS: {dropping_2pct/total_pairs*100:.0f}% panic + RSI={cur_rsi:.1f}"
+                }, score))
+        
+        # Tool 22: FOMO Ride (80%+ coins pumping >1% in 4h) — +0.47% 8h, 2848 occurrences
+        if total_pairs >= 5:
+            pumping = sum(1 for p2, cached in self._price_cache.items()
+                        if len(cached) >= 5 and (cached[-1]-cached[-5])/cached[-5]*100 > 1)
+            if pumping / total_pairs >= 0.8:
+                score = 5
+                signals.append(({
+                    'pair': pair, 'tool': 'fomo_ride', 'direction': 'long',
+                    'hold': 8, 'sl_pct': 0.03,
+                    'reason': f"FOMO RIDE: {pumping/total_pairs*100:.0f}% coins pumping — momentum"
+                }, score))
         
         return signals
         
