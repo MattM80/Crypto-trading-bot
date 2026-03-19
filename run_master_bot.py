@@ -1138,47 +1138,47 @@ class AllSeeingEye:
                 should_close = True
                 close_reason = "STOP LOSS"
             
-            # 2. Take-profit / trailing stop (NEW — checked before hold timeout)
+            # 2. Take-profit with hybrid trailing (checked before hold timeout)
+            # When TP level is hit → activate trailing stop with TP as floor.
+            # Trail can never sell below TP price. Worst case = fixed TP. Best case = rides runner.
             if not should_close:
                 exit_mode = pos.get('exit_mode', 'default')
+                tp_pct = pos.get('take_profit_pct', None)
                 
-                if exit_mode == 'trailing':
-                    # Momentum strategies: trailing stop from highest price
-                    trail_pct = pos.get('trailing_stop_pct', 0.04)
-                    if pos['direction'] == 'long':
-                        highest = pos.get('highest_price_since_entry', pos['entry'])
-                        trail_price = highest * (1 - trail_pct)
-                        # Only activate trailing stop after at least 1 ATR profit
-                        min_profit = pos.get('trailing_activate_pct', 0.02)
-                        if price >= pos['entry'] * (1 + min_profit) and price <= trail_price:
-                            should_close = True
-                            close_reason = f"TRAILING STOP (high=${highest:.4f}, trail={trail_pct*100:.1f}%)"
-                    else:
-                        lowest = pos.get('lowest_price_since_entry', pos['entry'])
-                        trail_price = lowest * (1 + trail_pct)
-                        min_profit = pos.get('trailing_activate_pct', 0.02)
-                        if price <= pos['entry'] * (1 - min_profit) and price >= trail_price:
-                            should_close = True
-                            close_reason = f"TRAILING STOP (low=${lowest:.4f}, trail={trail_pct*100:.1f}%)"
+                if exit_mode == 'grid':
+                    pass  # Grid has own exit logic
                 
-                elif exit_mode in ('fixed_tp', 'default'):
-                    # Fixed take-profit
-                    tp_pct = pos.get('take_profit_pct', None)
-                    if tp_pct is not None:
-                        if pos['direction'] == 'long' and price >= pos['entry'] * (1 + tp_pct):
-                            should_close = True
-                            close_reason = f"TAKE PROFIT ({tp_pct*100:.1f}%)"
-                        elif pos['direction'] == 'short' and price <= pos['entry'] * (1 - tp_pct):
-                            should_close = True
-                            close_reason = f"TAKE PROFIT ({tp_pct*100:.1f}%)"
+                elif tp_pct is not None:
+                    tp_price = pos['entry'] * (1 + tp_pct) if pos['direction'] == 'long' else pos['entry'] * (1 - tp_pct)
+                    
+                    # Check if TP threshold hit → activate trailing
+                    if not pos.get('trailing_active', False):
+                        tp_hit = (pos['direction'] == 'long' and price >= tp_price) or \
+                                 (pos['direction'] == 'short' and price <= tp_price)
+                        if tp_hit:
+                            pos['trailing_active'] = True
+                            pos['trail_pct'] = max(tp_pct * 0.5, 0.02)  # Trail at 50% of TP width, floor 2%
+                            logger.info(f"  [TP→TRAIL] {pair} hit {tp_pct*100:.1f}% TP → trailing at {pos['trail_pct']*100:.1f}% from peak (floor at TP)")
+                    
+                    # Trailing stop with TP floor
+                    if pos.get('trailing_active', False):
+                        trail_pct = pos.get('trail_pct', 0.02)
+                        if pos['direction'] == 'long':
+                            highest = pos.get('highest_price_since_entry', pos['entry'])
+                            trail_price = max(highest * (1 - trail_pct), tp_price)  # Never below TP
+                            if price <= trail_price:
+                                should_close = True
+                                gain = (highest / pos['entry'] - 1) * 100
+                                close_reason = f"TRAILING STOP (peak +{gain:.1f}%, floor={tp_pct*100:.0f}%)"
+                        else:
+                            lowest = pos.get('lowest_price_since_entry', pos['entry'])
+                            trail_price = min(lowest * (1 + trail_pct), tp_price)  # Never above TP for shorts
+                            if price >= trail_price:
+                                should_close = True
+                                gain = (1 - lowest / pos['entry']) * 100
+                                close_reason = f"TRAILING STOP (peak +{gain:.1f}%, floor={tp_pct*100:.0f}%)"
                 
-                elif exit_mode == 'crash_tp':
-                    # Crash strategies: fixed TP at higher level
-                    tp_pct = pos.get('take_profit_pct', 0.06)
-                    if pos['direction'] == 'long' and price >= pos['entry'] * (1 + tp_pct):
-                        should_close = True
-                        close_reason = f"CRASH TAKE PROFIT ({tp_pct*100:.1f}%)"
-                # exit_mode == 'grid' → skip (grid has own logic)
+                # exit_mode == 'default' with no tp_pct → no TP (momentum strategies)
             
             # 3. Hold timeout (unchanged)
             if not should_close and bars_held >= pos['hold']:
@@ -1191,12 +1191,16 @@ class AllSeeingEye:
     def _get_exit_params(self, tool: str, price: float, market_data_entry: dict) -> tuple:
         """Return (exit_mode, take_profit_pct, trailing_stop_pct, trailing_activate_pct) for a tool.
         
-        Strategy categories:
-        - Mean reversion: fixed TP at min(1.5x ATR, 3-5%)
-        - Crash buys: fixed TP at 5-8%
-        - Momentum: trailing stop at 2x ATR, no fixed TP
+        Backtested optimal TP levels (90-day sweep across AAVE/NEAR/AVAX/XRP):
+        - Mean reversion: TP at 8-10% (3% was WAY too tight, cut normal moves)
+        - Crash buys: TP at 8-12% (these bounce hard)
+        - Momentum: NO TP — any TP hurts. Let hold timer do its job.
+        - Dip buys: TP at 6% (sweet spot between capturing bounces vs cutting runners)
         - Grid: skip (own exit logic)
-        - Default: fixed TP at 1.5x ATR
+        
+        Hybrid TP→trailing with floor: when TP level is hit, activate trailing stop
+        that can never sell below the TP price. Worst case = fixed TP. Best case = rides
+        the runner higher.
         """
         # Compute ATR% from market data
         df = market_data_entry.get('df')
@@ -1209,7 +1213,7 @@ class AllSeeingEye:
             if not np.isnan(atr14[-1]) and price > 0:
                 atr_pct = atr14[-1] / price
         
-        # Mean reversion strategies
+        # Mean reversion strategies — TP at 8-10% (backtested: 10% optimal)
         MEAN_REVERSION = {
             'volatile_oversold', 'fat_tail_revert', 'rsi_divergence',
             'dist_exhaustion', 'math_capitulation', 'zscore_extreme',
@@ -1217,7 +1221,7 @@ class AllSeeingEye:
             'vpin_toxic', 'vpin_dip', 'panic_close',
         }
         
-        # Crash buy strategies
+        # Crash buy strategies — TP at 8-12%
         CRASH_BUY = {
             'crash_buy', 'crash_neg_ac', 'mega_crash', 'flash_crash',
             'quick_crash', 'relief_rally', 'blood_in_streets',
@@ -1226,11 +1230,14 @@ class AllSeeingEye:
             'capitulation',
         }
         
-        # Momentum / trend strategies
+        # Momentum / trend strategies — NO TP (backtested: any TP hurts)
         MOMENTUM = {
             'hurst_trend', 'fomo_ride', 'deceleration_buy',
             'whale_buy', 'volume_climax',
         }
+        
+        # Dip buy — TP at 6% (backtested sweet spot)
+        DIP_BUY = {'dip_buy', 'deep_dip_24h', 'quick_dip'}
         
         # Grid — don't touch
         GRID = {'grid'}
@@ -1238,30 +1245,31 @@ class AllSeeingEye:
         if tool in GRID:
             return ('grid', None, None, None)
         
+        if tool in MOMENTUM:
+            # NO take-profit — backtested: any TP cuts runners and hurts PnL
+            # Just let hold timer and stop loss do their job
+            return ('default', None, None, None)
+        
         if tool in MEAN_REVERSION:
-            # Fixed TP: min(3x ATR, 8%) — wide enough to capture most of the move
-            tp = min(atr_pct * 3.0, 0.08)
-            tp = max(tp, 0.03)  # floor at 3%
+            # TP at 8-10%: these signals regularly move 5-10%, 3% was too tight
+            tp = max(min(atr_pct * 4.0, 0.10), 0.08)  # 4x ATR, floor 8%, cap 10%
             return ('fixed_tp', tp, None, None)
         
         if tool in CRASH_BUY:
-            # Fixed TP at 8-12% depending on severity — crashes bounce hard
+            # TP at 8-12% depending on severity — crashes bounce hard
             BIG_CRASH = {'mega_crash', 'crash_neg_ac', 'mega_align', 'market_panic_90'}
             if tool in BIG_CRASH:
                 tp = 0.12  # 12% for the biggest crashes
             else:
-                tp = 0.08  # 8% for normal crash buys
-            return ('crash_tp', tp, None, None)
+                tp = 0.10  # 10% for normal crash buys
+            return ('fixed_tp', tp, None, None)
         
-        if tool in MOMENTUM:
-            # Trailing stop: 3x ATR from high, activate after 2x ATR profit
-            trail = max(atr_pct * 3.0, 0.05)  # floor 5%
-            activate = max(atr_pct * 2.0, 0.03)  # activate after 2x ATR or 3%
-            return ('trailing', None, trail, activate)
+        if tool in DIP_BUY:
+            # TP at 6%: backtested optimal — bounces ~6% then fades
+            return ('fixed_tp', 0.06, None, None)
         
-        # Default: fixed TP at 2.5x ATR
-        tp = min(atr_pct * 2.5, 0.07)
-        tp = max(tp, 0.025)
+        # Default: TP at 6-8% (conservative, don't chop winners)
+        tp = max(min(atr_pct * 3.0, 0.08), 0.06)
         return ('fixed_tp', tp, None, None)
     
     def execute_signal(self, signal: dict, score: float):
