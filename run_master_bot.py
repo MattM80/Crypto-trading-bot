@@ -1051,7 +1051,7 @@ class AllSeeingEye:
                     if positions and ENABLE_LIVE_TRADING:
                         for pos in positions:
                             self._place_order(pair, "sell", pos["qty"], current_price, "market")
-                            pnl = (current_price - pos["buy_price"]) * pos["qty"] * 0.998  # Minus fees
+                            pnl = (current_price - pos["buy_price"]) * pos["qty"] * 0.996  # Round-trip fees (0.2% buy + 0.2% sell)
                             self.grid_profit += pnl
                             logger.info(f"[GRID SMA50] {pair} closed @ ${current_price:.4f}, PnL: ${pnl:.2f}")
                     
@@ -1089,7 +1089,7 @@ class AllSeeingEye:
                 
                 if current_high >= sell_target:
                     # Sell filled - book profit
-                    pnl = (sell_target - pos["buy_price"]) * pos["qty"] * 0.998  # Minus fees
+                    pnl = (sell_target - pos["buy_price"]) * pos["qty"] * 0.996  # Round-trip fees (0.2% buy + 0.2% sell)
                     self.grid_profit += pnl
                     self.grid_round_trips += 1
                     
@@ -1107,7 +1107,7 @@ class AllSeeingEye:
         return self.current_bar - position.get("entry_bar", self.current_bar)
         
     def manage_positions(self, market_data: dict):
-        """Check all active positions for exits."""
+        """Check all active positions for exits (SL, TP, trailing stop, hold timeout)."""
         for pair in list(self.active_positions.keys()):
             if pair not in market_data:
                 continue
@@ -1117,33 +1117,188 @@ class AllSeeingEye:
             price = data["price"]
             bars_held = self.get_bars_held(pos)
             
-            # Check exit conditions
+            # Update highest price since entry (for trailing stops)
+            if pos['direction'] == 'long':
+                pos['highest_price_since_entry'] = max(
+                    pos.get('highest_price_since_entry', pos['entry']), price)
+            else:
+                # For shorts, track lowest price
+                pos['lowest_price_since_entry'] = min(
+                    pos.get('lowest_price_since_entry', pos['entry']), price)
+            
+            # Check exit conditions (priority order: SL > TP/trailing > hold timeout)
             should_close = False
             close_reason = ""
             
-            # Stop loss
+            # 1. Stop loss (unchanged)
             if pos['direction'] == 'long' and price <= pos['entry'] * (1 - pos['sl_pct']):
                 should_close = True
                 close_reason = "STOP LOSS"
             elif pos['direction'] == 'short' and price >= pos['entry'] * (1 + pos['sl_pct']):
                 should_close = True
                 close_reason = "STOP LOSS"
-            # Hold timeout
-            elif bars_held >= pos['hold']:
+            
+            # 2. Take-profit / trailing stop (NEW — checked before hold timeout)
+            if not should_close:
+                exit_mode = pos.get('exit_mode', 'default')
+                
+                if exit_mode == 'trailing':
+                    # Momentum strategies: trailing stop from highest price
+                    trail_pct = pos.get('trailing_stop_pct', 0.04)
+                    if pos['direction'] == 'long':
+                        highest = pos.get('highest_price_since_entry', pos['entry'])
+                        trail_price = highest * (1 - trail_pct)
+                        # Only activate trailing stop after at least 1 ATR profit
+                        min_profit = pos.get('trailing_activate_pct', 0.02)
+                        if price >= pos['entry'] * (1 + min_profit) and price <= trail_price:
+                            should_close = True
+                            close_reason = f"TRAILING STOP (high=${highest:.4f}, trail={trail_pct*100:.1f}%)"
+                    else:
+                        lowest = pos.get('lowest_price_since_entry', pos['entry'])
+                        trail_price = lowest * (1 + trail_pct)
+                        min_profit = pos.get('trailing_activate_pct', 0.02)
+                        if price <= pos['entry'] * (1 - min_profit) and price >= trail_price:
+                            should_close = True
+                            close_reason = f"TRAILING STOP (low=${lowest:.4f}, trail={trail_pct*100:.1f}%)"
+                
+                elif exit_mode in ('fixed_tp', 'default'):
+                    # Fixed take-profit
+                    tp_pct = pos.get('take_profit_pct', None)
+                    if tp_pct is not None:
+                        if pos['direction'] == 'long' and price >= pos['entry'] * (1 + tp_pct):
+                            should_close = True
+                            close_reason = f"TAKE PROFIT ({tp_pct*100:.1f}%)"
+                        elif pos['direction'] == 'short' and price <= pos['entry'] * (1 - tp_pct):
+                            should_close = True
+                            close_reason = f"TAKE PROFIT ({tp_pct*100:.1f}%)"
+                
+                elif exit_mode == 'crash_tp':
+                    # Crash strategies: fixed TP at higher level
+                    tp_pct = pos.get('take_profit_pct', 0.06)
+                    if pos['direction'] == 'long' and price >= pos['entry'] * (1 + tp_pct):
+                        should_close = True
+                        close_reason = f"CRASH TAKE PROFIT ({tp_pct*100:.1f}%)"
+                # exit_mode == 'grid' → skip (grid has own logic)
+            
+            # 3. Hold timeout (unchanged)
+            if not should_close and bars_held >= pos['hold']:
                 should_close = True
                 close_reason = "HOLD COMPLETE"
             
             if should_close:
                 self.close_position(pair, price, close_reason)
                 
+    def _get_exit_params(self, tool: str, price: float, market_data_entry: dict) -> tuple:
+        """Return (exit_mode, take_profit_pct, trailing_stop_pct, trailing_activate_pct) for a tool.
+        
+        Strategy categories:
+        - Mean reversion: fixed TP at min(1.5x ATR, 3-5%)
+        - Crash buys: fixed TP at 5-8%
+        - Momentum: trailing stop at 2x ATR, no fixed TP
+        - Grid: skip (own exit logic)
+        - Default: fixed TP at 1.5x ATR
+        """
+        # Compute ATR% from market data
+        df = market_data_entry.get('df')
+        atr_pct = 0.03  # default 3%
+        if df is not None and len(df) >= 15:
+            high = df['high'].values.astype(float)
+            low = df['low'].values.astype(float)
+            close = df['close'].values.astype(float)
+            atr14 = self.calc_atr(high, low, close, 14)
+            if not np.isnan(atr14[-1]) and price > 0:
+                atr_pct = atr14[-1] / price
+        
+        # Mean reversion strategies
+        MEAN_REVERSION = {
+            'volatile_oversold', 'fat_tail_revert', 'rsi_divergence',
+            'dist_exhaustion', 'math_capitulation', 'zscore_extreme',
+            'btc_alt_spread', 'alt_btc_revert', 'entropy_dip',
+            'vpin_toxic', 'vpin_dip', 'panic_close',
+        }
+        
+        # Crash buy strategies
+        CRASH_BUY = {
+            'crash_buy', 'crash_neg_ac', 'mega_crash', 'flash_crash',
+            'quick_crash', 'relief_rally', 'blood_in_streets',
+            'efficiency_capitulation', 'mega_align', 'crash_mean_revert',
+            'market_panic_90', 'market_panic_80', 'market_panic_70',
+            'capitulation',
+        }
+        
+        # Momentum / trend strategies
+        MOMENTUM = {
+            'hurst_trend', 'fomo_ride', 'deceleration_buy',
+            'whale_buy', 'volume_climax',
+        }
+        
+        # Grid — don't touch
+        GRID = {'grid'}
+        
+        if tool in GRID:
+            return ('grid', None, None, None)
+        
+        if tool in MEAN_REVERSION:
+            # Fixed TP: min(3x ATR, 8%) — wide enough to capture most of the move
+            tp = min(atr_pct * 3.0, 0.08)
+            tp = max(tp, 0.03)  # floor at 3%
+            return ('fixed_tp', tp, None, None)
+        
+        if tool in CRASH_BUY:
+            # Fixed TP at 8-12% depending on severity — crashes bounce hard
+            BIG_CRASH = {'mega_crash', 'crash_neg_ac', 'mega_align', 'market_panic_90'}
+            if tool in BIG_CRASH:
+                tp = 0.12  # 12% for the biggest crashes
+            else:
+                tp = 0.08  # 8% for normal crash buys
+            return ('crash_tp', tp, None, None)
+        
+        if tool in MOMENTUM:
+            # Trailing stop: 3x ATR from high, activate after 2x ATR profit
+            trail = max(atr_pct * 3.0, 0.05)  # floor 5%
+            activate = max(atr_pct * 2.0, 0.03)  # activate after 2x ATR or 3%
+            return ('trailing', None, trail, activate)
+        
+        # Default: fixed TP at 2.5x ATR
+        tp = min(atr_pct * 2.5, 0.07)
+        tp = max(tp, 0.025)
+        return ('fixed_tp', tp, None, None)
+    
     def execute_signal(self, signal: dict, score: float):
         """Execute a signal by opening a position."""
         pair = signal['pair']
         direction = signal['direction']
         tool = signal['tool']
         
-        # Adaptive Kelly sizing — bet more on higher-conviction tools
+        # Minimum edge filter — skip trades where expected move < fee drag
+        # Round-trip fees are ~0.4%, so need at least 0.5% expected edge
+        MIN_EDGE_PCT = 0.005  # 0.5%
+        tp_pct = signal.get('take_profit_pct', None)
+        sl_pct = signal.get('sl_pct', 0.05)
         tool_record = self.tool_stats.get(tool, {})
+        tool_trades = tool_record.get('trades', 0)
+        tool_wins = tool_record.get('wins', 0)
+        
+        # Estimate expected edge from tool stats or preset win rates
+        if tool_trades >= 10:
+            wr = tool_wins / tool_trades
+        else:
+            # Use preset kelly_map win rates as proxy
+            preset_wr = {
+                'crash_neg_ac': 0.78, 'mega_crash': 0.80, 'crash_buy': 0.76,
+                'flash_crash': 0.77, 'panic_close': 0.64, 'dist_exhaustion': 0.63,
+                'relief_rally': 0.68, 'volatile_oversold': 0.55, 'fat_tail_revert': 0.59,
+                'mega_pump_sell': 0.56, 'dip_buy': 0.44,
+            }
+            wr = preset_wr.get(tool, 0.50)
+        
+        # EV = wr * avg_win - (1-wr) * avg_loss. Rough: avg_win ≈ sl_pct, avg_loss ≈ sl_pct
+        expected_edge = wr * sl_pct - (1 - wr) * sl_pct  # Simplified
+        if expected_edge < MIN_EDGE_PCT:
+            logger.info(f"  [EDGE FILTER] {pair} {tool} skipped — expected edge {expected_edge*100:.2f}% < {MIN_EDGE_PCT*100:.1f}% min")
+            return
+        
+        # Adaptive Kelly sizing — bet more on higher-conviction tools
         tool_trades = tool_record.get('trades', 0)
         tool_wins = tool_record.get('wins', 0)
         
@@ -1254,6 +1409,10 @@ class AllSeeingEye:
                 if not success:
                     return
             
+            # Determine exit mode and TP/trailing params based on strategy category
+            exit_mode, take_profit_pct, trailing_stop_pct, trailing_activate_pct = \
+                self._get_exit_params(tool, current_price, market_data[pair])
+            
             # Record position
             self.active_positions[pair] = {
                 'tool': tool,
@@ -1263,10 +1422,21 @@ class AllSeeingEye:
                 'entry_bar': self.current_bar,
                 'sl_pct': sl_pct,
                 'hold': signal['hold'],
-                'reason': signal['reason']
+                'reason': signal['reason'],
+                'exit_mode': exit_mode,
+                'take_profit_pct': take_profit_pct,
+                'trailing_stop_pct': trailing_stop_pct,
+                'trailing_activate_pct': trailing_activate_pct,
+                'highest_price_since_entry': current_price,
+                'lowest_price_since_entry': current_price,
             }
             
-            logger.info(f"[EXECUTE] {direction.upper()} {qty:.6f} {pair} @ ${current_price:.4f} ({tool}, hold {signal['hold']}h, SL {sl_pct*100:.0f}%)")
+            exit_info = f"exit={exit_mode}"
+            if take_profit_pct is not None:
+                exit_info += f", TP={take_profit_pct*100:.1f}%"
+            if trailing_stop_pct is not None:
+                exit_info += f", trail={trailing_stop_pct*100:.1f}%"
+            logger.info(f"[EXECUTE] {direction.upper()} {qty:.6f} {pair} @ ${current_price:.4f} ({tool}, hold {signal['hold']}h, SL {sl_pct*100:.0f}%, {exit_info})")
             logger.info(f"[REASON] {signal['reason']}")
             
         except Exception as e:
@@ -1289,7 +1459,7 @@ class AllSeeingEye:
         else:  # short
             pnl = (entry_price - price) * qty
             
-        pnl *= 0.998  # Account for fees/slippage
+        pnl *= 0.996  # Round-trip fees (0.2% buy + 0.2% sell)
         
         # Place closing order
         if ENABLE_LIVE_TRADING:
