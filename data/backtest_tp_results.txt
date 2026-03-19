@@ -1,0 +1,137 @@
+/Users/lucasaust/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+================================================================================
+  TAKE-PROFIT & TRAILING STOP BACKTEST
+  Pairs: AAVEUSD, NEARUSD, AVAXUSD, XRPUSD | Period: 90 days | Interval: 1h
+================================================================================
+
+────────────────────────────────────────────────────────────
+  Processing AAVEUSD...
+  Downloaded AAVEUSD: 721 bars (90d @ 60m)
+  Generated 224 signals
+  Signal breakdown: {'dip_buy': 48, 'volume_climax': 37, 'deceleration_buy': 25, 'quick_dip': 15, 'dist_exhaustion': 14, 'efficiency_capitulation': 13, 'zscore_extreme': 13, 'whale_buy': 11}
+
+  AAVEUSD Results:
+  Metric                         WITHOUT TP         WITH TP        Delta
+  ───────────────────────────────────────────────────────────────────
+  Total Trades                           19              21 +          2
+  Win Rate %                           63.2            66.7 +        3.5
+  Total PnL $                        169.25           83.16      -86.09
+  Total Return %                      16.93            8.32       -8.61
+  Avg Win %                            3.22            1.81       -1.41
+  Avg Loss %                          -3.96           -3.43 +       0.53
+  Max Drawdown %                       4.44            5.16 +       0.72
+  Avg Bars Held                        20.1            15.9        -4.1
+
+  Exit reasons (WITH TP):
+    HOLD TIMEOUT: 14
+    TAKE PROFIT: 6
+    FORCE CLOSE: 1
+
+────────────────────────────────────────────────────────────
+  Processing NEARUSD...
+  Downloaded NEARUSD: 721 bars (90d @ 60m)
+  Generated 160 signals
+  Signal breakdown: {'dip_buy': 39, 'volume_climax': 25, 'mega_pump_sell': 21, 'whale_buy': 16, 'deceleration_buy': 14, 'panic_close': 13, 'deep_dip_24h': 8, 'quick_dip': 5}
+
+  NEARUSD Results:
+  Metric                         WITHOUT TP         WITH TP        Delta
+  ───────────────────────────────────────────────────────────────────
+  Total Trades                           24              29 +          5
+  Win Rate %                           50.0            51.7 +        1.7
+  Total PnL $                        163.02          300.06 +     137.04
+  Total Return %                      16.30           30.01 +      13.70
+  Avg Win %                            5.54            3.42       -2.12
+  Avg Loss %                          -2.94           -2.77 +       0.16
+  Max Drawdown %                       8.39            5.70       -2.69
+  Avg Bars Held                        16.9            13.9        -3.0
+
+  Exit reasons (WITH TP):
+    HOLD TIMEOUT: 19
+    TAKE PROFIT: 6
+    STOP LOSS: 3
+    FORCE CLOSE: 1
+
+────────────────────────────────────────────────────────────
+  Processing AVAXUSD...
+  Downloaded AVAXUSD: 721 bars (90d @ 60m)
+  Generated 149 signals
+  Signal breakdown: {'dip_buy': 32, 'volume_climax': 20, 'dist_exhaustion': 18, 'deceleration_buy': 16, 'fat_tail_revert': 13, 'whale_buy': 11, 'zscore_extreme': 11, 'mega_pump_sell': 9}
+
+  AVAXUSD Results:
+  Metric                         WITHOUT TP         WITH TP        Delta
+  ───────────────────────────────────────────────────────────────────
+  Total Trades                           17              19 +          2
+  Win Rate %                           35.3            42.1 +        6.8
+  Total PnL $                         -3.86            7.30 +      11.16
+  Total Return %                      -0.39            0.73 +       1.12
+  Avg Win %                            3.08            2.41       -0.67
+  Avg Loss %                          -1.81           -1.82       -0.01
+  Max Drawdown %                       8.39            8.26       -0.12
+  Avg Bars Held                        17.9            15.8        -2.2
+
+  Exit reasons (WITH TP):
+    HOLD TIMEOUT: 15
+    TAKE PROFIT: 3
+    FORCE CLOSE: 1
+
+────────────────────────────────────────────────────────────
+  Processing XRPUSD...
+  Downloaded XRPUSD: 721 bars (90d @ 60m)
+  Generated 104 signals
+  Signal breakdown: {'dip_buy': 26, 'deceleration_buy': 16, 'volume_climax': 16, 'whale_buy': 10, 'fat_tail_revert': 10, 'dist_exhaustion': 9, 'deep_dip_24h': 3, 'quick_dip': 3}
+
+  XRPUSD Results:
+  Metric                         WITHOUT TP         WITH TP        Delta
+  ───────────────────────────────────────────────────────────────────
+  Total Trades                           19              19           0
+  Win Rate %                           15.8            15.8         0.0
+  Total PnL $                       -118.01          -99.75 +      18.27
+  Total Return %                     -11.80           -9.97 +       1.83
+  Avg Win %                            1.12            1.54 +       0.42
+  Avg Loss %                          -1.39           -1.37 +       0.01
+  Max Drawdown %                      13.58           11.79       -1.79
+  Avg Bars Held                        16.8            16.6        -0.2
+
+  Exit reasons (WITH TP):
+    HOLD TIMEOUT: 16
+    TAKE PROFIT: 1
+    STOP LOSS: 1
+    FORCE CLOSE: 1
+
+================================================================================
+  AGGREGATE COMPARISON (all pairs combined)
+================================================================================
+
+  Metric                         WITHOUT TP         WITH TP        Delta
+  ───────────────────────────────────────────────────────────────────
+  Total Trades                           79              88 +          9
+  Total Wins                             33              40 +          7
+  Win Rate %                           41.8            45.5 +        3.7
+  Total PnL $                        210.40          290.77 +      80.38
+  Avg Win %                            3.85            2.51       -1.33
+  Avg Loss %                          -2.28           -2.18 +       0.10
+  Max Drawdown %                      13.58           11.79       -1.79
+
+  Exit Reasons (WITH TP, all pairs):
+    HOLD TIMEOUT: 64 (72.7%)
+    TAKE PROFIT: 16 (18.2%)
+    FORCE CLOSE: 4 (4.5%)
+    STOP LOSS: 4 (4.5%)
+
+  Per-Tool Performance (WITH TP, all pairs):
+  Tool                        Trades      WR%   Avg PnL%
+  ───────────────────────────────────────────────────
+  whale_buy                       24    54.2%     +0.98%
+  green_exhaustion                 3   100.0%     +1.88%
+  mega_pump_sell                   4    50.0%     +1.20%
+  relief_rally                     4    75.0%     +0.42%
+  deceleration_buy                 4    50.0%     -0.81%
+  zscore_extreme                   1     0.0%     -3.43%
+  dip_buy                         33    42.4%     -0.16%
+  volume_climax                    8    12.5%     -1.73%
+  panic_close                      7    28.6%     -2.01%
+
+================================================================================
+  DONE
+================================================================================
