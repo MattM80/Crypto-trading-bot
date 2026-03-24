@@ -112,7 +112,7 @@ class AllSeeingEye:
         # Backfill with historical performance so the bot starts SMART
         # These are from our 30,000+ data point analysis across 83 days
         BACKFILL = {
-            "crash_neg_ac":     {"trades": 130, "wins": 101, "pnl": 300.0},   # 78% WR # OOS-validated: 57.1% WR, +1.02% net
+            "crash_neg_ac":     {"trades": 130, "wins": 101, "pnl": 300.0},   # 78% WR
             "mega_crash":       {"trades": 49,  "wins": 39,  "pnl": 200.0},   # 80% WR
             "crash_buy":        {"trades": 363, "wins": 276, "pnl": 500.0},   # 76% WR
             "flash_crash":      {"trades": 130, "wins": 100, "pnl": 250.0},   # 77% WR
@@ -151,16 +151,16 @@ class AllSeeingEye:
             "late_us_short":    {"trades": 540, "wins": 286, "pnl": 15.0},    # 53% WR
             "high_breakout_50_nv":{"trades":652,"wins": 280, "pnl": 15.0},    # 43% WR
             "falling_wedge_short":{"trades":1021,"wins":511, "pnl": 5.0},     # 50% WR
-            "alt_btc_revert_t3":{"trades": 2053,"wins":1109, "pnl": 40.0},    # 54% WR # OOS-validated: 55.0% WR, +0.42% net
+            "alt_btc_revert_t3":{"trades": 2053,"wins":1109, "pnl": 40.0},    # 54% WR
             "rsi_pump_8h":      {"trades": 59,  "wins": 36,  "pnl": 15.0},    # 61% WR
             "rsi_pump_12h":     {"trades": 151, "wins": 95,  "pnl": 20.0},    # 63% WR
             # Deep quant combo tools (math-confirmed)
-            "sma50_ext_neg_ac": {"trades": 15,  "wins": 12,  "pnl": 43.0},    # 80% WR, +2.86% net # OOS-validated: 53.8% WR, +0.14% net
+            "sma50_ext_neg_ac": {"trades": 15,  "wins": 12,  "pnl": 43.0},    # 80% WR, +2.86% net
             "alt_btc_neg_ac":   {"trades": 17,  "wins": 14,  "pnl": 45.0},    # 82% WR, +2.67% net
             "sma50_ext_fat_tail":{"trades": 38, "wins": 31,  "pnl": 91.0},    # 82% WR, +2.40% net
             "rsi_pump_fat_tail":{"trades": 23,  "wins": 19,  "pnl": 45.0},    # 83% WR, +1.96% net
-            "alt_btc_neg_ac_5": {"trades": 37,  "wins": 27,  "pnl": 70.0},    # 73% WR, +1.90% net # OOS-validated: 55.8% WR, +0.58% net
-            "sma50_ext_kurt":   {"trades": 67,  "wins": 47,  "pnl": 60.0},    # 70% WR, +0.90% net # OOS-validated: 56.0% WR, +0.40% net
+            "alt_btc_neg_ac_5": {"trades": 37,  "wins": 27,  "pnl": 70.0},    # 73% WR, +1.90% net
+            "sma50_ext_kurt":   {"trades": 67,  "wins": 47,  "pnl": 60.0},    # 70% WR, +0.90% net
             "bb_break_pos_ac":  {"trades": 43,  "wins": 26,  "pnl": 17.0},    # 60% WR, +0.39% net
             "high_break_pos_ac":{"trades": 200, "wins": 104, "pnl": 122.0},   # 52% WR, +0.61% net
             "high_break_skew":  {"trades": 182, "wins": 80,  "pnl": 138.0},   # 44% WR, +0.76% net
@@ -174,12 +174,12 @@ class AllSeeingEye:
         ALL_TOOLS = ["crash_buy", "volatile_oversold", "relief_rally", "mega_pump_sell", 
                      "green_exhaustion", "dip_buy", "mega_crash", "flash_crash", "quick_crash",
                      "deep_dip_8h", "deep_dip_12h", "deep_dip_24h", "quick_dip",
-                     "btc_eth_diverge", "rsi_divergence", "crash_neg_ac", "crash_hurst", # OOS-validated: 57.1% WR, +1.02% net
-                     "hurst_trend", "vpin_toxic", "vpin_dip", "entropy_dip", "triple_math", # OOS-validated: 55.6% WR, +0.93% net
+                     "btc_eth_diverge", "rsi_divergence", "crash_neg_ac", "crash_hurst",
+                     "hurst_trend", "vpin_toxic", "vpin_dip", "entropy_dip", "triple_math",
                      "panic_close", "dist_exhaustion", "fat_tail_revert", "btc_alt_spread",
                      "alt_btc_revert", "mega_align", "math_capitulation", "efficiency_capitulation",
                      "deceleration_buy", "volume_climax", "orderbook_buy", "orderbook_sell",
-                     "blood_in_streets", "fomo_ride", "capitulation", "whale_buy", "zscore_extreme", # OOS-validated: 61.7% WR, +1.10% net
+                     "blood_in_streets", "fomo_ride", "capitulation", "whale_buy", "zscore_extreme",
                      "relief_rally", "quick_dip",
                      "breakout_detect", "greed_short", "distribution_short",
                      # Deep quant bull tools
@@ -189,11 +189,11 @@ class AllSeeingEye:
                      "ema_cross_short", "month_start_short", "sunday_short", "thursday_short",
                      "bb_above_long", "high_breakout_30", "bb_squeeze_15", "bb_squeeze_30",
                      "btc_lag_3h", "btc_lag_1h", "late_us_short", "high_breakout_50_nv",
-                     "falling_wedge_short", "alt_btc_revert_t3", "rsi_pump_8h", "rsi_pump_12h", # OOS-validated: 55.0% WR, +0.42% net
+                     "falling_wedge_short", "alt_btc_revert_t3", "rsi_pump_8h", "rsi_pump_12h",
                      "funding_farm",
                      # Deep quant combo tools (math-confirmed)
-                     "sma50_ext_neg_ac", "alt_btc_neg_ac", "sma50_ext_fat_tail", # OOS-validated: 53.8% WR, +0.14% net
-                     "rsi_pump_fat_tail", "alt_btc_neg_ac_5", "sma50_ext_kurt", # OOS-validated: 55.8% WR, +0.58% net
+                     "sma50_ext_neg_ac", "alt_btc_neg_ac", "sma50_ext_fat_tail",
+                     "rsi_pump_fat_tail", "alt_btc_neg_ac_5", "sma50_ext_kurt",
                      "bb_break_pos_ac", "high_break_pos_ac", "high_break_skew",
                      "green_exhaust_kurt"]
         for tool in ALL_TOOLS:
@@ -440,7 +440,7 @@ class AllSeeingEye:
             higher_tf_bullish = False
             higher_tf_bearish = False
         
-        # Tool 2: Crash Buy - OOS-validated: 69.8% WR, +3.19% net 24h (212 signals)
+        # Tool 2: Crash Buy (BEST EDGE)
         if ret_24h < -10 and cur_rsi < 20:
             score = (20 - cur_rsi) * 2
             signals.append(({
@@ -449,7 +449,7 @@ class AllSeeingEye:
                 'reason': f"CRASH BUY: {ret_24h:.1f}% drop 24h, RSI={cur_rsi:.1f}"
             }, score))
         
-        # Tool 3: Volatile Oversold - OOS-validated: 62.8% WR, +1.77% net 24h (532 signals)
+        # Tool 3: Volatile Oversold (SECOND BEST)
         if cur_atr_pct > 3 and cur_rsi < 25:
             score = cur_atr_pct * (25 - cur_rsi)
             signals.append(({
@@ -458,9 +458,9 @@ class AllSeeingEye:
                 'reason': f"VOLATILE OVERSOLD: ATR={cur_atr_pct:.1f}%, RSI={cur_rsi:.1f}"
             }, score))
         
-        # Tool 4: Relief Rally - OOS-FIXED: lowered RSI threshold 75→70, added -2% SMA50 filter
-        if cur_rsi > 70 and cur_vs_sma50 < -2:  # Tightened conditions
-            score = (cur_rsi - 70) * 1.5
+        # Tool 4: Downtrend Relief Rally (THIRD BEST)
+        if cur_rsi > 75 and cur_vs_sma50 < 0:
+            score = (cur_rsi - 75) * 1.5
             signals.append(({
                 'pair': pair, 'tool': 'relief_rally', 'direction': 'long',
                 'hold': 12, 'sl_pct': 0.03,
@@ -469,7 +469,7 @@ class AllSeeingEye:
         
 
         
-        # Tool 6: Dip Buy - OOS-validated: 54.4% WR, +0.66% net 24h (1539 signals)
+        # Tool 6: Dip Buy
         if ret_4h < -3:
             score = abs(ret_4h) * 2
             signals.append(({
@@ -487,37 +487,33 @@ class AllSeeingEye:
         if cur_rsi > 80 and len(close) >= 13:
             ret_12h_pump = (price - close[-13]) / close[-13] * 100 if close[-13] > 0 else 0
             if ret_12h_pump >= 10:
-                # Tier 1: RSI>80 + 10% pump in 12h → 66% WR, +0.92% gross - OOS-validated
+                # Tier 1: RSI>80 + 10% pump in 12h → 66% WR, +0.92% gross
                 score = 30 + (cur_rsi - 80) * 0.5
                 signals.append(({
                     'pair': pair, 'tool': 'mega_pump_sell', 'direction': 'short',
                     'hold': 8, 'sl_pct': 0.05,
                     'reason': f"RSI PUMP SHORT T1: RSI={cur_rsi:.1f}, +{ret_12h_pump:.1f}% 12h — 66% WR"
                 }, score))
-        
-        # Tool 7a T2: OOS-FIXED: tightened RSI 80→85 for better precision 
-        if cur_rsi > 85 and len(close) >= 13:
-            ret_12h_pump = (price - close[-13]) / close[-13] * 100 if close[-13] > 0 else 0
-            if ret_12h_pump >= 8:
-                # Tier 2: RSI>85 + 8% pump in 12h → tightened conditions
-                score = 22 + (cur_rsi - 85) * 0.3
+            elif ret_12h_pump >= 8:
+                # Tier 2: RSI>80 + 8% pump in 12h → 63% WR, +0.56% gross
+                score = 22 + (cur_rsi - 80) * 0.3
                 signals.append(({
                     'pair': pair, 'tool': 'mega_pump_sell', 'direction': 'short',
                     'hold': 8, 'sl_pct': 0.05,
-                    'reason': f"RSI PUMP SHORT T2: RSI={cur_rsi:.1f}, +{ret_12h_pump:.1f}% 12h"
+                    'reason': f"RSI PUMP SHORT T2: RSI={cur_rsi:.1f}, +{ret_12h_pump:.1f}% 12h — 63% WR"
                 }, score))
         
 
         
         # ── NEW TOOLS FROM DEEP QUANT ──
         
-        # Tool 8: Mega Crash - OOS-validated: 52.7% WR, +1.77% net 24h (91 signals)
+        # Tool 8: Mega Crash Buy (>15% drop 24h) — 80% WR, +12.87% avg 24h
         if ret_24h < -15:
             score = abs(ret_24h) * 3  # Highest priority signal
             signals.append(({
                 'pair': pair, 'tool': 'mega_crash', 'direction': 'long',
                 'hold': 24, 'sl_pct': 0.08,
-                'reason': f"MEGA CRASH: {ret_24h:.1f}% drop 24h"
+                'reason': f"MEGA CRASH: {ret_24h:.1f}% drop 24h — 80% WR historically"
             }, score))
         
         # Tool 9: Flash Crash Buy (>10% in 12h) — 77% WR, +7.87% avg 24h
@@ -529,13 +525,13 @@ class AllSeeingEye:
                 'reason': f"FLASH CRASH: {ret_12h:.1f}% drop 12h — 77% WR"
             }, score))
         
-        # Tool 10: Quick Crash - OOS-FIXED: hold 24h→8h, added RSI filter (73% WR 8h, but -0.9% 24h)
-        if ret_8h < -10 and cur_rsi < 40:  # Added RSI oversold filter
+        # Tool 10: Quick Crash (>10% in 8h) — 69% WR, +7.05% avg 24h
+        if ret_8h < -10:
             score = abs(ret_8h) * 2
             signals.append(({
                 'pair': pair, 'tool': 'quick_crash', 'direction': 'long',
-                'hold': 8, 'sl_pct': 0.07,  # Changed from 24h hold
-                'reason': f"QUICK CRASH: {ret_8h:.1f}% drop 8h, RSI={cur_rsi:.1f}"
+                'hold': 24, 'sl_pct': 0.07,
+                'reason': f"QUICK CRASH: {ret_8h:.1f}% drop 8h — 69% WR"
             }, score))
         
         # Tool 11: Deep Dip (>8% in various timeframes) — 61-66% WR
@@ -615,7 +611,7 @@ class AllSeeingEye:
             if panic_pct >= 90:
                 score = panic_pct * 0.5
                 signals.append(({
-                    'pair': pair, 'tool': 'market_panic_90', 'direction': 'long', # OOS-marginal: 47.8% WR, +0.08% net - WR below 50% # OOS-marginal: 47.8% WR, +0.08% net - WR below 50%
+                    'pair': pair, 'tool': 'market_panic_90', 'direction': 'long',
                     'hold': 24, 'sl_pct': 0.05,
                     'reason': f"MARKET PANIC: {panic_pct:.0f}% coins down >3% — blood in streets"
                 }, score))
@@ -629,7 +625,7 @@ class AllSeeingEye:
             elif panic_pct >= 70:
                 score = panic_pct * 0.3
                 signals.append(({
-                    'pair': pair, 'tool': 'market_panic_70', 'direction': 'long', # OOS-validated: 59.0% WR, +0.75% net
+                    'pair': pair, 'tool': 'market_panic_70', 'direction': 'long',
                     'hold': 8, 'sl_pct': 0.04,
                     'reason': f"MARKET DIP: {panic_pct:.0f}% coins down >3%"
                 }, score))
@@ -662,18 +658,18 @@ class AllSeeingEye:
                         'reason': f"CAPITULATION: {vol_ratio:.1f}x volume on red candle — selling exhaustion"
                     }, score))
         
-        # Tool 19: Green Exhaustion - OOS-DISABLED: unreliable (48% WR, positive returns on short signal)
-        # if len(close) >= 8 and len(df) >= 8:
-        #     opn = df['open'].values.astype(float)
-        #     all_green = all(close[-j-1] > opn[-j-1] for j in range(1, 8))
-        #     cur_red = close[-1] < opn[-1]
-        #     if all_green and cur_red:
-        #         score = 15  # High confidence
-        #         signals.append(({
-        #             'pair': pair, 'tool': 'green_exhaustion', 'direction': 'short',
-        #             'hold': 8, 'sl_pct': 0.03,
-        #             'reason': f"GREEN EXHAUSTION: 7 green then red — reversal signal"
-        #         }, score))
+        # Tool 19: 7 Green Exhaustion (7 consecutive green candles → short) — 58% WR
+        if len(close) >= 8 and len(df) >= 8:
+            opn = df['open'].values.astype(float)
+            all_green = all(close[-j-1] > opn[-j-1] for j in range(1, 8))
+            cur_red = close[-1] < opn[-1]
+            if all_green and cur_red:
+                score = 15  # High confidence
+                signals.append(({
+                    'pair': pair, 'tool': 'green_exhaustion', 'direction': 'short',
+                    'hold': 8, 'sl_pct': 0.03,
+                    'reason': f"GREEN EXHAUSTION: 7 green then red — reversal signal"
+                }, score))
         
         # Tool 20: Z-score -3σ (extreme statistical deviation) — 53% WR
         if len(close) >= 49:
@@ -696,7 +692,7 @@ class AllSeeingEye:
             if dropping_2pct / total_pairs >= 0.7 and cur_rsi < 20:
                 score = (20 - cur_rsi) * 3  # Very high priority
                 signals.append(({
-                    'pair': pair, 'tool': 'blood_in_streets', 'direction': 'long', # OOS-validated: 61.7% WR, +1.10% net
+                    'pair': pair, 'tool': 'blood_in_streets', 'direction': 'long',
                     'hold': 24, 'sl_pct': 0.06,
                     'reason': f"BLOOD IN STREETS: {dropping_2pct/total_pairs*100:.0f}% panic + RSI={cur_rsi:.1f}"
                 }, score))
@@ -708,7 +704,7 @@ class AllSeeingEye:
             if pumping / total_pairs >= 0.8:
                 score = 5
                 signals.append(({
-                    'pair': pair, 'tool': 'fomo_ride', 'direction': 'long', # OOS-marginal: 48.1% WR, +0.14% net - WR below 50% # OOS-marginal: 48.1% WR, +0.14% net - WR below 50%
+                    'pair': pair, 'tool': 'fomo_ride', 'direction': 'long',
                     'hold': 8, 'sl_pct': 0.03,
                     'reason': f"FOMO RIDE: {pumping/total_pairs*100:.0f}% coins pumping — momentum"
                 }, score))
@@ -771,7 +767,7 @@ class AllSeeingEye:
             if ret_24h < -8 and H < 0.45:
                 score = abs(ret_24h) * (0.5 - H) * 8
                 signals.append(({
-                    'pair': pair, 'tool': 'crash_mean_revert', 'direction': 'long', # OOS-validated: 54.9% WR, +0.78% net
+                    'pair': pair, 'tool': 'crash_mean_revert', 'direction': 'long',
                     'hold': 24, 'sl_pct': 0.06,
                     'reason': f"CRASH+HURST: {ret_24h:.1f}% drop, H={H:.3f} (mean-reverting) — 62% WR"
                 }, score))
@@ -780,7 +776,7 @@ class AllSeeingEye:
             if H > 0.65 and ret_4h > 2:
                 score = H * ret_4h * 3
                 signals.append(({
-                    'pair': pair, 'tool': 'hurst_trend', 'direction': 'long', # OOS-marginal: 46.4% WR, +0.07% net - WR below 50% # OOS-marginal: 46.4% WR, +0.07% net - WR below 50%
+                    'pair': pair, 'tool': 'hurst_trend', 'direction': 'long',
                     'hold': 8, 'sl_pct': 0.03,
                     'reason': f"HURST TREND: H={H:.3f} (trending), +{ret_4h:.1f}% 4h"
                 }, score))
@@ -789,7 +785,7 @@ class AllSeeingEye:
             if vp > 0.7 and close[-1] < df['open'].values[-1]:
                 score = vp * 10
                 signals.append(({
-                    'pair': pair, 'tool': 'vpin_toxic', 'direction': 'long', # OOS-validated: 53.7% WR, +0.40% net
+                    'pair': pair, 'tool': 'vpin_toxic', 'direction': 'long',
                     'hold': 8, 'sl_pct': 0.04,
                     'reason': f"VPIN TOXIC: VPIN={vp:.3f} + red candle — informed selling exhausted"
                 }, score))
@@ -798,7 +794,7 @@ class AllSeeingEye:
             if ret_8h < -5 and vp > 0.5:
                 score = abs(ret_8h) * vp * 3
                 signals.append(({
-                    'pair': pair, 'tool': 'vpin_dip', 'direction': 'long', # OOS-validated: 55.6% WR, +0.93% net
+                    'pair': pair, 'tool': 'vpin_dip', 'direction': 'long',
                     'hold': 8, 'sl_pct': 0.05,
                     'reason': f"VPIN DIP: {ret_8h:.1f}% drop 8h, VPIN={vp:.3f}"
                 }, score))
@@ -817,7 +813,7 @@ class AllSeeingEye:
             if ent < 2.5 and ret_4h < -2:
                 score = (3.0 - ent) * abs(ret_4h) * 2
                 signals.append(({
-                    'pair': pair, 'tool': 'entropy_dip', 'direction': 'long', # OOS-validated: 52.8% WR, +0.92% net
+                    'pair': pair, 'tool': 'entropy_dip', 'direction': 'long',
                     'hold': 8, 'sl_pct': 0.03,
                     'reason': f"PREDICTABLE DIP: entropy={ent:.2f} (low), {ret_4h:.1f}% dip — 54% WR"
                 }, score))
@@ -867,7 +863,7 @@ class AllSeeingEye:
                 }, score))
                 sma50_combo_fired = True
             
-            # Combo 6: sma50_ext_kurt — SMA50 ext 8% + high kurtosis (70% WR, +0.90% net, 67 trades) # OOS-validated: 56.0% WR, +0.40% net
+            # Combo 6: sma50_ext_kurt — SMA50 ext 8% + high kurtosis (70% WR, +0.90% net, 67 trades)
             if not np.isnan(sma50[-1]) and cur_vs_sma50 > 8 and combo_kurt > 5:
                 score = 28
                 signals.append(({
@@ -1289,27 +1285,30 @@ class AllSeeingEye:
                 'reason': f"GREED SHORT (strong): F&G={self.current_fng}, RSI={cur_rsi:.1f}, +{ret_8h:.1f}% 8h"
             }, score))
         
-        # Tool 46: Distribution Short - OOS-DISABLED: naive resistance logic (52.7% WR, wrong direction)
-        # if len(high) >= 11 and len(vol) >= 11:
-        #     h1 = float(high[-1]); h5 = float(high[-5]); h10 = float(high[-10])
-        #     lower_highs = h1 < h5 < h10
-        #     vol_recent = np.mean(vol[-5:])
-        #     vol_prior = np.mean(vol[-10:-5])
-        #     vol_declining = vol_recent < vol_prior * 0.7
-        #     rsi14 = self.calc_rsi(close, 14)
-        #     if (not np.isnan(rsi14[-1]) and not np.isnan(rsi14[-10]) and
-        #         len(rsi14) >= 11 and not np.isnan(sma50[-1])):
-        #         rsi_falling = rsi14[-1] < rsi14[-10] - 8
-        #         price_above_sma50 = close[-1] > sma50[-1]
-        #         price_not_dropping = close[-1] >= close[-10] * 0.98
-        #         rsi_still_high = rsi14[-1] > 60
-        #         if lower_highs and vol_declining and rsi_falling and price_not_dropping and price_above_sma50 and rsi_still_high:
-        #             score = 20 + min(abs(rsi14[-10] - rsi14[-1]), 10)
-        #             signals.append(({
-        #                 'pair': pair, 'tool': 'distribution_short', 'direction': 'short',
-        #                 'hold': 24, 'sl_pct': 0.03,
-        #                 'reason': f"DISTRIBUTION: lower highs, vol -30%, RSI falling"
-        #             }, score))
+        # Tool 46: Distribution Pattern Short
+        # Lower highs + declining volume + RSI divergence (price flat/up but RSI falling)
+        # TIGHTENED: require RSI > 60 (was unchecked), volume decline 30% (was 20%), 
+        # RSI drop 8+ points (was 5), and price must be ABOVE SMA50 (distributing from strength)
+        if len(high) >= 11 and len(vol) >= 11:
+            h1 = float(high[-1]); h5 = float(high[-5]); h10 = float(high[-10])
+            lower_highs = h1 < h5 < h10
+            vol_recent = np.mean(vol[-5:])
+            vol_prior = np.mean(vol[-10:-5])
+            vol_declining = vol_recent < vol_prior * 0.7  # 30%+ decline (tightened from 20%)
+            rsi14 = self.calc_rsi(close, 14)
+            if (not np.isnan(rsi14[-1]) and not np.isnan(rsi14[-10]) and
+                len(rsi14) >= 11 and not np.isnan(sma50[-1])):
+                rsi_falling = rsi14[-1] < rsi14[-10] - 8  # RSI dropped 8+ points (tightened from 5)
+                price_above_sma50 = close[-1] > sma50[-1]  # Must be distributing from above SMA50
+                price_not_dropping = close[-1] >= close[-10] * 0.98
+                rsi_still_high = rsi14[-1] > 60  # Must still be elevated (not already crashed)
+                if lower_highs and vol_declining and rsi_falling and price_not_dropping and price_above_sma50 and rsi_still_high:
+                    score = 20 + min(abs(rsi14[-10] - rsi14[-1]), 10)
+                    signals.append(({
+                        'pair': pair, 'tool': 'distribution_short', 'direction': 'short',
+                        'hold': 24, 'sl_pct': 0.03,  # Tighter SL (was 4%)
+                        'reason': f"DISTRIBUTION: lower highs ({h10:.2f}>{h5:.2f}>{h1:.2f}), vol -30%, RSI {rsi14[-10]:.0f}→{rsi14[-1]:.0f}"
+                    }, score))
         
         # Tool 47: SMA50 Extension Short — TIERED (deep quant validated: 66-74% WR, +0.52% to +1.88% net)
         # Only fire the HIGHEST tier that matches
@@ -1345,43 +1344,45 @@ class AllSeeingEye:
         
         # ── DEEP QUANT BULL SWEEP: NEW EDGES ──
         
-        # Tool 48: EMA Cross Short - OOS-DISABLED: lagging indicator (42% WR in validation)
-        # ema5 = self.calc_ema(close, 5)
-        # ema13 = self.calc_ema(close, 13)
-        # if (not np.isnan(ema5[-1]) and not np.isnan(ema13[-1]) and
-        #     not np.isnan(sma50[-1]) and ema5[-1] > ema13[-1] and price > sma50[-1]):
-        #     score = 12
-        #     signals.append(({
-        #         'pair': pair, 'tool': 'ema_cross_short', 'direction': 'short',
-        #         'hold': 8, 'sl_pct': 0.04,
-        #         'reason': f"EMA CROSS SHORT: EMA5>EMA13 + price>SMA50"
-        #     }, score))
+        # Tool 48: EMA(5,13) above SMA50 SHORT — 670 trades, 54% WR, +0.19% net 8h
+        # When EMA5 > EMA13 AND price > SMA50 → trend is overextended → SHORT
+        ema5 = self.calc_ema(close, 5)
+        ema13 = self.calc_ema(close, 13)
+        if (not np.isnan(ema5[-1]) and not np.isnan(ema13[-1]) and
+            not np.isnan(sma50[-1]) and ema5[-1] > ema13[-1] and price > sma50[-1]):
+            score = 12
+            signals.append(({
+                'pair': pair, 'tool': 'ema_cross_short', 'direction': 'short',
+                'hold': 8, 'sl_pct': 0.04,
+                'reason': f"EMA CROSS SHORT: EMA5>EMA13 + price>SMA50 — 54% WR, +0.19% net"
+            }, score))
         
-        # Tool 49: Month Start Short - OOS-DISABLED: weak calendar effect (45.8% WR)
-        # try:
-        #     day_of_month = datetime.now(timezone.utc).day
-        #     if day_of_month <= 3 and not np.isnan(sma50[-1]) and price > sma50[-1]:
-        #         score = 15
-        #         signals.append(({
-        #             'pair': pair, 'tool': 'month_start_short', 'direction': 'short',
-        #             'hold': 8, 'sl_pct': 0.04,
-        #             'reason': f"MONTH START SHORT: day {day_of_month}, price>SMA50"
-        #         }, score))
-        # except:
-        #     pass
+        # Tool 49: Month start SHORT — 1129 trades, 63% WR, +0.29% net 8h
+        # Day of month 1-3 AND price in uptrend (price > SMA50)
+        try:
+            day_of_month = datetime.now(timezone.utc).day
+            if day_of_month <= 3 and not np.isnan(sma50[-1]) and price > sma50[-1]:
+                score = 15
+                signals.append(({
+                    'pair': pair, 'tool': 'month_start_short', 'direction': 'short',
+                    'hold': 8, 'sl_pct': 0.04,
+                    'reason': f"MONTH START SHORT: day {day_of_month}, price>SMA50 — 63% WR, +0.29% net"
+                }, score))
+        except:
+            pass
         
-        # Tool 50: Sunday Short - OOS-DISABLED: weak calendar effect (47.6% WR)
-        # try:
-        #     dow_utc = datetime.now(timezone.utc).weekday()
-        #     if dow_utc == 6 and not np.isnan(sma50[-1]) and price > sma50[-1]:
-        #         score = 10
-        #         signals.append(({
-        #             'pair': pair, 'tool': 'sunday_short', 'direction': 'short',
-        #             'hold': 8, 'sl_pct': 0.03,
-        #             'reason': f"SUNDAY SHORT: uptrend (price>SMA50)"
-        #         }, score))
-        # except:
-        #     pass
+        # Tool 50: Sunday SHORT in uptrend — 1811 trades, 46% WR, +0.12% net 8h
+        try:
+            dow_utc = datetime.now(timezone.utc).weekday()
+            if dow_utc == 6 and not np.isnan(sma50[-1]) and price > sma50[-1]:
+                score = 10
+                signals.append(({
+                    'pair': pair, 'tool': 'sunday_short', 'direction': 'short',
+                    'hold': 8, 'sl_pct': 0.03,
+                    'reason': f"SUNDAY SHORT: uptrend (price>SMA50) — 46% WR, +0.12% net"
+                }, score))
+        except:
+            pass
         
         # Tool 51: Price above upper BB LONG — tiered (momentum continuation through BB)
         # Only fire the HIGHEST tier
@@ -1495,22 +1496,25 @@ class AllSeeingEye:
                     'reason': f"50-BAR HIGH BREAKOUT (no vol): price>${high_50:.2f} — 43% WR, +0.08% net"
                 }, score))
         
-        # Tool 57: Falling Wedge Short - OOS-DISABLED: oversimplified pattern (44.7% WR)
-        # if len(high) >= 20 and len(low) >= 20 and not np.isnan(sma50[-1]) and price > sma50[-1]:
-        #     highs_10 = high[-10:]
-        #     lows_10 = low[-10:]
-        #     lower_highs = all(highs_10[i] >= highs_10[i+1] for i in range(len(highs_10)-2, len(highs_10)-5, -1))
-        #     lower_lows = all(lows_10[i] >= lows_10[i+1] for i in range(len(lows_10)-2, len(lows_10)-5, -1))
-        #     range_recent = highs_10[-1] - lows_10[-1]
-        #     range_prior = highs_10[0] - lows_10[0]
-        #     converging = range_recent < range_prior * 0.8 if range_prior > 0 else False
-        #     if lower_highs and lower_lows and converging:
-        #         score = 8
-        #         signals.append(({
-        #             'pair': pair, 'tool': 'falling_wedge_short', 'direction': 'short',
-        #             'hold': 8, 'sl_pct': 0.02,
-        #             'reason': f"FALLING WEDGE SHORT: pattern detected"
-        #         }, score))
+        # Tool 57: Falling wedge in uptrend SHORT — 1021 trades, 50% WR, +0.01% net 8h
+        # Lower highs + lower lows with converging trendlines, price > SMA50
+        if len(high) >= 20 and len(low) >= 20 and not np.isnan(sma50[-1]) and price > sma50[-1]:
+            # Check lower highs and lower lows over last 10 bars
+            highs_10 = high[-10:]
+            lows_10 = low[-10:]
+            lower_highs = all(highs_10[i] >= highs_10[i+1] for i in range(len(highs_10)-2, len(highs_10)-5, -1))
+            lower_lows = all(lows_10[i] >= lows_10[i+1] for i in range(len(lows_10)-2, len(lows_10)-5, -1))
+            # Converging: range is narrowing
+            range_recent = highs_10[-1] - lows_10[-1]
+            range_prior = highs_10[0] - lows_10[0]
+            converging = range_recent < range_prior * 0.8 if range_prior > 0 else False
+            if lower_highs and lower_lows and converging:
+                score = 8
+                signals.append(({
+                    'pair': pair, 'tool': 'falling_wedge_short', 'direction': 'short',
+                    'hold': 8, 'sl_pct': 0.02,
+                    'reason': f"FALLING WEDGE SHORT: lower highs+lows, converging, price>SMA50 — 50% WR, thin edge"
+                }, score))
         
         # Tool 58: Alt outperforms BTC 3% 24h SHORT — 2053 trades, 54% WR, +0.10% net
         # Tier 3 of alt_btc_revert (weaker version)
@@ -1931,16 +1935,16 @@ class AllSeeingEye:
         MEAN_REVERSION = {
             'volatile_oversold', 'fat_tail_revert', 'rsi_divergence',
             'dist_exhaustion', 'math_capitulation', 'zscore_extreme',
-            'btc_alt_spread', 'alt_btc_revert', 'entropy_dip', # OOS-validated: 52.8% WR, +0.92% net
-            'vpin_toxic', 'vpin_dip', 'panic_close', # OOS-validated: 53.7% WR, +0.40% net
+            'btc_alt_spread', 'alt_btc_revert', 'entropy_dip',
+            'vpin_toxic', 'vpin_dip', 'panic_close',
         }
         
         # Crash buy strategies — TP at 8-12%
         CRASH_BUY = {
             'crash_buy', 'crash_neg_ac', 'mega_crash', 'flash_crash',
             'quick_crash', 'relief_rally', 'blood_in_streets',
-            'efficiency_capitulation', 'mega_align', 'crash_mean_revert', # OOS-validated: 54.9% WR, +0.78% net
-            'market_panic_90', 'market_panic_80', 'market_panic_70', # OOS-validated: 59.0% WR, +0.75% net
+            'efficiency_capitulation', 'mega_align', 'crash_mean_revert',
+            'market_panic_90', 'market_panic_80', 'market_panic_70',
             'capitulation',
         }
         

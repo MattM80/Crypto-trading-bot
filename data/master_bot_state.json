@@ -1,27 +1,218 @@
 {
   "total_balance": 300.0,
   "grid_positions": {
-    "NEARUSD": [],
+    "NEARUSD": [
+      {
+        "buy_price": 1.299,
+        "qty": 1.924557351809084,
+        "bar": 1163
+      },
+      {
+        "buy_price": 1.281,
+        "qty": 1.9516003122560501,
+        "bar": 1202
+      }
+    ],
     "UNIUSD": [],
     "AVAXUSD": [],
     "LINKUSD": [],
-    "AAVEUSD": [],
+    "AAVEUSD": [
+      {
+        "buy_price": 108.55749999999999,
+        "qty": 0.023029270202427288,
+        "bar": 1194
+      }
+    ],
     "SOLUSD": [],
     "ETHUSD": [],
     "XBTUSD": [],
-    "DOTUSD": [],
+    "DOTUSD": [
+      {
+        "buy_price": 1.487707142857143,
+        "qty": 1.680438258297764,
+        "bar": 280
+      },
+      {
+        "buy_price": 1.4692142857142858,
+        "qty": 1.7015897710146335,
+        "bar": 880
+      },
+      {
+        "buy_price": 1.4507214285714285,
+        "qty": 1.723280535300171,
+        "bar": 922
+      }
+    ],
     "XLMUSD": [],
-    "XRPUSD": [],
-    "ADAUSD": [],
-    "ATOMUSD": [],
+    "XRPUSD": [
+      {
+        "buy_price": 1.4139225000000002,
+        "qty": 1.768130855828378,
+        "bar": 1044
+      },
+      {
+        "buy_price": 1.3971750000000003,
+        "qty": 1.7893248877198629,
+        "bar": 1195
+      }
+    ],
+    "ADAUSD": [
+      {
+        "buy_price": 0.26036907142857146,
+        "qty": 9.6017548715875,
+        "bar": 1194
+      }
+    ],
+    "ATOMUSD": [
+      {
+        "buy_price": 1.7912392857142856,
+        "qty": 1.3956817606326029,
+        "bar": 927
+      },
+      {
+        "buy_price": 1.7712785714285713,
+        "qty": 1.411409837123305,
+        "bar": 936
+      }
+    ],
     "DOGEUSD": [],
     "FILUSD": [],
     "LTCUSD": []
   },
-  "grid_profit": 0.0,
-  "grid_round_trips": 0,
+  "grid_profit": 16.433999999999973,
+  "grid_round_trips": 433,
+  "grid_anchors": {
+    "NEARUSD": {
+      "center": 1.317,
+      "levels": [
+        1.299,
+        1.281,
+        1.263
+      ]
+    },
+    "UNIUSD": {
+      "center": 3.574,
+      "levels": [
+        3.534892857142857,
+        3.495785714285714,
+        3.456678571428571
+      ]
+    },
+    "AVAXUSD": {
+      "center": 9.49,
+      "levels": [
+        9.376428571428571,
+        9.262857142857142,
+        9.149285714285714
+      ]
+    },
+    "LINKUSD": {
+      "center": 9.01,
+      "levels": [
+        8.898736428571429,
+        8.787472857142857,
+        8.676209285714286
+      ]
+    },
+    "AAVEUSD": {
+      "center": 109.96,
+      "levels": [
+        108.55749999999999,
+        107.15499999999999,
+        105.75249999999998
+      ]
+    },
+    "SOLUSD": {
+      "center": 88.61,
+      "levels": [
+        87.44,
+        86.27,
+        85.1
+      ]
+    },
+    "ETHUSD": {
+      "center": 2123.14,
+      "levels": [
+        2091.7310714285713,
+        2060.322142857143,
+        2028.9132142857143
+      ]
+    },
+    "XBTUSD": {
+      "center": 69793.3,
+      "levels": [
+        69032.41428571429,
+        68271.52857142857,
+        67510.64285714286
+      ]
+    },
+    "DOTUSD": {
+      "center": 1.5062,
+      "levels": [
+        1.487707142857143,
+        1.4692142857142858,
+        1.4507214285714285
+      ]
+    },
+    "XLMUSD": {
+      "center": 0.164189,
+      "levels": [
+        0.1623512857142857,
+        0.16051357142857142,
+        0.15867585714285715
+      ]
+    },
+    "XRPUSD": {
+      "center": 1.43067,
+      "levels": [
+        1.4139225000000002,
+        1.3971750000000003,
+        1.3804275000000001
+      ]
+    },
+    "ADAUSD": {
+      "center": 0.263791,
+      "levels": [
+        0.26036907142857146,
+        0.2569471428571429,
+        0.2535252142857143
+      ]
+    },
+    "ATOMUSD": {
+      "center": 1.8112,
+      "levels": [
+        1.7912392857142856,
+        1.7712785714285713,
+        1.7513178571428571
+      ]
+    },
+    "DOGEUSD": {
+      "center": 0.0936561,
+      "levels": [
+        0.09249409285714287,
+        0.09133208571428572,
+        0.09017007857142859
+      ]
+    },
+    "FILUSD": {
+      "center": 0.902,
+      "levels": [
+        0.8910714285714286,
+        0.8801428571428571,
+        0.8692142857142857
+      ]
+    },
+    "LTCUSD": {
+      "center": 55.54,
+      "levels": [
+        55.03107142857142,
+        54.52214285714285,
+        54.01321428571428
+      ]
+    }
+  },
   "active_positions": {},
-  "active_profit": 0.0,
+  "active_profit": 34.49484968382933,
   "tool_stats": {
     "crash_neg_ac": {
       "trades": 130,
@@ -44,9 +235,9 @@
       "pnl": 250.0
     },
     "panic_close": {
-      "trades": 257,
-      "wins": 164,
-      "pnl": 300.0
+      "trades": 258,
+      "wins": 165,
+      "pnl": 300.8419227641263
     },
     "dist_exhaustion": {
       "trades": 317,
@@ -59,9 +250,9 @@
       "pnl": 200.0
     },
     "fat_tail_revert": {
-      "trades": 234,
-      "wins": 138,
-      "pnl": 150.0
+      "trades": 247,
+      "wins": 147,
+      "pnl": 165.8603977914014
     },
     "btc_alt_spread": {
       "trades": 165,
@@ -69,14 +260,14 @@
       "pnl": 150.0
     },
     "mega_align": {
-      "trades": 46,
-      "wins": 32,
-      "pnl": 50.0
+      "trades": 53,
+      "wins": 39,
+      "pnl": 73.1791365913076
     },
     "alt_btc_revert": {
-      "trades": 75,
-      "wins": 41,
-      "pnl": 80.0
+      "trades": 76,
+      "wins": 42,
+      "pnl": 80.44945003290401
     },
     "green_exhaustion": {
       "trades": 67,
@@ -84,9 +275,9 @@
       "pnl": 40.0
     },
     "mega_pump_sell": {
-      "trades": 158,
+      "trades": 159,
       "wins": 114,
-      "pnl": 100.0
+      "pnl": 99.41520696741365
     },
     "whale_buy": {
       "trades": 150,
@@ -119,9 +310,9 @@
       "pnl": 0.0
     },
     "relief_rally": {
-      "trades": 0,
-      "wins": 0,
-      "pnl": 0.0
+      "trades": 2,
+      "wins": 1,
+      "pnl": -5.251264463323623
     },
     "quick_crash": {
       "trades": 0,
@@ -219,7 +410,308 @@
       "pnl": 0.0
     }
   },
-  "trade_history": [],
-  "current_bar": 3,
-  "last_update": "2026-03-18T20:33:37.761899"
+  "trade_history": [
+    {
+      "pair": "XLMUSD",
+      "tool": "relief_rally",
+      "direction": "long",
+      "entry": 0.168369,
+      "exit": 0.164189,
+      "qty": 2138.1608253300788,
+      "pnl": -8.901762200880187,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 12,
+      "timestamp": "2026-03-20T15:06:25.599839"
+    },
+    {
+      "pair": "FILUSD",
+      "tool": "alt_btc_revert",
+      "direction": "short",
+      "entry": 0.967,
+      "exit": 0.959,
+      "qty": 56.40688163956003,
+      "pnl": 0.4494500329040147,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-21T13:56:53.502484"
+    },
+    {
+      "pair": "FILUSD",
+      "tool": "fat_tail_revert",
+      "direction": "long",
+      "entry": 0.932,
+      "exit": 0.93,
+      "qty": 482.83261802575106,
+      "pnl": -0.9618025751072969,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-21T17:36:59.026746"
+    },
+    {
+      "pair": "FILUSD",
+      "tool": "fat_tail_revert",
+      "direction": "long",
+      "entry": 0.931,
+      "exit": 0.91,
+      "qty": 483.3512352309345,
+      "pnl": -10.109774436090234,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-21T19:37:02.325174"
+    },
+    {
+      "pair": "FILUSD",
+      "tool": "fat_tail_revert",
+      "direction": "long",
+      "entry": 0.886,
+      "exit": 0.886,
+      "qty": 507.9006772009029,
+      "pnl": 0.0,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-21T21:52:06.307391"
+    },
+    {
+      "pair": "AVAXUSD",
+      "tool": "fat_tail_revert",
+      "direction": "long",
+      "entry": 9.19,
+      "exit": 9.22,
+      "qty": 48.96626768226333,
+      "pnl": 1.4631120783460836,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-21T21:57:05.887208"
+    },
+    {
+      "pair": "AAVEUSD",
+      "tool": "fat_tail_revert",
+      "direction": "long",
+      "entry": 108.21,
+      "exit": 108.85,
+      "qty": 4.158580537843084,
+      "pnl": 2.6508455780426976,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-21T21:57:05.887447"
+    },
+    {
+      "pair": "NEARUSD",
+      "tool": "fat_tail_revert",
+      "direction": "long",
+      "entry": 1.275,
+      "exit": 1.29,
+      "qty": 352.94117647058823,
+      "pnl": 5.272941176470632,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-21T21:57:05.887600"
+    },
+    {
+      "pair": "ETHUSD",
+      "tool": "fat_tail_revert",
+      "direction": "long",
+      "entry": 2083.13,
+      "exit": 2089.29,
+      "qty": 0.21602108365776498,
+      "pnl": 1.3253671158304736,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-21T21:57:05.887735"
+    },
+    {
+      "pair": "LINKUSD",
+      "tool": "panic_close",
+      "direction": "long",
+      "entry": 8.82854,
+      "exit": 8.84236,
+      "qty": 61.165266284119454,
+      "pnl": 0.8419227641262872,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-21T21:57:05.887873"
+    },
+    {
+      "pair": "ADAUSD",
+      "tool": "fat_tail_revert",
+      "direction": "long",
+      "entry": 0.253755,
+      "exit": 0.257098,
+      "qty": 1773.3640716439083,
+      "pnl": 5.9046426671395364,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-21T22:02:06.280086"
+    },
+    {
+      "pair": "UNIUSD",
+      "tool": "fat_tail_revert",
+      "direction": "long",
+      "entry": 3.446,
+      "exit": 3.496,
+      "qty": 130.586186883343,
+      "pnl": 6.503192106790459,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-21T22:02:06.280343"
+    },
+    {
+      "pair": "FILUSD",
+      "tool": "fat_tail_revert",
+      "direction": "long",
+      "entry": 0.886,
+      "exit": 0.889,
+      "qty": 507.9006772009029,
+      "pnl": 1.5176072234762992,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-21T23:52:09.645715"
+    },
+    {
+      "pair": "AVAXUSD",
+      "tool": "fat_tail_revert",
+      "direction": "long",
+      "entry": 9.22,
+      "exit": 9.29,
+      "qty": 30.834279811837398,
+      "pnl": 2.149765988481257,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-21T23:57:09.616827"
+    },
+    {
+      "pair": "AAVEUSD",
+      "tool": "mega_align",
+      "direction": "long",
+      "entry": 105.66,
+      "exit": 107.02,
+      "qty": 3.1942078364565587,
+      "pnl": 4.326746166950595,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-22T19:12:43.573928"
+    },
+    {
+      "pair": "ADAUSD",
+      "tool": "mega_align",
+      "direction": "long",
+      "entry": 0.24928,
+      "exit": 0.252032,
+      "qty": 1353.8992297817715,
+      "pnl": 3.7110269576379658,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-22T19:17:42.013528"
+    },
+    {
+      "pair": "LINKUSD",
+      "tool": "mega_align",
+      "direction": "long",
+      "entry": 8.59717,
+      "exit": 8.72144,
+      "qty": 39.257104372718,
+      "pnl": 4.8589664389560445,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-22T19:22:42.368372"
+    },
+    {
+      "pair": "ETHUSD",
+      "tool": "mega_align",
+      "direction": "long",
+      "entry": 2038.86,
+      "exit": 2063.26,
+      "qty": 0.16553368058620993,
+      "pnl": 4.022865719078361,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-22T19:27:42.126824"
+    },
+    {
+      "pair": "DOGEUSD",
+      "tool": "mega_align",
+      "direction": "long",
+      "entry": 0.0896926,
+      "exit": 0.0905328,
+      "qty": 3762.852230841786,
+      "pnl": 3.148902250575853,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-22T19:27:42.127058"
+    },
+    {
+      "pair": "SOLUSD",
+      "tool": "mega_align",
+      "direction": "long",
+      "entry": 85.84,
+      "exit": 86.47,
+      "qty": 3.9317334575955263,
+      "pnl": 2.4670841099720233,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-22T19:27:42.127219"
+    },
+    {
+      "pair": "XLMUSD",
+      "tool": "mega_align",
+      "direction": "long",
+      "entry": 0.15618,
+      "exit": 0.156479,
+      "qty": 2160.968113714944,
+      "pnl": 0.6435449481367517,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-22T19:42:42.888328"
+    },
+    {
+      "pair": "FILUSD",
+      "tool": "relief_rally",
+      "direction": "long",
+      "entry": 0.884,
+      "exit": 0.893,
+      "qty": 407.23981900452486,
+      "pnl": 3.650497737556564,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 12,
+      "timestamp": "2026-03-23T08:58:04.896240"
+    },
+    {
+      "pair": "ATOMUSD",
+      "tool": "fat_tail_revert",
+      "direction": "long",
+      "entry": 1.7727,
+      "exit": 1.7708,
+      "qty": 253.8500592316805,
+      "pnl": -0.48038585209003537,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-23T14:33:14.364303"
+    },
+    {
+      "pair": "DOTUSD",
+      "tool": "fat_tail_revert",
+      "direction": "long",
+      "entry": 1.4345,
+      "exit": 1.4365,
+      "qty": 313.6981526664343,
+      "pnl": 0.6248867201115377,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-23T15:03:15.756186"
+    },
+    {
+      "pair": "FILUSD",
+      "tool": "mega_pump_sell",
+      "direction": "short",
+      "entry": 0.929,
+      "exit": 0.939,
+      "qty": 58.714159898228786,
+      "pnl": -0.5847930325863527,
+      "reason": "HOLD COMPLETE",
+      "bars_held": 24,
+      "timestamp": "2026-03-23T16:38:18.871961"
+    }
+  ],
+  "current_bar": 1217,
+  "last_update": "2026-03-24T12:08:55.290540"
 }

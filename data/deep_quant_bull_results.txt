@@ -1,0 +1,472 @@
+==============================================================================================================
+  DEEP QUANT BULL: Signal Discovery for Bull / Neutral / Greed Markets
+  Testing 150+ conditions across 10 categories
+==============================================================================================================
+
+Downloading 2000 hourly candles (~83 days) per pair...
+  BTC: 2001 bars
+  ETH: 2001 bars
+  SOL: 2001 bars
+  LINK: 2001 bars
+  AVAX: 2001 bars
+  DOT: 2001 bars
+  ADA: 2001 bars
+  XRP: 2001 bars
+  DOGE: 2001 bars
+  UNI: 2001 bars
+  NEAR: 2001 bars
+  ATOM: 2001 bars
+  AAVE: 2001 bars
+  XLM: 2001 bars
+  FIL: 2001 bars
+  LTC: 2001 bars
+
+Loaded 16 pairs
+
+Pre-computing indicators...
+Done.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CATEGORY 1: TREND FOLLOWING / MOMENTUM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ... tested 20 conditions, found 20 valid so far ...
+  ... tested 40 conditions, found 40 valid so far ...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CATEGORY 2: PULLBACK IN UPTREND
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ... tested 60 conditions, found 58 valid so far ...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CATEGORY 3: BREAKOUT / VOLATILITY EXPANSION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ... tested 80 conditions, found 78 valid so far ...
+  ... tested 100 conditions, found 96 valid so far ...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CATEGORY 4: MEAN REVERSION FROM STRENGTH (SHORT OVERBOUGHT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ... tested 120 conditions, found 115 valid so far ...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CATEGORY 5: DISTRIBUTION DETECTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CATEGORY 6: CROSS-ASSET / RELATIVE STRENGTH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ... tested 140 conditions, found 127 valid so far ...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CATEGORY 7: MATHEMATICAL / STATISTICAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ... tested 160 conditions, found 146 valid so far ...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CATEGORY 8: TIME-BASED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ... tested 180 conditions, found 165 valid so far ...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CATEGORY 9: VOLUME PROFILE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CATEGORY 10: COMBINED / MULTI-FACTOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ... tested 200 conditions, found 183 valid so far ...
+
+==============================================================================================================
+  TESTED 203 CONDITIONS | 185 HAD 20+ TRADES
+==============================================================================================================
+  Pattern                                                            N    L1h    L4h    L8h    S8h    L24h   WR8   Dir   Net8
+  ------------------------------------------------------------------------------------------------------------
+  Entropy<2.5+above SMA50 (predictable bull)                        33 -0.69% -2.19% -3.28% +3.28%  -4.77%   82% SHORT +2.86%
+  Price > SMA50 by 15% (extended)                                   49 -0.24% -0.79% -2.30% +2.30%  -5.19%   74% SHORT +1.88%
+  Alt outperforms BTC by 8% 24h (short alt)                        239 -0.07% -0.54% -1.36% +1.36%  -3.29%   66% SHORT +0.94%
+  Price > SMA50 by 12% (extended)                                  102 -0.01% -0.36% -1.34% +1.34%  -4.25%   67% SHORT +0.92%
+  Price > SMA50 by 10% (extended)                                  195 -0.00% -0.33% -1.29% +1.29%  -3.86%   68% SHORT +0.87%
+  Price > upper BB by 2% (overbought)                               34 +0.19% +0.96% +1.05% -1.05%  -1.99%   50%  LONG +0.63%
+  BTC+2.0% in 3h, alt lagging (buy alt)                             38 -0.49% +0.61% +0.98% -0.98%  +2.68%   50%  LONG +0.56%
+  Price > SMA50 by 8% (extended)                                   343 -0.03% -0.34% -0.94% +0.94%  -3.33%   66% SHORT +0.52%
+  Entropy<3.0+above SMA50 (predictable bull)                       644 -0.21% -0.67% -0.93% +0.93%  -1.21%   65% SHORT +0.51%
+  RSI>80+10% pump in 12h (overbought short)                        101 +0.29% +0.20% -0.92% +0.92%  -4.78%   66% SHORT +0.50%
+  BTC+1.5% in 2h, alt lagging (buy alt)                             32 -0.05% -0.79% -0.90% +0.90%  -1.68%   53% SHORT +0.48%
+  Price > upper BB by 1% (overbought)                              229 +0.25% +0.44% +0.89% -0.89%  +0.18%   46%  LONG +0.47%
+  Alt outperforms BTC by 5% 24h (short alt)                        723 -0.04% -0.27% -0.83% +0.83%  -2.44%   62% SHORT +0.41%
+  7 green then red (exhaustion)                                     52 -0.10% -0.37% -0.81% +0.81%  -2.08%   58% SHORT +0.39%
+  Green candle + 5x volume (institutional buy)                      57 +0.26% +0.62% +0.77% -0.77%  -0.43%   39%  LONG +0.35%
+  Month start (day 1-3) in uptrend                                1129 -0.13% -0.47% -0.71% +0.71%  -0.40%   63% SHORT +0.29%
+  RSI>80+10% pump in 8h (overbought short)                          59 +0.43% +0.47% -0.63% +0.63%  -4.57%   61% SHORT +0.21%
+  Break 50-bar high+vol>2.0x                                       348 +0.20% +0.52% +0.62% -0.62%  -0.39%   44%  LONG +0.20%
+  EMA(5,13)+>SMA50+RSI>50                                          670 -0.16% -0.40% -0.61% +0.61%  -0.91%   54% SHORT +0.19%
+  EMA(5,13)+>SMA50                                                 671 -0.16% -0.40% -0.61% +0.61%  -0.91%   54% SHORT +0.19%
+  BTC+1.0% in 1h, alt lagging (buy alt)                             41 -0.22% -0.06% +0.59% -0.59%  +0.38%   44%  LONG +0.17%
+  RSI>80+8% pump in 12h (overbought short)                         151 +0.27% +0.30% -0.56% +0.56%  -4.03%   63% SHORT +0.14%
+  Day=Sun in uptrend                                              1811 -0.09% -0.33% -0.54% +0.54%  -0.49%   46% SHORT +0.12%
+  Day=Thu in uptrend                                              1346 -0.12% -0.33% -0.53% +0.53%  -1.02%   54% SHORT +0.11%
+  Alt outperforms BTC by 3% 24h (short alt)                       2053 -0.01% -0.16% -0.52% +0.52%  -1.38%   54% SHORT +0.10%
+  Break 30-bar high+vol>2.0x                                       458 +0.18% +0.35% +0.51% -0.51%  -0.16%   42%  LONG +0.09%
+  BB squeeze(15) breakout+vol>2.0x                                 139 +0.19% -0.26% +0.50% -0.50%  +1.41%   46%  LONG +0.08%
+  Break 50-bar high                                                652 +0.13% +0.43% +0.50% -0.50%  -0.56%   43%  LONG +0.08%
+  BB squeeze(20) breakout+vol>2.0x                                 131 +0.22% -0.28% +0.49% -0.49%  +1.49%   46%  LONG +0.07%
+  Hour=21 (Late US) in uptrend                                     540 -0.01% -0.27% -0.49% +0.49%  -1.08%   53% SHORT +0.07%
+  BB squeeze(30) breakout+vol>2.0x                                 107 +0.22% -0.34% +0.47% -0.47%  +1.52%   46%  LONG +0.05%
+  BTC+1.5% in 3h, alt lagging (buy alt)                             56 -0.13% +0.29% +0.46% -0.46%  +2.94%   45%  LONG +0.04%
+  EMA(5,13)+RSI>50                                                 971 -0.16% -0.35% -0.46% +0.46%  -0.55%   51% SHORT +0.04%
+  BB squeeze(10) breakout+vol>2.0x                                 157 +0.14% -0.26% +0.46% -0.46%  +1.12%   45%  LONG +0.04%
+  Break 20-bar high+vol>2.0x                                       552 +0.12% +0.28% +0.44% -0.44%  -0.09%   42%  LONG +0.02%
+  Falling wedge in uptrend (converging)                           1021 -0.10% -0.20% -0.43% +0.43%  -0.95%   50% SHORT +0.01%
+  Price>rising SMA50+RSI40-60                                     5094 -0.06% -0.21% -0.42% +0.42%  -1.32%   50% SHORT +0.00%
+  Month end (day 28+) in uptrend                                   395 -0.08% -0.12% -0.42% +0.42%  -4.02%   49% SHORT +0.00%
+  BB squeeze(20) breakout                                          333 +0.05% -0.09% +0.42% -0.42%  +0.41%   45%  LONG -0.00%
+  New high on declining volume (bearish div)                       814 +0.09% +0.34% +0.41% -0.41%  -0.03%   45%  LONG -0.01%
+  RSI>80+10% pump in 24h (overbought short)                        156 +0.34% +0.48% -0.41% +0.41%  -3.96%   60% SHORT -0.01%
+  5 consecutive green candles                                      590 +0.17% +0.40% +0.40% -0.40%  -0.71%   37%  LONG -0.02%
+  Break 50-bar high+vol>1.5x                                       468 +0.16% +0.40% +0.39% -0.39%  -0.69%   42%  LONG -0.03%
+  Hour=16 (US mid) in uptrend                                      526 -0.22% -0.17% -0.39% +0.39%  -0.77%   47% SHORT -0.03%
+  Parabolic 3-bar acceleration (expanding green)                   145 +0.13% +0.08% +0.39% -0.39%  +0.52%   44%  LONG -0.03%
+  BB squeeze(15) breakout                                          381 +0.04% -0.08% +0.38% -0.38%  +0.28%   45%  LONG -0.04%
+  Break 30-bar high                                                922 +0.12% +0.28% +0.38% -0.38%  -0.43%   40%  LONG -0.04%
+  EMA(8,21)+>SMA50                                                 501 -0.16% -0.35% -0.37% +0.37%  -0.53%   52% SHORT -0.05%
+  EMA(8,21)+>SMA50+RSI>50                                          501 -0.16% -0.35% -0.37% +0.37%  -0.53%   52% SHORT -0.05%
+  Strongest alt 24h (momentum continue)                           1876 -0.04% -0.21% -0.36% +0.36%  -0.79%   50% SHORT -0.05%
+  Hour=13 (US pre) in uptrend                                      505 +0.14% +0.04% +0.36% -0.36%  -0.48%   39%  LONG -0.06%
+  Pullback to SMA20 in uptrend (>SMA50)                           1981 -0.05% -0.23% -0.36% +0.36%  -0.79%   48% SHORT -0.06%
+  20-bar breakout + VPIN>0.5 (informed breakout)                   282 +0.13% +0.46% +0.36% -0.36%  -0.90%   40%  LONG -0.06%
+  Break 10-bar high+vol>2.0x                                       630 +0.12% +0.22% +0.36% -0.36%  -0.13%   41%  LONG -0.06%
+  Hurst>0.65+positive mom (trend follow)                          3879 +0.04% +0.16% +0.35% -0.35%  +0.04%   41%  LONG -0.07%
+  Green candle + 3x volume (institutional buy)                     457 +0.20% +0.23% +0.35% -0.35%  +0.15%   40%  LONG -0.07%
+  Break 20-bar high                                               1207 +0.08% +0.25% +0.35% -0.35%  -0.36%   41%  LONG -0.07%
+  EMA(5,13)                                                       1196 -0.12% -0.28% -0.35% +0.35%  -0.49%   50% SHORT -0.07%
+  EMA(9,26)+>SMA50                                                 503 -0.12% -0.33% -0.34% +0.34%  -0.46%   48% SHORT -0.08%
+  EMA(9,26)+>SMA50+RSI>50                                          503 -0.12% -0.33% -0.34% +0.34%  -0.46%   48% SHORT -0.08%
+  BB squeeze(30) breakout+vol>1.5x                                 152 +0.09% -0.29% +0.34% -0.34%  +1.03%   45%  LONG -0.08%
+  Hour=4 (Asia mid) in uptrend                                     561 -0.14% -0.24% -0.34% +0.34%  -0.37%   48% SHORT -0.08%
+  RSI dip to 40-50 then >50 in uptrend                            2522 -0.10% -0.27% -0.33% +0.33%  -0.70%   50% SHORT -0.09%
+  BB squeeze(10) breakout                                          420 +0.06% -0.06% +0.33% -0.33%  +0.13%   44%  LONG -0.09%
+  BB squeeze(10) breakout+vol>1.5x                                 226 +0.07% -0.19% +0.33% -0.33%  +0.64%   44%  LONG -0.09%
+  Price>rising SMA50+RSI50-70                                     6037 -0.05% -0.18% -0.33% +0.33%  -0.95%   49% SHORT -0.09%
+  BB squeeze(30) breakout                                          252 +0.03% -0.19% +0.32% -0.32%  +0.60%   44%  LONG -0.10%
+  EMA(5,13)+vol>1.5x                                               308 -0.12% -0.28% -0.32% +0.32%  -0.41%   52% SHORT -0.10%
+  Hour=15 (US early) in uptrend                                    530 -0.11% -0.15% -0.32% +0.32%  -0.83%   50% SHORT -0.10%
+  EMA(12,26)+>SMA50                                                480 -0.12% -0.29% -0.32% +0.32%  -0.44%   47% SHORT -0.10%
+  EMA(12,26)+>SMA50+RSI>50                                         480 -0.12% -0.29% -0.32% +0.32%  -0.44%   47% SHORT -0.10%
+  Lower highs + declining volume (distribution)                   2764 -0.01% -0.13% -0.32% +0.32%  -0.82%   44% SHORT -0.10%
+  Keltner breakout: price > EMA20+2*ATR                           1599 +0.09% +0.23% +0.32% -0.32%  -0.32%   41%  LONG -0.10%
+  EMA(5,13)+vol>1.5x+>SMA50                                        231 -0.08% -0.26% -0.31% +0.31%  -0.46%   52% SHORT -0.11%
+  EMA(5,13)+vol>1.5x+>SMA50+RSI>50                                 231 -0.08% -0.26% -0.31% +0.31%  -0.46%   52% SHORT -0.11%
+  BB squeeze(20) breakout+vol>1.5x                                 185 +0.08% -0.28% +0.31% -0.31%  +0.97%   44%  LONG -0.11%
+  BB squeeze(15) breakout+vol>1.5x                                 200 +0.07% -0.25% +0.31% -0.31%  +0.85%   44%  LONG -0.11%
+  EMA(13,34)+vol>1.5x+>SMA50                                       129 -0.11% -0.22% -0.31% +0.31%  -0.07%   42% SHORT -0.11%
+  EMA(13,34)+vol>1.5x+>SMA50+RSI>50                                129 -0.11% -0.22% -0.31% +0.31%  -0.07%   42% SHORT -0.11%
+  9 green then red (exhaustion)                                     22 +0.16% +0.23% -0.30% +0.30%  -1.94%   46% SHORT -0.11%
+  EMA(13,34)+vol>1.5x                                              132 -0.09% -0.19% -0.30% +0.30%  -0.03%   42% SHORT -0.12%
+  EMA(13,34)+vol>1.5x+RSI>50                                       132 -0.09% -0.19% -0.30% +0.30%  -0.03%   42% SHORT -0.12%
+  EMA(5,13)+vol>1.5x+RSI>50                                        290 -0.12% -0.26% -0.30% +0.30%  -0.24%   51% SHORT -0.12%
+  RSI>80+5% pump in 12h (overbought short)                         242 +0.24% +0.35% -0.30% +0.30%  -3.29%   54% SHORT -0.12%
+  BTC+1.0% in 2h, alt lagging (buy alt)                             83 -0.06% -0.11% -0.30% +0.30%  -0.46%   45% SHORT -0.12%
+  EMA(12,26)+vol>1.5x                                              172 -0.19% -0.40% -0.29% +0.29%  -0.09%   45% SHORT -0.13%
+  EMA(12,26)+vol>1.5x+RSI>50                                       172 -0.19% -0.40% -0.29% +0.29%  -0.09%   45% SHORT -0.13%
+  Break 30-bar high+vol>1.5x                                       628 +0.13% +0.23% +0.29% -0.29%  -0.51%   40%  LONG -0.13%
+  EMA(12,26)+vol>1.5x+>SMA50                                       168 -0.20% -0.41% -0.29% +0.29%  -0.06%   45% SHORT -0.13%
+  EMA(12,26)+vol>1.5x+>SMA50+RSI>50                                168 -0.20% -0.41% -0.29% +0.29%  -0.06%   45% SHORT -0.13%
+  4 consecutive green candles                                     1227 +0.09% +0.23% +0.28% -0.28%  -0.29%   36%  LONG -0.14%
+  Top 3 strongest + uptrend + ADX>20                              2463 -0.03% -0.16% -0.28% +0.28%  -0.71%   49% SHORT -0.14%
+  BTC+2.0% in 4h, alt lagging (buy alt)                             59 -0.02% -0.18% +0.28% -0.28%  +0.80%   37%  LONG -0.14%
+  HH+HL for 5 bars (strong uptrend)                                588 +0.13% +0.31% +0.27% -0.27%  -0.56%   36%  LONG -0.15%
+  Break 20-bar high+vol>1.5x                                       779 +0.06% +0.18% +0.27% -0.27%  -0.40%   40%  LONG -0.15%
+  Hour=14 (US open) in uptrend                                     496 +0.23% +0.10% +0.27% -0.27%  -0.64%   41%  LONG -0.15%
+  EMA(12,26)                                                       527 -0.10% -0.23% -0.26% +0.26%  -0.38%   46% SHORT -0.16%
+  EMA(12,26)+RSI>50                                                526 -0.10% -0.23% -0.26% +0.26%  -0.38%   45% SHORT -0.16%
+  RSI>80+8% pump in 24h (overbought short)                         214 +0.26% +0.47% -0.26% +0.26%  -3.52%   58% SHORT -0.16%
+  BTC flat + alt pumping (alt season)                              494 +0.05% -0.08% -0.25% +0.25%  -1.67%   50% SHORT -0.17%
+  EMA(9,26)                                                        600 -0.07% -0.24% -0.24% +0.24%  -0.37%   46% SHORT -0.18%
+  EMA(9,26)+RSI>50                                                 600 -0.07% -0.24% -0.24% +0.24%  -0.37%   46% SHORT -0.18%
+  EMA(8,21)+vol>1.5x+>SMA50                                        190 -0.24% -0.36% -0.24% +0.24%  -0.27%   52% SHORT -0.18%
+  EMA(8,21)+vol>1.5x+>SMA50+RSI>50                                 190 -0.24% -0.36% -0.24% +0.24%  -0.27%   52% SHORT -0.18%
+  RSI bearish divergence (higher price, lower RSI)                 554 -0.03% -0.17% -0.23% +0.23%  -0.61%   52% SHORT -0.19%
+  RSI>80+5% pump in 24h (overbought short)                         263 +0.24% +0.44% -0.23% +0.23%  -3.21%   54% SHORT -0.19%
+  BTC+1.5% in 4h, alt lagging (buy alt)                            131 -0.02% -0.09% +0.22% -0.22%  +0.05%   36%  LONG -0.20%
+  Price>rising SMA50+pos_mom                                      4978 -0.01% -0.09% -0.22% +0.22%  -0.91%   49% SHORT -0.20%
+  Break 10-bar high+vol>1.5x                                       940 +0.06% +0.14% +0.22% -0.22%  -0.43%   39%  LONG -0.20%
+  Fib 50.0% pullback (24h swing)                                  3552 -0.05% -0.19% -0.21% +0.21%  -0.36%   47% SHORT -0.21%
+  Break 10-bar high                                               1845 +0.04% +0.16% +0.21% -0.21%  -0.38%   38%  LONG -0.21%
+  Weekend in uptrend                                              3700 -0.03% -0.12% -0.20% +0.20%  -0.68%   44% SHORT -0.22%
+  EMA(9,26)+vol>1.5x+>SMA50                                        181 -0.22% -0.32% -0.20% +0.20%  -0.09%   45% SHORT -0.22%
+  EMA(9,26)+vol>1.5x+>SMA50+RSI>50                                 181 -0.22% -0.32% -0.20% +0.20%  -0.09%   45% SHORT -0.22%
+  SMA(10,50) crossover                                             388 -0.06% -0.16% -0.20% +0.20%  -0.06%   47% SHORT -0.22%
+  Hurst>0.6+positive mom (trend follow)                           5833 +0.01% +0.08% +0.20% -0.20%  -0.11%   38%  LONG -0.22%
+  Fib 38.2% pullback (72h swing)                                  2543 -0.04% -0.14% -0.19% +0.19%  -0.57%   48% SHORT -0.23%
+  EMA(13,34)                                                       428 -0.09% -0.19% -0.19% +0.19%  -0.20%   46% SHORT -0.23%
+  EMA(13,34)+RSI>50                                                428 -0.09% -0.19% -0.19% +0.19%  -0.20%   46% SHORT -0.23%
+  Positive skew + rising price (bullish distribution)             3752 +0.01% +0.05% +0.19% -0.19%  -0.21%   37%  LONG -0.23%
+  Weakest alt above SMA50 (pullback buy)                           960 -0.03% -0.12% -0.18% +0.18%  -0.58%   43% SHORT -0.23%
+  Fib 23.6% pullback (72h swing)                                  2286 -0.04% -0.09% -0.18% +0.18%  -0.88%   46% SHORT -0.24%
+  Range narrowing + volume dropping (quiet before storm)          3299 +0.02% -0.02% -0.18% +0.18%  -0.85%   44% SHORT -0.24%
+  EMA(13,34)+>SMA50                                                416 -0.10% -0.19% -0.18% +0.18%  -0.20%   47% SHORT -0.24%
+  EMA(13,34)+>SMA50+RSI>50                                         416 -0.10% -0.19% -0.18% +0.18%  -0.20%   47% SHORT -0.24%
+  Fib 50.0% pullback (48h swing)                                  3011 -0.06% -0.17% -0.18% +0.18%  -0.50%   47% SHORT -0.24%
+  EMA(8,21)+vol>1.5x                                               204 -0.24% -0.34% -0.17% +0.17%  -0.32%   50% SHORT -0.25%
+  EMA(8,21)+vol>1.5x+RSI>50                                        204 -0.24% -0.34% -0.17% +0.17%  -0.32%   50% SHORT -0.25%
+  Fib 38.2% pullback (48h swing)                                  3776 -0.02% -0.10% -0.16% +0.16%  -0.62%   47% SHORT -0.26%
+  Day=Mon in uptrend                                              1812 +0.06% +0.11% +0.16% -0.16%  +0.56%   40%  LONG -0.26%
+  Multi-MA pullback: bounce off EMA21/SMA20 >SMA50                6741 -0.05% -0.12% -0.16% +0.16%  -0.34%   46% SHORT -0.26%
+  EMA(9,26)+vol>1.5x                                               192 -0.19% -0.26% -0.16% +0.16%  -0.02%   44% SHORT -0.26%
+  EMA(9,26)+vol>1.5x+RSI>50                                        192 -0.19% -0.26% -0.16% +0.16%  -0.02%   44% SHORT -0.26%
+  BTC+1.0% in 3h, alt lagging (buy alt)                            228 -0.06% +0.14% +0.16% -0.16%  +0.15%   39%  LONG -0.26%
+  ADX>25+DI>-DI+vol>1.5x                                          1175 +0.01% +0.04% +0.14% -0.14%  -0.58%   40%  LONG -0.28%
+  EMA(8,21)                                                        683 -0.12% -0.19% -0.14% +0.14%  -0.45%   47% SHORT -0.28%
+  EMA(8,21)+RSI>50                                                 675 -0.13% -0.20% -0.14% +0.14%  -0.45%   46% SHORT -0.28%
+  SMA(10,30) crossover                                             582 -0.07% -0.04% -0.14% +0.14%  -0.37%   45% SHORT -0.28%
+  Autocorr>0.15+positive mom (persistent)                         1351 +0.03% +0.08% +0.14% -0.14%  -0.33%   40%  LONG -0.28%
+  Pullback to EMA21+volume in uptrend                             1300 -0.04% -0.15% -0.14% +0.14%  -0.17%   47% SHORT -0.28%
+  ADX>30+DI>-DI (confirmed uptrend)                               3919 +0.01% -0.03% -0.13% +0.13%  -0.67%   45% SHORT -0.29%
+  Big red candle + 5x volume after uptrend                          20 -0.40% +0.04% +0.13% -0.13%  -0.20%   45%  LONG -0.29%
+  Vol trend: 5bar>1.3x 20bar in uptrend                           3157 -0.03% -0.03% -0.13% +0.13%  -0.47%   46% SHORT -0.29%
+  ADX>25 uptrend + RSI pullback to 40-55                          1504 -0.02% -0.05% -0.13% +0.13%  -0.51%   44% SHORT -0.29%
+  RSI>80+8% pump in 8h (overbought short)                          103 +0.51% +0.89% -0.12% +0.12%  -3.88%   57% SHORT -0.29%
+  Day=Sat in uptrend                                              1889 +0.02% +0.07% +0.12% -0.12%  -0.85%   35%  LONG -0.30%
+  Hurst>0.55+positive mom (trend follow)                          6897 +0.01% +0.03% +0.12% -0.12%  -0.20%   37%  LONG -0.30%
+  Autocorr>0.2+positive mom (persistent)                           892 +0.04% +0.10% +0.12% -0.12%  -0.79%   40%  LONG -0.30%
+  TRIFECTA: >SMA50+RSI50-70+vol>1.3x                              2173 -0.03% -0.12% -0.11% +0.11%  -0.31%   47% SHORT -0.31%
+  Fib 38.2% pullback (24h swing)                                  4168 -0.05% -0.12% -0.11% +0.11%  -0.26%   46% SHORT -0.31%
+  TRIFECTA v2: ADX>25+EMA12>26+vol                                1381 +0.02% +0.05% +0.10% -0.10%  -0.59%   38%  LONG -0.32%
+  SMA(20,50) crossover                                             319 +0.01% -0.05% +0.10% -0.10%  +0.10%   30%  LONG -0.32%
+  VPIN>0.6+green (informed buying)                                 451 +0.13% +0.34% +0.09% -0.09%  -0.72%   42%  LONG -0.33%
+  BTC+1.0% in 4h, alt lagging (buy alt)                            330 -0.00% -0.15% -0.09% +0.09%  -0.01%   48% SHORT -0.33%
+  Autocorr>0.1+positive mom (persistent)                          2040 +0.04% +0.07% +0.09% -0.09%  -0.16%   40%  LONG -0.33%
+  Day=Wed in uptrend                                              2134 -0.01% -0.02% -0.09% +0.09%  -1.70%   55% SHORT -0.33%
+  Day=Fri in uptrend                                              1401 -0.00% -0.05% -0.09% +0.09%  +0.22%   42% SHORT -0.33%
+  BB squeeze + ADX rising + above mid (trend ignition)            1179 -0.03% -0.07% +0.09% -0.09%  -0.24%   37%  LONG -0.33%
+  Range(12h)<3% then breakout                                      690 -0.07% -0.06% +0.08% -0.08%  +0.23%   35%  LONG -0.34%
+  Weekday in uptrend                                              8869 -0.03% -0.06% -0.08% +0.08%  -0.47%   47% SHORT -0.34%
+  Price up + volume down (weakening short)                        2859 -0.00% +0.03% +0.08% -0.08%  -0.37%   35%  LONG -0.34%
+  Fib 50.0% pullback (72h swing)                                  2203 -0.00% +0.00% +0.08% -0.08%  +0.10%   36%  LONG -0.34%
+  Hour=0 (Asia open) in uptrend                                    495 +0.13% +0.09% -0.08% +0.08%  -0.60%   44% SHORT -0.34%
+  RSI>80+5% pump in 8h (overbought short)                          202 +0.33% +0.53% -0.07% +0.07%  -3.22%   54% SHORT -0.35%
+  VPIN>0.5+green (informed buying)                                1104 +0.05% +0.18% +0.06% -0.06%  -0.40%   39%  LONG -0.36%
+  Hour=9 (EU early) in uptrend                                     517 -0.09% -0.13% -0.06% +0.06%  -0.19%   46% SHORT -0.36%
+  OBV new high before price (accumulation)                         525 +0.13% +0.12% +0.06% -0.06%  -0.21%   35%  LONG -0.36%
+  Hour=8 (EU open) in uptrend                                      538 +0.01% -0.11% +0.06% -0.06%  -0.32%   41%  LONG -0.36%
+  Price>rising SMA50+vol_spike                                    1623 +0.04% +0.04% -0.05% +0.05%  -0.99%   48% SHORT -0.37%
+  3 consecutive green candles                                     2847 -0.02% +0.06% +0.05% -0.05%  -0.28%   34%  LONG -0.37%
+  ADX>25+DI>-DI (confirmed uptrend)                               5927 +0.00% -0.01% -0.05% +0.05%  -0.45%   45% SHORT -0.37%
+  Big red candle + 3x volume after uptrend                          47 -0.26% -0.19% -0.04% +0.04%  -0.54%   36% SHORT -0.38%
+  5 green then red (exhaustion)                                    293 -0.03% -0.13% -0.04% +0.04%  -0.43%   38% SHORT -0.38%
+  Range(24h)<3% then breakout                                      133 -0.13% +0.03% -0.03% +0.03%  +0.46%   48% SHORT -0.39%
+  EMA stack: 5>13>26>SMA50 (perfect alignment)                    7963 -0.02% -0.04% -0.03% +0.03%  -0.48%   45% SHORT -0.39%
+  Buy vol > 3.0x sell vol (10 bars)                               1831 +0.01% +0.08% -0.03% +0.03%  -0.48%   45% SHORT -0.39%
+  ADX>30+DI>-DI+vol>1.5x                                           793 +0.02% +0.01% -0.02% +0.02%  -1.02%   46% SHORT -0.40%
+  ADX>20+DI>-DI (confirmed uptrend)                               8412 -0.01% -0.01% -0.02% +0.02%  -0.35%   44% SHORT -0.40%
+  Buy vol > 2.5x sell vol (10 bars)                               2718 +0.01% +0.07% -0.02% +0.02%  -0.45%   45% SHORT -0.40%
+  Buy vol > 2.0x sell vol (10 bars)                               4192 +0.01% +0.02% -0.01% +0.01%  -0.32%   45% SHORT -0.41%
+  Fib 23.6% pullback (48h swing)                                  2913 -0.04% -0.06% -0.01% +0.01%  -0.37%   44% SHORT -0.41%
+  Day=Tue in uptrend                                              2176 -0.07% -0.09% +0.01% -0.01%  -0.23%   36%  LONG -0.41%
+  Fib 23.6% pullback (24h swing)                                  3711 -0.03% -0.06% +0.01% -0.01%  -0.18%   34%  LONG -0.41%
+  EMA stack + RSI50-70 + vol>1.2x (full confirm)                  1572 +0.01% -0.03% +0.01% -0.01%  -0.31%   35%  LONG -0.41%
+  VPIN>0.7+green (informed buying)                                 156 +0.24% +0.64% -0.00% +0.00%  -2.01%   46% SHORT -0.42%
+
+==============================================================================================================
+  PROFITABLE EDGES: 38 (beat 0.42% fee)
+==============================================================================================================
+  ✅ Entropy<2.5+above SMA50 (predictable bull)
+     N=33 | SHORT | 8h=+3.28% net=+2.86% | 24h L=-4.77% S=+4.77% | WR=82%
+
+  ✅ Price > SMA50 by 15% (extended)
+     N=49 | SHORT | 8h=+2.30% net=+1.88% | 24h L=-5.19% S=+5.19% | WR=74%
+
+  ✅ Alt outperforms BTC by 8% 24h (short alt)
+     N=239 | SHORT | 8h=+1.36% net=+0.94% | 24h L=-3.29% S=+3.29% | WR=66%
+
+  ✅ Price > SMA50 by 12% (extended)
+     N=102 | SHORT | 8h=+1.34% net=+0.92% | 24h L=-4.25% S=+4.25% | WR=67%
+
+  ✅ Price > SMA50 by 10% (extended)
+     N=195 | SHORT | 8h=+1.29% net=+0.87% | 24h L=-3.86% S=+3.86% | WR=68%
+
+  ✅ Price > upper BB by 2% (overbought)
+     N=34 | LONG | 8h=+1.05% net=+0.63% | 24h L=-1.99% S=+1.99% | WR=50%
+
+  ✅ BTC+2.0% in 3h, alt lagging (buy alt)
+     N=38 | LONG | 8h=+0.98% net=+0.56% | 24h L=+2.68% S=-2.68% | WR=50%
+
+  ✅ Price > SMA50 by 8% (extended)
+     N=343 | SHORT | 8h=+0.94% net=+0.52% | 24h L=-3.33% S=+3.33% | WR=66%
+
+  ✅ Entropy<3.0+above SMA50 (predictable bull)
+     N=644 | SHORT | 8h=+0.93% net=+0.51% | 24h L=-1.21% S=+1.21% | WR=65%
+
+  ✅ RSI>80+10% pump in 12h (overbought short)
+     N=101 | SHORT | 8h=+0.92% net=+0.50% | 24h L=-4.78% S=+4.78% | WR=66%
+
+  ✅ BTC+1.5% in 2h, alt lagging (buy alt)
+     N=32 | SHORT | 8h=+0.90% net=+0.48% | 24h L=-1.68% S=+1.68% | WR=53%
+
+  ✅ Price > upper BB by 1% (overbought)
+     N=229 | LONG | 8h=+0.89% net=+0.47% | 24h L=+0.18% S=-0.18% | WR=46%
+
+  ✅ Alt outperforms BTC by 5% 24h (short alt)
+     N=723 | SHORT | 8h=+0.83% net=+0.41% | 24h L=-2.44% S=+2.44% | WR=62%
+
+  ✅ 7 green then red (exhaustion)
+     N=52 | SHORT | 8h=+0.81% net=+0.39% | 24h L=-2.08% S=+2.08% | WR=58%
+
+  ✅ Green candle + 5x volume (institutional buy)
+     N=57 | LONG | 8h=+0.77% net=+0.35% | 24h L=-0.43% S=+0.43% | WR=39%
+
+  ✅ Month start (day 1-3) in uptrend
+     N=1129 | SHORT | 8h=+0.71% net=+0.29% | 24h L=-0.40% S=+0.40% | WR=63%
+
+  ✅ RSI>80+10% pump in 8h (overbought short)
+     N=59 | SHORT | 8h=+0.63% net=+0.21% | 24h L=-4.57% S=+4.57% | WR=61%
+
+  ✅ Break 50-bar high+vol>2.0x
+     N=348 | LONG | 8h=+0.62% net=+0.20% | 24h L=-0.39% S=+0.39% | WR=44%
+
+  ✅ EMA(5,13)+>SMA50+RSI>50
+     N=670 | SHORT | 8h=+0.61% net=+0.19% | 24h L=-0.91% S=+0.91% | WR=54%
+
+  ✅ EMA(5,13)+>SMA50
+     N=671 | SHORT | 8h=+0.61% net=+0.19% | 24h L=-0.91% S=+0.91% | WR=54%
+
+  ✅ BTC+1.0% in 1h, alt lagging (buy alt)
+     N=41 | LONG | 8h=+0.59% net=+0.17% | 24h L=+0.38% S=-0.38% | WR=44%
+
+  ✅ RSI>80+8% pump in 12h (overbought short)
+     N=151 | SHORT | 8h=+0.56% net=+0.14% | 24h L=-4.03% S=+4.03% | WR=63%
+
+  ✅ Day=Sun in uptrend
+     N=1811 | SHORT | 8h=+0.54% net=+0.12% | 24h L=-0.49% S=+0.49% | WR=46%
+
+  ✅ Day=Thu in uptrend
+     N=1346 | SHORT | 8h=+0.53% net=+0.11% | 24h L=-1.02% S=+1.02% | WR=54%
+
+  ✅ Alt outperforms BTC by 3% 24h (short alt)
+     N=2053 | SHORT | 8h=+0.52% net=+0.10% | 24h L=-1.38% S=+1.38% | WR=54%
+
+  ✅ Break 30-bar high+vol>2.0x
+     N=458 | LONG | 8h=+0.51% net=+0.09% | 24h L=-0.16% S=+0.16% | WR=42%
+
+  ✅ BB squeeze(15) breakout+vol>2.0x
+     N=139 | LONG | 8h=+0.50% net=+0.08% | 24h L=+1.41% S=-1.41% | WR=46%
+
+  ✅ Break 50-bar high
+     N=652 | LONG | 8h=+0.50% net=+0.08% | 24h L=-0.56% S=+0.56% | WR=43%
+
+  ✅ BB squeeze(20) breakout+vol>2.0x
+     N=131 | LONG | 8h=+0.49% net=+0.07% | 24h L=+1.49% S=-1.49% | WR=46%
+
+  ✅ Hour=21 (Late US) in uptrend
+     N=540 | SHORT | 8h=+0.49% net=+0.07% | 24h L=-1.08% S=+1.08% | WR=53%
+
+  ✅ BB squeeze(30) breakout+vol>2.0x
+     N=107 | LONG | 8h=+0.47% net=+0.05% | 24h L=+1.52% S=-1.52% | WR=46%
+
+  ✅ BTC+1.5% in 3h, alt lagging (buy alt)
+     N=56 | LONG | 8h=+0.46% net=+0.04% | 24h L=+2.94% S=-2.94% | WR=45%
+
+  ✅ EMA(5,13)+RSI>50
+     N=971 | SHORT | 8h=+0.46% net=+0.04% | 24h L=-0.55% S=+0.55% | WR=51%
+
+  ✅ BB squeeze(10) breakout+vol>2.0x
+     N=157 | LONG | 8h=+0.46% net=+0.04% | 24h L=+1.12% S=-1.12% | WR=45%
+
+  ✅ Break 20-bar high+vol>2.0x
+     N=552 | LONG | 8h=+0.44% net=+0.02% | 24h L=-0.09% S=+0.09% | WR=42%
+
+  ✅ Falling wedge in uptrend (converging)
+     N=1021 | SHORT | 8h=+0.43% net=+0.01% | 24h L=-0.95% S=+0.95% | WR=50%
+
+  ✅ Price>rising SMA50+RSI40-60
+     N=5094 | SHORT | 8h=+0.42% net=+0.00% | 24h L=-1.32% S=+1.32% | WR=50%
+
+  ✅ Month end (day 28+) in uptrend
+     N=395 | SHORT | 8h=+0.42% net=+0.00% | 24h L=-4.02% S=+4.02% | WR=49%
+
+
+==============================================================================================================
+  ★ TOP 20 BULL MARKET EDGES ★
+==============================================================================================================
+   1. Entropy<2.5+above SMA50 (predictable bull)
+      Direction: SHORT | Trades: 33 | WinRate: 81.8%
+      Returns → 1h: -0.69% | 4h: -2.19% | 8h: +3.28% (net +2.86%) | 24h: -4.77%
+
+   2. Price > SMA50 by 15% (extended)
+      Direction: SHORT | Trades: 49 | WinRate: 73.5%
+      Returns → 1h: -0.24% | 4h: -0.79% | 8h: +2.30% (net +1.88%) | 24h: -5.19%
+
+   3. Alt outperforms BTC by 8% 24h (short alt)
+      Direction: SHORT | Trades: 239 | WinRate: 66.5%
+      Returns → 1h: -0.07% | 4h: -0.54% | 8h: +1.36% (net +0.94%) | 24h: -3.29%
+
+   4. Price > SMA50 by 12% (extended)
+      Direction: SHORT | Trades: 102 | WinRate: 66.7%
+      Returns → 1h: -0.01% | 4h: -0.36% | 8h: +1.34% (net +0.92%) | 24h: -4.25%
+
+   5. Price > SMA50 by 10% (extended)
+      Direction: SHORT | Trades: 195 | WinRate: 67.7%
+      Returns → 1h: -0.00% | 4h: -0.33% | 8h: +1.29% (net +0.87%) | 24h: -3.86%
+
+   6. Price > upper BB by 2% (overbought)
+      Direction: LONG | Trades: 34 | WinRate: 50.0%
+      Returns → 1h: +0.19% | 4h: +0.96% | 8h: +1.05% (net +0.63%) | 24h: -1.99%
+
+   7. BTC+2.0% in 3h, alt lagging (buy alt)
+      Direction: LONG | Trades: 38 | WinRate: 50.0%
+      Returns → 1h: -0.49% | 4h: +0.61% | 8h: +0.98% (net +0.56%) | 24h: +2.68%
+
+   8. Price > SMA50 by 8% (extended)
+      Direction: SHORT | Trades: 343 | WinRate: 66.5%
+      Returns → 1h: -0.03% | 4h: -0.34% | 8h: +0.94% (net +0.52%) | 24h: -3.33%
+
+   9. Entropy<3.0+above SMA50 (predictable bull)
+      Direction: SHORT | Trades: 644 | WinRate: 65.2%
+      Returns → 1h: -0.21% | 4h: -0.67% | 8h: +0.93% (net +0.51%) | 24h: -1.21%
+
+  10. RSI>80+10% pump in 12h (overbought short)
+      Direction: SHORT | Trades: 101 | WinRate: 66.3%
+      Returns → 1h: +0.29% | 4h: +0.20% | 8h: +0.92% (net +0.50%) | 24h: -4.78%
+
+  11. BTC+1.5% in 2h, alt lagging (buy alt)
+      Direction: SHORT | Trades: 32 | WinRate: 53.1%
+      Returns → 1h: -0.05% | 4h: -0.79% | 8h: +0.90% (net +0.48%) | 24h: -1.68%
+
+  12. Price > upper BB by 1% (overbought)
+      Direction: LONG | Trades: 229 | WinRate: 46.3%
+      Returns → 1h: +0.25% | 4h: +0.44% | 8h: +0.89% (net +0.47%) | 24h: +0.18%
+
+  13. Alt outperforms BTC by 5% 24h (short alt)
+      Direction: SHORT | Trades: 723 | WinRate: 61.7%
+      Returns → 1h: -0.04% | 4h: -0.27% | 8h: +0.83% (net +0.41%) | 24h: -2.44%
+
+  14. 7 green then red (exhaustion)
+      Direction: SHORT | Trades: 52 | WinRate: 57.7%
+      Returns → 1h: -0.10% | 4h: -0.37% | 8h: +0.81% (net +0.39%) | 24h: -2.08%
+
+  15. Green candle + 5x volume (institutional buy)
+      Direction: LONG | Trades: 57 | WinRate: 38.6%
+      Returns → 1h: +0.26% | 4h: +0.62% | 8h: +0.77% (net +0.35%) | 24h: -0.43%
+
+  16. Month start (day 1-3) in uptrend
+      Direction: SHORT | Trades: 1129 | WinRate: 63.4%
+      Returns → 1h: -0.13% | 4h: -0.47% | 8h: +0.71% (net +0.29%) | 24h: -0.40%
+
+  17. RSI>80+10% pump in 8h (overbought short)
+      Direction: SHORT | Trades: 59 | WinRate: 61.0%
+      Returns → 1h: +0.43% | 4h: +0.47% | 8h: +0.63% (net +0.21%) | 24h: -4.57%
+
+  18. Break 50-bar high+vol>2.0x
+      Direction: LONG | Trades: 348 | WinRate: 44.0%
+      Returns → 1h: +0.20% | 4h: +0.52% | 8h: +0.62% (net +0.20%) | 24h: -0.39%
+
+  19. EMA(5,13)+>SMA50+RSI>50
+      Direction: SHORT | Trades: 670 | WinRate: 54.2%
+      Returns → 1h: -0.16% | 4h: -0.40% | 8h: +0.61% (net +0.19%) | 24h: -0.91%
+
+  20. EMA(5,13)+>SMA50
+      Direction: SHORT | Trades: 671 | WinRate: 54.1%
+      Returns → 1h: -0.16% | 4h: -0.40% | 8h: +0.61% (net +0.19%) | 24h: -0.91%
+
+
+  Completed in 172s

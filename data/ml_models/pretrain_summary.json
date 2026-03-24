@@ -1,0 +1,158 @@
+{
+  "pretrained_at": 1774375629.998098,
+  "total_signals": 176306,
+  "total_trades": 0,
+  "tool_stats": {
+    "volatile_oversold": {
+      "signals": 124,
+      "trades": 0,
+      "wins": 0
+    },
+    "crash_buy": {
+      "signals": 535,
+      "trades": 0,
+      "wins": 0
+    },
+    "mega_pump_sell_t1": {
+      "signals": 439,
+      "trades": 0,
+      "wins": 0
+    },
+    "mega_crash": {
+      "signals": 7294,
+      "trades": 0,
+      "wins": 0
+    },
+    "crash_neg_ac": {
+      "signals": 7294,
+      "trades": 0,
+      "wins": 0
+    },
+    "blood_in_streets": {
+      "signals": 7294,
+      "trades": 0,
+      "wins": 0
+    },
+    "quick_crash": {
+      "signals": 7294,
+      "trades": 0,
+      "wins": 0
+    },
+    "crash_mean_revert": {
+      "signals": 7294,
+      "trades": 0,
+      "wins": 0
+    },
+    "vpin_dip": {
+      "signals": 7294,
+      "trades": 0,
+      "wins": 0
+    },
+    "market_panic_70": {
+      "signals": 0,
+      "trades": 0,
+      "wins": 0
+    },
+    "flash_crash": {
+      "signals": 7294,
+      "trades": 0,
+      "wins": 0
+    },
+    "deep_dip_8h": {
+      "signals": 7294,
+      "trades": 0,
+      "wins": 0
+    },
+    "entropy_dip": {
+      "signals": 7294,
+      "trades": 0,
+      "wins": 0
+    },
+    "vpin_toxic": {
+      "signals": 0,
+      "trades": 0,
+      "wins": 0
+    },
+    "btc_alt_spread": {
+      "signals": 0,
+      "trades": 0,
+      "wins": 0
+    },
+    "quick_dip": {
+      "signals": 7294,
+      "trades": 0,
+      "wins": 0
+    },
+    "rsi_pump_8h": {
+      "signals": 8634,
+      "trades": 0,
+      "wins": 0
+    },
+    "falling_wedge_short": {
+      "signals": 8634,
+      "trades": 0,
+      "wins": 0
+    },
+    "greed_short_t2": {
+      "signals": 8634,
+      "trades": 0,
+      "wins": 0
+    },
+    "thursday_short": {
+      "signals": 8634,
+      "trades": 0,
+      "wins": 0
+    },
+    "mega_pump_sell_t2": {
+      "signals": 8634,
+      "trades": 0,
+      "wins": 0
+    },
+    "distribution_short": {
+      "signals": 8634,
+      "trades": 0,
+      "wins": 0
+    },
+    "late_us_short": {
+      "signals": 8634,
+      "trades": 0,
+      "wins": 0
+    },
+    "rsi_pump_12h": {
+      "signals": 8634,
+      "trades": 0,
+      "wins": 0
+    },
+    "ema_cross_short": {
+      "signals": 8634,
+      "trades": 0,
+      "wins": 0
+    },
+    "rsi_pump_fat_tail": {
+      "signals": 8634,
+      "trades": 0,
+      "wins": 0
+    },
+    "entropy_short": {
+      "signals": 8634,
+      "trades": 0,
+      "wins": 0
+    },
+    "alt_btc_revert_t3": {
+      "signals": 0,
+      "trades": 0,
+      "wins": 0
+    },
+    "month_start_long": {
+      "signals": 0,
+      "trades": 0,
+      "wins": 0
+    },
+    "dip_buy_5pct": {
+      "signals": 7294,
+      "trades": 0,
+      "wins": 0
+    }
+  },
+  "ml_stats": {}
+}

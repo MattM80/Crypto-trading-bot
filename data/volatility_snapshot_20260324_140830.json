@@ -1,0 +1,27 @@
+{
+  "timestamp": 1774375710.524163,
+  "datetime": "2026-03-24T14:08:30.524163",
+  "signals": {
+    "dvol": 52.6,
+    "dvol_trend": "stable",
+    "put_call_ratio": 1.37,
+    "put_call_signal": "fear",
+    "max_pain_btc": 75000.0,
+    "max_pain_eth": 2250.0,
+    "max_pain_bias": "bullish",
+    "skew": 11.6,
+    "skew_signal": "fear",
+    "gamma_exposure": "neutral",
+    "term_structure": "contango",
+    "regime": "normal",
+    "market_signal": 2,
+    "position_size_multiplier": 1.0,
+    "btc_price": 69270.94,
+    "eth_price": 2109.22,
+    "timestamp": 1774375710.524163
+  },
+  "raw_data": {
+    "btc_summaries_count": 908,
+    "eth_summaries_count": 800
+  }
+}

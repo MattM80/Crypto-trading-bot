@@ -1,0 +1,2435 @@
+{
+  "headline_cache": {
+    "d134b72cda9b1b6026887fa4a5780c4c": {
+      "score": 5,
+      "coins": [
+        "XBTUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373745.49523
+    },
+    "3562e40364686923054700c6f8f14afd": {
+      "score": -9,
+      "coins": [],
+      "timestamp": 1774373745.495262
+    },
+    "25f6c963a1a9c55e2516dafdb3e7efce": {
+      "score": 6,
+      "coins": [
+        "ETHUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373745.495291
+    },
+    "1b614cb471c17768b0bfe6514e4529f1": {
+      "score": -1,
+      "coins": [
+        "TAOUSD"
+      ],
+      "timestamp": 1774373745.495318
+    },
+    "8c569c4f05d6adf85a00ee18151b464f": {
+      "score": 1,
+      "coins": [
+        "UNIUSD",
+        "DOGEUSD"
+      ],
+      "timestamp": 1774373745.4953449
+    },
+    "d7689f7ccbb608996054e9ff03a327d2": {
+      "score": -3,
+      "coins": [
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.000588
+    },
+    "26387d9948e08e78bdba46e596f29f45": {
+      "score": 1,
+      "coins": [
+        "XBTUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.001076
+    },
+    "4d102572c4075b95ed9dbc26a82db43d": {
+      "score": 0.0,
+      "coins": [],
+      "timestamp": 1774373754.001203
+    },
+    "d72b3ccaeca00f3652a32e85681b6d4f": {
+      "score": 0,
+      "coins": [
+        "ETHUSD"
+      ],
+      "timestamp": 1774373754.001326
+    },
+    "1bda60d854b79c960e024ab4fd44c227": {
+      "score": -9.0,
+      "coins": [
+        "ETHUSD"
+      ],
+      "timestamp": 1774373754.001493
+    },
+    "cde32317417efbc22000e6c2bac2e656": {
+      "score": -1,
+      "coins": [],
+      "timestamp": 1774373754.001655
+    },
+    "4785d4bb94dd1a09bee2cc83c1689bfa": {
+      "score": -14.0,
+      "coins": [
+        "SOLUSD",
+        "ETHUSD"
+      ],
+      "timestamp": 1774373754.0021372
+    },
+    "215030151fbd503ba0b249219afbffeb": {
+      "score": 0,
+      "coins": [
+        "SOLUSD",
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.002293
+    },
+    "da8c61e3fe7f6ef09b4e27de921b9ed3": {
+      "score": -1.5,
+      "coins": [],
+      "timestamp": 1774373754.00243
+    },
+    "703013ced1bb620f7ac527430ef7168b": {
+      "score": 0,
+      "coins": [
+        "TAOUSD",
+        "OPUSD",
+        "ENAUSD"
+      ],
+      "timestamp": 1774373754.002941
+    },
+    "401171d3b6edd02617e05ded2602a1e5": {
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "XBTUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.0034099
+    },
+    "9b31819eaebf3083b87f1c2a3f7bbb24": {
+      "score": -1,
+      "coins": [],
+      "timestamp": 1774373754.003872
+    },
+    "b1043c9247cc4b3aa459c94368f28db3": {
+      "score": 0.0,
+      "coins": [
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.003993
+    },
+    "162150841f9e5c87ac2e153ad353f4be": {
+      "score": 1,
+      "coins": [],
+      "timestamp": 1774373754.004138
+    },
+    "3f07b474b990323cac19d1a0c10ce7d4": {
+      "score": 0,
+      "coins": [
+        "ONDOUSD"
+      ],
+      "timestamp": 1774373754.004287
+    },
+    "6c45d87fc95d93ef30ecde772926c1c6": {
+      "score": 0,
+      "coins": [
+        "AAVEUSD"
+      ],
+      "timestamp": 1774373754.004812
+    },
+    "a4874ba8dffa452d10978c639681c06b": {
+      "score": 0.0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.004968
+    },
+    "9516307da1e0e52c1210286cebd4bf27": {
+      "score": 0,
+      "coins": [
+        "AAVEUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.0054379
+    },
+    "9e5b486fe24d22af2730f4f6dde07845": {
+      "score": -2,
+      "coins": [],
+      "timestamp": 1774373754.005609
+    },
+    "c415ba9579cba5277cc1c80d99d38fe3": {
+      "score": 3,
+      "coins": [
+        "XBTUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.005763
+    },
+    "0e622964c2487269d64b89fb613c602d": {
+      "score": 1,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.0059578
+    },
+    "e4b1753badc387dea4c395ed225d25f5": {
+      "score": 0,
+      "coins": [],
+      "timestamp": 1774373754.006149
+    },
+    "391bd3395de90658eae12e53efe0b184": {
+      "score": -3,
+      "coins": [
+        "TRXUSD"
+      ],
+      "timestamp": 1774373754.006628
+    },
+    "5b830f25447aa68b7a157add4936d11a": {
+      "score": 1,
+      "coins": [
+        "ETHUSD",
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.007112
+    },
+    "0fd03765a6e64385b8ed630c82ff016c": {
+      "score": 1,
+      "coins": [
+        "ETHUSD",
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.0076082
+    },
+    "ac31fd78f31ad8fee2d61de28245c9d0": {
+      "score": 0.0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.008054
+    },
+    "3e4d89c1d50c5f859fb534464f8fda17": {
+      "score": 0,
+      "coins": [
+        "XBTUSD",
+        "SUIUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.0084832
+    },
+    "95f76f0ce7815b531141850dac9b67d1": {
+      "score": 0,
+      "coins": [
+        "XBTUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.008919
+    },
+    "0933ec09ac3472d60a7efb22e337757c": {
+      "score": 0.0,
+      "coins": [],
+      "timestamp": 1774373754.009043
+    },
+    "29b1f78babc0c20205ca965a86b7468f": {
+      "score": 0,
+      "coins": [
+        "SOLUSD",
+        "XBTUSD",
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.009387
+    },
+    "998c445bc65398f916051df2beefffc8": {
+      "score": 3,
+      "coins": [
+        "XBTUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.009485
+    },
+    "d866d45dbf0147e98a9e324971d80979": {
+      "score": 3,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.0097878
+    },
+    "6c3376c683c6cc79cb9cc906dfaeecf7": {
+      "score": 0.0,
+      "coins": [],
+      "timestamp": 1774373754.009878
+    },
+    "44405d91a1a63ae13ca93baae7ca05ec": {
+      "score": 0,
+      "coins": [
+        "SOLUSD",
+        "XBTUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.010197
+    },
+    "effa662939a261814e0e699665f4f67b": {
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "ETHUSD",
+        "XBTUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.0105238
+    },
+    "950258a46cdfc3c4da35729166e61fa9": {
+      "score": 0,
+      "coins": [],
+      "timestamp": 1774373754.010721
+    },
+    "a9f711a00f6c68e45ccd47115c6fdb1b": {
+      "score": 0.0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.010819
+    },
+    "7e083f53c7f931ba9ee12a64368e0973": {
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.010936
+    },
+    "4771082653fed238e45710b69176cd4e": {
+      "score": 0,
+      "coins": [
+        "XBTUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.011028
+    },
+    "101271686bc348a509737c2690632965": {
+      "score": 1,
+      "coins": [
+        "UNIUSD",
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.011319
+    },
+    "5139dc4b9d246f0eaba413239c8b0074": {
+      "score": 0.0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.011439
+    },
+    "5fa4385c1ec0c44708c523407f224917": {
+      "score": 1,
+      "coins": [
+        "SOLUSD",
+        "XBTUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.011778
+    },
+    "e9719a399057ff52616aced0c231e795": {
+      "score": 0,
+      "coins": [
+        "ETHUSD"
+      ],
+      "timestamp": 1774373754.011998
+    },
+    "9c936c938b77e786379218c7f2bba9a5": {
+      "score": 1.5,
+      "coins": [
+        "ETHUSD",
+        "XBTUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.012342
+    },
+    "539a5b9f4bb5fc0832f8adc75461d72e": {
+      "score": -1,
+      "coins": [
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.01267
+    },
+    "348934122f9505298e797187876198b9": {
+      "score": -2,
+      "coins": [
+        "XBTUSD",
+        "TAOUSD",
+        "APTUSD"
+      ],
+      "timestamp": 1774373754.012991
+    },
+    "5d82a4a5c6333f57cf8bc2e1a1557fda": {
+      "score": 0,
+      "coins": [
+        "XBTUSD",
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.013129
+    },
+    "05739ff294a8ccd039406e1f4676b432": {
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.013221
+    },
+    "821ca166df1e37a9d2f19315b9693de9": {
+      "score": -1,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.013546
+    },
+    "0a3a283ec986b0a5323ff4c3955d4df1": {
+      "score": 0,
+      "coins": [
+        "SOLUSD",
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.013825
+    },
+    "7b41b45311a3ea9d308131673fa011fc": {
+      "score": 0,
+      "coins": [],
+      "timestamp": 1774373754.0139148
+    },
+    "24cc5cdb40db4e8c14a8547cd6f0f6cd": {
+      "score": 0,
+      "coins": [
+        "LINKUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.014157
+    },
+    "d03fcd60c8be5236b9a8198a05d7a668": {
+      "score": 0,
+      "coins": [
+        "ETHUSD",
+        "HYPEUSD",
+        "TAOUSD",
+        "ARBUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.014415
+    },
+    "194b8c7eaf9afdb3c50a14e98fd81d0e": {
+      "score": 1,
+      "coins": [
+        "ETHUSD"
+      ],
+      "timestamp": 1774373754.014519
+    },
+    "93a1664005441609f000e80f083de005": {
+      "score": 0.0,
+      "coins": [
+        "LINKUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.014762
+    },
+    "04ea91b8fb7a31012f585e7efbc6dad0": {
+      "score": 0.0,
+      "coins": [
+        "ETHUSD"
+      ],
+      "timestamp": 1774373754.0148711
+    },
+    "c633c62e3f14b4156802f77f4b72e863": {
+      "score": 4,
+      "coins": [
+        "UNIUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "KAVAUSD"
+      ],
+      "timestamp": 1774373754.015163
+    },
+    "b90745a19363b0c0f3c1a32e24f5cc7b": {
+      "score": -1,
+      "coins": [
+        "UNIUSD",
+        "SOLUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "ARBUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.015421
+    },
+    "f00b3093694ec1dfbbe39f25d66fea07": {
+      "score": 1,
+      "coins": [
+        "ETHUSD"
+      ],
+      "timestamp": 1774373754.0156538
+    },
+    "0ca48f108637730c192adfb34fbda822": {
+      "score": 0,
+      "coins": [
+        "ETHUSD"
+      ],
+      "timestamp": 1774373754.015746
+    },
+    "180418b3fb2f29c35d699eed11554a57": {
+      "score": 0,
+      "coins": [],
+      "timestamp": 1774373754.015834
+    },
+    "9db256b352ee31faa315b0ce330fd95a": {
+      "score": 0,
+      "coins": [
+        "ETHUSD"
+      ],
+      "timestamp": 1774373754.0158982
+    },
+    "20c4404791cd73403eb04d22aa6fc5f6": {
+      "score": 0,
+      "coins": [
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.016177
+    },
+    "5f8aaaaf65af6a4a648ff916e5bf798d": {
+      "score": 0.0,
+      "coins": [
+        "LINKUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.016418
+    },
+    "dad22cfd0563880d570b0e36c53bac8e": {
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "ETHUSD",
+        "FILUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.0167072
+    },
+    "88e0c804adfc2aae5632a8c21874dd3e": {
+      "score": 0,
+      "coins": [
+        "ETHUSD",
+        "TAOUSD",
+        "ONDOUSD",
+        "ENAUSD"
+      ],
+      "timestamp": 1774373754.016984
+    },
+    "e6c4f29ed432b6a3ea6ce0d83e3ffc20": {
+      "score": 0.0,
+      "coins": [
+        "LINKUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.017237
+    },
+    "d62dd195e090155d601f65cec8dd144d": {
+      "score": 0,
+      "coins": [
+        "ETHUSD",
+        "ADAUSD",
+        "BNBUSD",
+        "TAOUSD",
+        "ARBUSD"
+      ],
+      "timestamp": 1774373754.0175412
+    },
+    "8ab7abe96db1902342b39117708ddb62": {
+      "score": 0,
+      "coins": [
+        "ETHUSD",
+        "XBTUSD",
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.017737
+    },
+    "b509973e6cce7682690c62cd421d6414": {
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "SOLUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "ARBUSD"
+      ],
+      "timestamp": 1774373754.017996
+    },
+    "7c7c5c2e4cca18552a5e235023320b5d": {
+      "score": 0.0,
+      "coins": [
+        "LINKUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.018232
+    },
+    "8ad1a9f00e26ee197cfd084988669b41": {
+      "score": 0,
+      "coins": [
+        "SOLUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.0184479
+    },
+    "08abef75809f0778eec683da142ec496": {
+      "score": 0.0,
+      "coins": [
+        "LINKUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.0186749
+    },
+    "93f6abfc28221ba7969442c09b61d7df": {
+      "score": 0,
+      "coins": [
+        "LINKUSD",
+        "ARBUSD",
+        "STXUSD"
+      ],
+      "timestamp": 1774373754.018934
+    },
+    "b71930de1d3dfb7d2646f700bcdc17de": {
+      "score": -3,
+      "coins": [
+        "OPUSD",
+        "APTUSD"
+      ],
+      "timestamp": 1774373754.019197
+    },
+    "ea7f74f38f02711b8b438349c515ae67": {
+      "score": 0,
+      "coins": [
+        "LTCUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.0194209
+    },
+    "f64e48bef862067b6d27487936a6bf7a": {
+      "score": 1,
+      "coins": [
+        "ETHUSD",
+        "DOGEUSD",
+        "TAOUSD",
+        "OPUSD",
+        "TIAUSD"
+      ],
+      "timestamp": 1774373754.0196831
+    },
+    "70c0a55798c55083c8f20fb270c42a1c": {
+      "score": -2,
+      "coins": [
+        "XBTUSD",
+        "LTCUSD",
+        "TAOUSD",
+        "OPUSD",
+        "LDOUSD"
+      ],
+      "timestamp": 1774373754.019902
+    },
+    "9ace9fc4cb7c7afc7a65f0f464e716b9": {
+      "score": 1,
+      "coins": [
+        "UNIUSD",
+        "TAOUSD",
+        "OPUSD",
+        "ONDOUSD",
+        "KAVAUSD"
+      ],
+      "timestamp": 1774373754.020163
+    },
+    "3e7733cb89169c3d731ae8caacd69dfe": {
+      "score": 2,
+      "coins": [
+        "LTCUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.020364
+    },
+    "665857dff96a458f449bf9efa7d005d0": {
+      "score": 0,
+      "coins": [
+        "SOLUSD",
+        "SUIUSD",
+        "APTUSD",
+        "STXUSD"
+      ],
+      "timestamp": 1774373754.02061
+    },
+    "9c1b7e4d488a4c36ed54f887d4d83319": {
+      "score": 0,
+      "coins": [
+        "ATOMUSD",
+        "DOGEUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.0208588
+    },
+    "8209ad01b6b6787b90ab633019707f02": {
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "ETHUSD",
+        "OPUSD",
+        "KAVAUSD"
+      ],
+      "timestamp": 1774373754.021112
+    },
+    "5f3d487aa7949225b8bf4ed2a1e85e2b": {
+      "score": -2,
+      "coins": [
+        "NEARUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.021357
+    },
+    "17ddcd1abe73c3142e7b28756243a9e9": {
+      "score": 1,
+      "coins": [
+        "SOLUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "ARBUSD",
+        "OPUSD",
+        "STXUSD"
+      ],
+      "timestamp": 1774373754.021606
+    },
+    "805572de1f7b5e581f916be5f72674d1": {
+      "score": 1,
+      "coins": [
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.021728
+    },
+    "1980ff1816fda887b4b0593fd7cc0ce7": {
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "LTCUSD"
+      ],
+      "timestamp": 1774373754.021933
+    },
+    "96e05809ea5c96a192ec249c19be7351": {
+      "score": 0,
+      "coins": [
+        "NEARUSD",
+        "HYPEUSD",
+        "TAOUSD",
+        "OPUSD",
+        "TIAUSD"
+      ],
+      "timestamp": 1774373754.0221708
+    },
+    "d4169bf897279d4be68162104fb6be69": {
+      "score": -3,
+      "coins": [
+        "UNIUSD",
+        "AAVEUSD",
+        "APTUSD",
+        "KAVAUSD"
+      ],
+      "timestamp": 1774373754.02241
+    },
+    "eaac06f9a66fd6d872f354c0c7630d5a": {
+      "score": 4,
+      "coins": [
+        "ETHUSD",
+        "XBTUSD",
+        "SHIBUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.022639
+    },
+    "708fa8e6cae6021fd30c4a9367ef8654": {
+      "score": -2,
+      "coins": [
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.022824
+    },
+    "440d5345b3dcb0a740a7663657838f59": {
+      "score": 0,
+      "coins": [
+        "PEPEUSD",
+        "OPUSD",
+        "FLOKIUSD"
+      ],
+      "timestamp": 1774373754.0230138
+    },
+    "fdf30949f00e1a994b1d714d172d24b8": {
+      "score": 2,
+      "coins": [
+        "SHIBUSD",
+        "TAOUSD",
+        "OPUSD",
+        "TIAUSD"
+      ],
+      "timestamp": 1774373754.0231822
+    },
+    "ea7673f2959c7092c6f6523aff6ced1d": {
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.023354
+    },
+    "d9719471ea4ad4008427d1778ba0f87a": {
+      "score": -1,
+      "coins": [
+        "SOLUSD",
+        "ETHUSD",
+        "BNBUSD",
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.023533
+    },
+    "9a5e32dae5570aa3a445b90d1d4ef68d": {
+      "score": -1,
+      "coins": [
+        "TAOUSD",
+        "OPUSD",
+        "TIAUSD",
+        "STXUSD"
+      ],
+      "timestamp": 1774373754.023726
+    },
+    "8a482b37da1ad39051bb46e9e71167bd": {
+      "score": 1,
+      "coins": [
+        "NEARUSD",
+        "UNIUSD",
+        "ETHUSD",
+        "XBTUSD",
+        "LTCUSD",
+        "TRXUSD",
+        "TAOUSD",
+        "OPUSD",
+        "ONDOUSD"
+      ],
+      "timestamp": 1774373754.023913
+    },
+    "a4fe040a02ee16283ca3024f293312ef": {
+      "score": -3,
+      "coins": [
+        "LTCUSD",
+        "BNBUSD",
+        "ONDOUSD"
+      ],
+      "timestamp": 1774373754.024116
+    },
+    "7951fad42bb4550173a8ca4ae0a596bc": {
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "TRXUSD",
+        "HYPEUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.024288
+    },
+    "43cf684059e0223da0b5fef03b7d1f41": {
+      "score": 0,
+      "coins": [
+        "ETHUSD",
+        "XBTUSD",
+        "TRXUSD",
+        "TAOUSD",
+        "ARBUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.024458
+    },
+    "7253277d5fe8fea77829704452e87422": {
+      "score": 0,
+      "coins": [
+        "ETHUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.0246441
+    },
+    "fd7442cad3bcb8d1fdbc78d320ff8cf2": {
+      "score": 0,
+      "coins": [],
+      "timestamp": 1774373754.024828
+    },
+    "842469d179b4ac4f6294769276a09f31": {
+      "score": 1,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.025009
+    },
+    "cb7daa8cde141772b9ce27d85d16885e": {
+      "score": 4,
+      "coins": [
+        "ETHUSD"
+      ],
+      "timestamp": 1774373754.025182
+    },
+    "5e72c20733c9f6f5710ceceaf191a21e": {
+      "score": -1,
+      "coins": [
+        "UNIUSD",
+        "XBTUSD",
+        "TAOUSD",
+        "KAVAUSD"
+      ],
+      "timestamp": 1774373754.025353
+    },
+    "4a39c9ec9584a94a2e0e1c908b58dbf7": {
+      "score": 1,
+      "coins": [
+        "UNIUSD",
+        "AAVEUSD",
+        "KAVAUSD"
+      ],
+      "timestamp": 1774373754.02552
+    },
+    "de120a1e5bf5d7b7f563b56cd634404f": {
+      "score": -3,
+      "coins": [
+        "SOLUSD",
+        "XLMUSD",
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.02571
+    },
+    "3a9e123a8a30b5cfb875346e2a89cc47": {
+      "score": -1,
+      "coins": [
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.0258932
+    },
+    "63c09d960982380dc8556b580a0e194c": {
+      "score": 0,
+      "coins": [
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.026075
+    },
+    "9fdd77816ce58b7af02ed8d01b048512": {
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "SOLUSD",
+        "TAOUSD",
+        "OPUSD",
+        "ONDOUSD"
+      ],
+      "timestamp": 1774373754.026252
+    },
+    "aaed7774c8b87a8afe5978ff64b1b478": {
+      "score": -3,
+      "coins": [],
+      "timestamp": 1774373754.026444
+    },
+    "80bd2e6e0456bcdedaa74e2e8e07a6a0": {
+      "score": 0,
+      "coins": [
+        "LINKUSD",
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.026613
+    },
+    "8341a3d92cc0c9fb8710e708e8acaff1": {
+      "score": -1,
+      "coins": [
+        "UNIUSD",
+        "OPUSD",
+        "KAVAUSD"
+      ],
+      "timestamp": 1774373754.0268002
+    },
+    "6502cadfdecca0aa54029de813377dfa": {
+      "score": 1,
+      "coins": [
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.027074
+    },
+    "6df87c0ee4b075ba8a0d7dddb78b4456": {
+      "score": 0,
+      "coins": [],
+      "timestamp": 1774373754.02739
+    },
+    "40e49f8042d79404dae57ba725d48488": {
+      "score": -3,
+      "coins": [
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.0276961
+    },
+    "436f9e1369aff994d9656512c4023625": {
+      "score": -2,
+      "coins": [
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.0279832
+    },
+    "b0adf6cc46c5d80fee7dfe038b7598ea": {
+      "score": -2,
+      "coins": [
+        "XBTUSD",
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.0282362
+    },
+    "4c9ac32446c9e7409aeed87f8ba3a425": {
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.028542
+    },
+    "c20c38240267e3266d45160131a5f389": {
+      "score": -3,
+      "coins": [
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.028843
+    },
+    "aae9033f7258483e5be41f0f0338191a": {
+      "score": 0,
+      "coins": [
+        "ONDOUSD"
+      ],
+      "timestamp": 1774373754.029151
+    },
+    "e92bd8666908337383de5bc102f2e2cf": {
+      "score": 1,
+      "coins": [
+        "NEARUSD",
+        "AAVEUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.029414
+    },
+    "6cbec99f3718b8dce08da5b089b33530": {
+      "score": 4,
+      "coins": [
+        "UNIUSD",
+        "TAOUSD",
+        "OPUSD",
+        "KAVAUSD"
+      ],
+      "timestamp": 1774373754.029705
+    },
+    "83677ba4a3b795cb6e9dbfb9332a258e": {
+      "score": 0,
+      "coins": [
+        "DOGEUSD",
+        "TRXUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.030001
+    },
+    "0f3fb26a86ca65df902a3ad2c256aff6": {
+      "score": 0,
+      "coins": [
+        "FILUSD"
+      ],
+      "timestamp": 1774373754.030283
+    },
+    "4d2711c4cb7f10934fb4adc76cfef98b": {
+      "score": 0,
+      "coins": [],
+      "timestamp": 1774373754.03037
+    },
+    "2f34e901c7d7c74a9718ac70115d7792": {
+      "score": -4,
+      "coins": [],
+      "timestamp": 1774373754.0304582
+    },
+    "6eca6aab354bfa46acc88b37a80395e1": {
+      "score": 0,
+      "coins": [
+        "AAVEUSD",
+        "ETHUSD",
+        "ENAUSD"
+      ],
+      "timestamp": 1774373754.0305438
+    },
+    "129658fce0ff795ad48ecc53fd4cb1af": {
+      "score": 0,
+      "coins": [
+        "ETHUSD"
+      ],
+      "timestamp": 1774373754.0306098
+    },
+    "99489a9f8470f19221a5f2647caefa66": {
+      "score": -1,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.030688
+    },
+    "ecb4352c0247a40a8d0704ec5fd5e31d": {
+      "score": -1,
+      "coins": [
+        "UNIUSD",
+        "DOTUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.030771
+    },
+    "162ac35825792113274d31c246ec5a5e": {
+      "score": 0,
+      "coins": [
+        "ETHUSD"
+      ],
+      "timestamp": 1774373754.0308428
+    },
+    "f2feb4d3cf59ef8585121c817ef30459": {
+      "score": 1,
+      "coins": [
+        "NEARUSD",
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.030925
+    },
+    "61d681126528f2f7a7d86f4cb6704867": {
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "SOLUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.031018
+    },
+    "5dabaa5105cb83d5d357dd69338756aa": {
+      "score": 0,
+      "coins": [],
+      "timestamp": 1774373754.031122
+    },
+    "699387fa11e238196cea66e526219c16": {
+      "score": 1,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.0312052
+    },
+    "524481d10d644740ec782e7b13244b13": {
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "TAOUSD",
+        "KAVAUSD"
+      ],
+      "timestamp": 1774373754.031287
+    },
+    "6e2adc86a9a03f03f172f99263a6365d": {
+      "score": 0,
+      "coins": [],
+      "timestamp": 1774373754.031359
+    },
+    "8e42da49118a6ff37301888ebc27fe07": {
+      "score": 0,
+      "coins": [],
+      "timestamp": 1774373754.0314271
+    },
+    "86fcc225f78f749bf87d630e4640721a": {
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.0314932
+    },
+    "998bf364f9fbbaf698197e5f8fcde269": {
+      "score": 0,
+      "coins": [
+        "TAOUSD",
+        "ONDOUSD"
+      ],
+      "timestamp": 1774373754.031574
+    },
+    "9a2415eb105d1c8ac9cf4ead1ca3ae96": {
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.0316448
+    },
+    "a8f0fb59b159f40fe0b76a3d340cdbde": {
+      "score": 0,
+      "coins": [],
+      "timestamp": 1774373754.031714
+    },
+    "606301c8355d0c41b40779b4bb6d7add": {
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.0317812
+    },
+    "dcb4d8ad0771ca678a5abd6f238fa1eb": {
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.0318599
+    },
+    "f31b684fade9565ba139246568e8cbd6": {
+      "score": -3,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.031931
+    },
+    "2e458dcdb909cde71024ba22a21c0fb1": {
+      "score": -3,
+      "coins": [],
+      "timestamp": 1774373754.032008
+    },
+    "d75212db69389f96f452fb1b5f88b054": {
+      "score": -3,
+      "coins": [
+        "SOLUSD",
+        "ETHUSD",
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.032077
+    },
+    "f684eb2faece52643692638f484f7edf": {
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.0321438
+    },
+    "b651fe0400a02ada91dc54e195fbdcaf": {
+      "score": 3,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.032379
+    },
+    "14f9eec8ca5f604726b25e594c842410": {
+      "score": 0,
+      "coins": [
+        "XBTUSD",
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.032628
+    },
+    "265fdc87c6742116b03d076e6fcb488e": {
+      "score": 2,
+      "coins": [
+        "XBTUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.0328698
+    },
+    "e1a161dc43d768ecc5b8dc8a7825e406": {
+      "score": 0,
+      "coins": [
+        "XBTUSD",
+        "HYPEUSD"
+      ],
+      "timestamp": 1774373754.03311
+    },
+    "d5196e84dffd88a8557741300add63a2": {
+      "score": 0,
+      "coins": [
+        "XBTUSD",
+        "TRXUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.033341
+    },
+    "1facc6fe3b36ef421c6cb04c520ec5d6": {
+      "score": 1,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.033586
+    },
+    "ee87ab59e7e89ee7c8f27fa79811abbd": {
+      "score": 1,
+      "coins": [
+        "NEARUSD",
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.033848
+    },
+    "0c25705d1c48474fb23fafca68836eb8": {
+      "score": 4,
+      "coins": [
+        "XBTUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "timestamp": 1774373754.0340831
+    },
+    "d8437b10ba74fdafa07ba846fa9cba4b": {
+      "score": -2,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.0343199
+    },
+    "08433406354a61d62e0ff988ac67a736": {
+      "score": 1,
+      "coins": [
+        "XBTUSD",
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.034564
+    },
+    "08133b9bbdb7a99a434c92970e41c86e": {
+      "score": 1,
+      "coins": [
+        "TAOUSD"
+      ],
+      "timestamp": 1774373754.034636
+    },
+    "084cc02f89903bd280e528f45b49717d": {
+      "score": 1,
+      "coins": [],
+      "timestamp": 1774373754.034709
+    },
+    "0447a1a4d92f66391825541932efa947": {
+      "score": 1,
+      "coins": [],
+      "timestamp": 1774373754.034781
+    },
+    "3dbbf0381542a68b4941194f0835f8db": {
+      "score": 1,
+      "coins": [],
+      "timestamp": 1774373754.034849
+    },
+    "9e19d6e39d84abdf36a2169592a6edfd": {
+      "score": 1,
+      "coins": [
+        "HYPEUSD"
+      ],
+      "timestamp": 1774373754.0349162
+    },
+    "5f004935bcfd816e48aed329bcb536f3": {
+      "score": 1,
+      "coins": [],
+      "timestamp": 1774373754.034985
+    },
+    "551d9631b433b1aca66586ac33852364": {
+      "score": 1,
+      "coins": [
+        "XBTUSD"
+      ],
+      "timestamp": 1774373754.035042
+    },
+    "257ddc61071dbea13b5cda40841ec1d2": {
+      "score": 1,
+      "coins": [
+        "ETHUSD"
+      ],
+      "timestamp": 1774373754.035111
+    },
+    "fd80ecd629171360930a402c09537935": {
+      "score": 1,
+      "coins": [
+        "SUIUSD"
+      ],
+      "timestamp": 1774373754.0351748
+    },
+    "19748873b621efd55fb94cb2ad128e03": {
+      "score": 1,
+      "coins": [
+        "SOLUSD"
+      ],
+      "timestamp": 1774373754.03524
+    },
+    "8fae90ff9130d07bdb88a3f2314f0e33": {
+      "score": 0,
+      "coins": [
+        "ETHUSD",
+        "FILUSD",
+        "TAOUSD"
+      ],
+      "timestamp": 1774373908.227374
+    }
+  },
+  "recent_headlines": [
+    {
+      "headline": "Daily General Discussion March 22, 2026",
+      "score": 0.0,
+      "coins": [
+        "LINKUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_ethereum",
+      "timestamp": 1774373908.227674
+    },
+    {
+      "headline": "I built a lite Ethereum explorer for node runners \u2014 talks directly to your node, hosted on IPFS, no install needed",
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "ETHUSD",
+        "FILUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_ethereum",
+      "timestamp": 1774373908.227712
+    },
+    {
+      "headline": "Appreciate feedback on provenance tracking for shares as RWAs on Ethereum",
+      "score": 0,
+      "coins": [
+        "ETHUSD",
+        "TAOUSD",
+        "ONDOUSD",
+        "ENAUSD"
+      ],
+      "source": "reddit_ethereum",
+      "timestamp": 1774373908.227726
+    },
+    {
+      "headline": "Daily General Discussion March 21, 2026",
+      "score": 0.0,
+      "coins": [
+        "LINKUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_ethereum",
+      "timestamp": 1774373908.2277372
+    },
+    {
+      "headline": "I built a free tool that makes blockchain transactions human-readable \u2014 would love feedback",
+      "score": 0,
+      "coins": [
+        "ETHUSD",
+        "ADAUSD",
+        "BNBUSD",
+        "TAOUSD",
+        "ARBUSD"
+      ],
+      "source": "reddit_ethereum",
+      "timestamp": 1774373908.227767
+    },
+    {
+      "headline": "Thorchain Alternative?",
+      "score": 0,
+      "coins": [
+        "ETHUSD",
+        "XBTUSD",
+        "TAOUSD"
+      ],
+      "source": "reddit_ethereum",
+      "timestamp": 1774373908.227798
+    },
+    {
+      "headline": "Tally is dead - and we killed the future it was supposed to serve",
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "SOLUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "ARBUSD"
+      ],
+      "source": "reddit_ethereum",
+      "timestamp": 1774373908.2278101
+    },
+    {
+      "headline": "Daily General Discussion March 20, 2026",
+      "score": 0.0,
+      "coins": [
+        "LINKUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_ethereum",
+      "timestamp": 1774373908.227822
+    },
+    {
+      "headline": "A new kind of block explorer",
+      "score": 0,
+      "coins": [
+        "SOLUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_ethereum",
+      "timestamp": 1774373908.227836
+    },
+    {
+      "headline": "Daily General Discussion March 19, 2026",
+      "score": 0.0,
+      "coins": [
+        "LINKUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_ethereum",
+      "timestamp": 1774373908.227848
+    },
+    {
+      "headline": "I built an Agent Based modeling tool with deterministic and non-deterministic LLM powered agents for smart contracts to test security and mechanism design",
+      "score": 0,
+      "coins": [
+        "LINKUSD",
+        "ARBUSD",
+        "STXUSD"
+      ],
+      "source": "reddit_ethereum",
+      "timestamp": 1774373908.227864
+    },
+    {
+      "headline": "PSA: CoinSpace/CoinWallet v3.0.7 (2021) has a derivation bug that made it provide the WRONG seed phrase. My recovery script inside.",
+      "score": -3,
+      "coins": [
+        "OPUSD",
+        "APTUSD"
+      ],
+      "source": "reddit_ethereum",
+      "timestamp": 1774373908.2278779
+    },
+    {
+      "headline": "/r/Altcoin 2024 Update - Get in here!",
+      "score": 0,
+      "coins": [
+        "LTCUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.227895
+    },
+    {
+      "headline": "Just got access to BingX AI Claw and it flagged this DOGE setup immediately.",
+      "score": 1,
+      "coins": [
+        "ETHUSD",
+        "DOGEUSD",
+        "TAOUSD",
+        "OPUSD",
+        "TIAUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.227927
+    },
+    {
+      "headline": "Altcoin spot trading volumes are collapsing",
+      "score": -2,
+      "coins": [
+        "XBTUSD",
+        "LTCUSD",
+        "TAOUSD",
+        "OPUSD",
+        "LDOUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.2279549
+    },
+    {
+      "headline": "$KNS KindWallet sneak peek \u2014 RWA yields, perpetuals trading, staking + more all in one app",
+      "score": 1,
+      "coins": [
+        "UNIUSD",
+        "TAOUSD",
+        "OPUSD",
+        "ONDOUSD",
+        "KAVAUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.227987
+    },
+    {
+      "headline": "Ruma API: TAO (Bittensor) Currently Leads Retail Sentiment",
+      "score": 2,
+      "coins": [
+        "LTCUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.227999
+    },
+    {
+      "headline": "The traditional iGaming industry is finally getting exposed by L1 smart contracts.",
+      "score": 0,
+      "coins": [
+        "SOLUSD",
+        "SUIUSD",
+        "APTUSD",
+        "STXUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.228012
+    },
+    {
+      "headline": "QUBIC \u2014 The L1 that replaced wasteful mining with AI training, and is about to add $DOGE mining on top",
+      "score": 0,
+      "coins": [
+        "ATOMUSD",
+        "DOGEUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.228043
+    },
+    {
+      "headline": "Curious About the Future of Crypto Finance? Join This Global Digital Asset Summit",
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "ETHUSD",
+        "OPUSD",
+        "KAVAUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.228072
+    },
+    {
+      "headline": "Over $300M in token unlocks this week\u2026 some big ones coming",
+      "score": -2,
+      "coins": [
+        "NEARUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.228103
+    },
+    {
+      "headline": "Why XAI\u2019s Layer-3 approach to \"Invisible Web3\" might actually solve the gaming friction problem",
+      "score": 1,
+      "coins": [
+        "SOLUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "ARBUSD",
+        "OPUSD",
+        "STXUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.22814
+    },
+    {
+      "headline": "$TripleT \ud83d\udea8\ud83d\udcc8\ud83d\udc40",
+      "score": 1,
+      "coins": [
+        "TAOUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.22816
+    },
+    {
+      "headline": "Ruma: Trump Token Currently Leads Altcoin Mindshare Ranking",
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "LTCUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.228171
+    },
+    {
+      "headline": "Honest reflection after being in crypto space for years",
+      "score": 0,
+      "coins": [
+        "NEARUSD",
+        "HYPEUSD",
+        "TAOUSD",
+        "OPUSD",
+        "TIAUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.228183
+    },
+    {
+      "headline": "One of the craziest DeFi mistakes in a while.",
+      "score": -3,
+      "coins": [
+        "UNIUSD",
+        "AAVEUSD",
+        "APTUSD",
+        "KAVAUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.2282162
+    },
+    {
+      "headline": "If BTC is \"digital gold\", what's the actual equivalent of silver or oil?",
+      "score": 4,
+      "coins": [
+        "ETHUSD",
+        "XBTUSD",
+        "SHIBUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.228245
+    },
+    {
+      "headline": "Earn some ION passivly on Bingx by just staking",
+      "score": -2,
+      "coins": [
+        "TAOUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.228276
+    },
+    {
+      "headline": "Top TRUMP meme coin holders invited to a conference with Trump",
+      "score": 0,
+      "coins": [
+        "PEPEUSD",
+        "OPUSD",
+        "FLOKIUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.2283058
+    },
+    {
+      "headline": "Deisgned for fapping, Built for life",
+      "score": 2,
+      "coins": [
+        "SHIBUSD",
+        "TAOUSD",
+        "OPUSD",
+        "TIAUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.228319
+    },
+    {
+      "headline": "Faith, Protection and Abundance: Discover Alpha Omega Coin",
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.2283351
+    },
+    {
+      "headline": "Alpha Omega Coin (AOC) Explained in Simple Terms",
+      "score": -1,
+      "coins": [
+        "SOLUSD",
+        "ETHUSD",
+        "BNBUSD",
+        "TAOUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.2283468
+    },
+    {
+      "headline": "Oasis just dropped a guide on vibe coding confidential smart contracts with AI",
+      "score": -1,
+      "coins": [
+        "TAOUSD",
+        "OPUSD",
+        "TIAUSD",
+        "STXUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.228361
+    },
+    {
+      "headline": "Mid-Cap AltCoin Index overview for the week of March 01\u201308, 2026",
+      "score": 1,
+      "coins": [
+        "NEARUSD",
+        "UNIUSD",
+        "ETHUSD",
+        "XBTUSD",
+        "LTCUSD",
+        "TRXUSD",
+        "TAOUSD",
+        "OPUSD",
+        "ONDOUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.22839
+    },
+    {
+      "headline": "Binance Adds Several Altcoins to Monitoring List After Latest Review",
+      "score": -3,
+      "coins": [
+        "LTCUSD",
+        "BNBUSD",
+        "ONDOUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.2284212
+    },
+    {
+      "headline": "Which memecoin has the strongest community right now?",
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "TRXUSD",
+        "HYPEUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.228448
+    },
+    {
+      "headline": "Santiment: Starknet Tops Layer 2 Developer Activity Ranking",
+      "score": 0,
+      "coins": [
+        "ETHUSD",
+        "XBTUSD",
+        "TRXUSD",
+        "TAOUSD",
+        "ARBUSD",
+        "OPUSD"
+      ],
+      "source": "reddit_altcoin",
+      "timestamp": 1774373908.228461
+    },
+    {
+      "headline": "Tether says \u2018Big Four\u2018 firm to handle first audit of USDT reserves",
+      "score": 0,
+      "coins": [
+        "ETHUSD",
+        "OPUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.2284942
+    },
+    {
+      "headline": "Bitcoin hints at 'regime shift' as BTC price dips to $69.5K on Iran nerves",
+      "score": 1,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.2285178
+    },
+    {
+      "headline": "Ethereum price rally pauses at $2.2K: What will trigger breakout?",
+      "score": 4,
+      "coins": [
+        "ETHUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.228529
+    },
+    {
+      "headline": "Here\u2019s what happened in crypto today",
+      "score": -1,
+      "coins": [
+        "UNIUSD",
+        "XBTUSD",
+        "TAOUSD",
+        "KAVAUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.228558
+    },
+    {
+      "headline": "Fira launches fixed-rate DeFi lending market with $450M in deposits",
+      "score": 1,
+      "coins": [
+        "UNIUSD",
+        "AAVEUSD",
+        "KAVAUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.228572
+    },
+    {
+      "headline": "Resolv temporarily halts protocol to \u2018contain the impact\u2019 of 80M USR exploit",
+      "score": -3,
+      "coins": [
+        "SOLUSD",
+        "XLMUSD",
+        "TAOUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.2286038
+    },
+    {
+      "headline": "Federal regulation looms as 11 states go after prediction markets",
+      "score": -1,
+      "coins": [
+        "TAOUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.228618
+    },
+    {
+      "headline": "NYSE taps Securitize for 24/7 tokenized securities platform",
+      "score": 0,
+      "coins": [
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.2286458
+    },
+    {
+      "headline": "Solana lands Mastercard, Western Union on new dev platform",
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "SOLUSD",
+        "TAOUSD",
+        "OPUSD",
+        "ONDOUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.228659
+    },
+    {
+      "headline": "Why Mastercard is buying stablecoin infrastructure instead of a token",
+      "score": -3,
+      "coins": [],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.22869
+    },
+    {
+      "headline": "Omnes, Apex to tokenize Bitcoin mining exposure via structured note on Base",
+      "score": 0,
+      "coins": [
+        "LINKUSD",
+        "XBTUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.228704
+    },
+    {
+      "headline": "Wall Street will eventually submit to the rules of DeFi",
+      "score": -1,
+      "coins": [
+        "UNIUSD",
+        "OPUSD",
+        "KAVAUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.228808
+    },
+    {
+      "headline": "AI and stablecoins are winning despite 2026 crypto market slump",
+      "score": 1,
+      "coins": [
+        "TAOUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.228833
+    },
+    {
+      "headline": "Zama integrates with Apex-backed T-REX for private tokenized assets",
+      "score": -3,
+      "coins": [
+        "TAOUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.228877
+    },
+    {
+      "headline": "Siren token slides 70% after analysts flag concentrated holdings",
+      "score": -2,
+      "coins": [
+        "TAOUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.22891
+    },
+    {
+      "headline": "What happens to Bitcoin if US bond yields soar above 5%?",
+      "score": -2,
+      "coins": [
+        "XBTUSD",
+        "TAOUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.2289238
+    },
+    {
+      "headline": "Bitcoin value \u2018off the chart\u2019 as BTC price metric hits record lows in 2026",
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.228956
+    },
+    {
+      "headline": "ECB says stablecoins, tokenized deposits need central bank money to scale",
+      "score": -3,
+      "coins": [
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.228988
+    },
+    {
+      "headline": "Nasdaq, Talos target collateral bottleneck in institutional tokenization push",
+      "score": 0,
+      "coins": [
+        "ONDOUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.229019
+    },
+    {
+      "headline": "Aave DAO backs V4 mainnet plan in near-unanimous vote",
+      "score": 1,
+      "coins": [
+        "NEARUSD",
+        "AAVEUSD",
+        "ETHUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.229048
+    },
+    {
+      "headline": "As mass adoption approaches, crypto has forgotten its roots",
+      "score": 4,
+      "coins": [
+        "UNIUSD",
+        "TAOUSD",
+        "OPUSD",
+        "KAVAUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.229078
+    },
+    {
+      "headline": "SEC\u2019s top enforcer clashed over Trump cases before quitting: Report",
+      "score": 0,
+      "coins": [
+        "DOGEUSD",
+        "TRXUSD",
+        "OPUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.2291121
+    },
+    {
+      "headline": "Major Australian pension fund mulls crypto offerings amid growing demand",
+      "score": 0,
+      "coins": [
+        "FILUSD"
+      ],
+      "source": "cointelegraph",
+      "timestamp": 1774373908.22913
+    },
+    {
+      "headline": "Circle stock plunges 18% as a new draft of the Clarity Act threatens stablecoin rewards",
+      "score": -4,
+      "coins": [],
+      "source": "coindesk",
+      "timestamp": 1774373908.22915
+    },
+    {
+      "headline": "Crypto finance is beginning to look at lot more traditional, Aave and Ethena founders say",
+      "score": 0,
+      "coins": [
+        "AAVEUSD",
+        "ETHUSD",
+        "ENAUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.229158
+    },
+    {
+      "headline": "Why cautious TradFi firms love staked ether",
+      "score": 0,
+      "coins": [
+        "ETHUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.229166
+    },
+    {
+      "headline": "Bitcoin slips below $70,000, Circle's 16% slide leads crypto stock sell-off",
+      "score": -1,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.229175
+    },
+    {
+      "headline": "CoinDesk 20 performance update: Polkadot (DOT) drops 2.3% as index trades lower",
+      "score": -1,
+      "coins": [
+        "UNIUSD",
+        "DOTUSD",
+        "OPUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.229184
+    },
+    {
+      "headline": "Tether hires a 'Big Four' firm for a full audit of USDT reserves",
+      "score": 0,
+      "coins": [
+        "ETHUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.229193
+    },
+    {
+      "headline": "Bitcoin may have already bottomed out near $60,000. Here\u2019s why.",
+      "score": 1,
+      "coins": [
+        "NEARUSD",
+        "XBTUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.2292092
+    },
+    {
+      "headline": "Solana Foundation taps Mastercard, Western Union, Worldpay for institutional developer platform",
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "SOLUSD",
+        "OPUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.229216
+    },
+    {
+      "headline": "Wall Street broker Bernstein calls bitcoin bottom, keeps $150,000 year-end target",
+      "score": 1,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.229232
+    },
+    {
+      "headline": "ParaFi defies crypto market downturn with $125 million raise for new fund: Bloomberg",
+      "score": 0,
+      "coins": [
+        "UNIUSD",
+        "TAOUSD",
+        "KAVAUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.229238
+    },
+    {
+      "headline": "Bitcoin finds stability at 2023 investor cost basis, echoing past cycle",
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.2292538
+    },
+    {
+      "headline": "Invesco joins tokenization race as it takes over Superstate\u2019s $900 million onchain fund",
+      "score": 0,
+      "coins": [
+        "TAOUSD",
+        "ONDOUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.229262
+    },
+    {
+      "headline": "The $75,000 line in the sand: What it\u2019ll take for bitcoin to go \"full bull\"",
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.2292721
+    },
+    {
+      "headline": "Bitcoin leads crypto rebound to $71,000 as $550 million in shorts liquidated",
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.229285
+    },
+    {
+      "headline": "Fund services giant Apex to tokenize Bitcoin mining note on Coinbase\u2019s Base platform",
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.229293
+    },
+    {
+      "headline": "Here\u2019s how Treasuries could shape Trump\u2019s Iran war and bitcoin moves",
+      "score": -3,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.2293031
+    },
+    {
+      "headline": "Balancer Labs will shut down as corporate entity became 'a liability' after $110 million exploit",
+      "score": -3,
+      "coins": [],
+      "source": "coindesk",
+      "timestamp": 1774373908.2293088
+    },
+    {
+      "headline": "Bitcoin, ether, solana prices move higher as Gulf allies inch toward joining Iran war",
+      "score": -3,
+      "coins": [
+        "SOLUSD",
+        "ETHUSD",
+        "XBTUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.229315
+    },
+    {
+      "headline": "Bitcoin's mining concentration just showed up in a rare 2-block reorg",
+      "score": 0,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "coindesk",
+      "timestamp": 1774373908.229324
+    },
+    {
+      "headline": "Stablecoin yield in crypto Clarity Act won't allow rewards on balances, latest text says",
+      "score": -2,
+      "coins": [],
+      "source": "coindesk",
+      "timestamp": 1774373908.2293289
+    },
+    {
+      "headline": "The Core Issue: Beneath The Binary, Verifying Trust",
+      "score": 3,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "bitcoinmagazine",
+      "timestamp": 1774373908.229339
+    },
+    {
+      "headline": "DV8 Becomes First Bitcoin Treasury Company in Southeast Asia with Digital Asset License",
+      "score": 0,
+      "coins": [
+        "XBTUSD",
+        "TAOUSD"
+      ],
+      "source": "bitcoinmagazine",
+      "timestamp": 1774373908.2293491
+    },
+    {
+      "headline": "CFTC Launches Innovation Task Force for Bitcoin, Crypto, AI, and Prediction Markets",
+      "score": 2,
+      "coins": [
+        "XBTUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "bitcoinmagazine",
+      "timestamp": 1774373908.2293591
+    },
+    {
+      "headline": "Hyperscale Data (GPUS) Increases Bitcoin Holdings to $44 Million",
+      "score": 0,
+      "coins": [
+        "XBTUSD",
+        "HYPEUSD"
+      ],
+      "source": "bitcoinmagazine",
+      "timestamp": 1774373908.2293692
+    },
+    {
+      "headline": "The Amazing Life of Chun Wang: From OG Bitcoin Miner to Astronaut",
+      "score": 0,
+      "coins": [
+        "XBTUSD",
+        "TRXUSD",
+        "OPUSD"
+      ],
+      "source": "bitcoinmagazine",
+      "timestamp": 1774373908.229381
+    },
+    {
+      "headline": "Bernstein Predicts Bitcoin Bottomed: $150K Target as Strategy (MSTR) Holds $53.5B in BTC",
+      "score": 1,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "bitcoinmagazine",
+      "timestamp": 1774373908.229391
+    },
+    {
+      "headline": "Australia\u2019s $105 Billion Hostplus Eyes Bitcoin Investments for Nearly Two Million Pension Members",
+      "score": 1,
+      "coins": [
+        "NEARUSD",
+        "XBTUSD"
+      ],
+      "source": "bitcoinmagazine",
+      "timestamp": 1774373908.229413
+    },
+    {
+      "headline": "MoonPay Launches Open-Source Wallet Standard for AI Agents",
+      "score": 4,
+      "coins": [
+        "XBTUSD",
+        "TAOUSD",
+        "OPUSD"
+      ],
+      "source": "bitcoinmagazine",
+      "timestamp": 1774373908.229423
+    },
+    {
+      "headline": "Bitcoin Swings Wildly as Iran Ceasefire Drama Rocks Crypto Markets",
+      "score": -2,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "bitcoinmagazine",
+      "timestamp": 1774373908.229434
+    },
+    {
+      "headline": "Capital B Acquires 44 Bitcoin, Boosting Holdings to 2,888 Coins",
+      "score": 1,
+      "coins": [
+        "XBTUSD",
+        "TAOUSD"
+      ],
+      "source": "bitcoinmagazine",
+      "timestamp": 1774373908.2294579
+    },
+    {
+      "headline": "Bittensor (TAO) is trending on CoinGecko",
+      "score": 1,
+      "coins": [
+        "TAOUSD"
+      ],
+      "source": "coingecko_trending",
+      "timestamp": 1774373908.2294662
+    },
+    {
+      "headline": "Akash Network (AKT) is trending on CoinGecko",
+      "score": 1,
+      "coins": [],
+      "source": "coingecko_trending",
+      "timestamp": 1774373908.229472
+    },
+    {
+      "headline": "Pudgy Penguins (PENGU) is trending on CoinGecko",
+      "score": 1,
+      "coins": [],
+      "source": "coingecko_trending",
+      "timestamp": 1774373908.229478
+    },
+    {
+      "headline": "Backpack (BP) is trending on CoinGecko",
+      "score": 1,
+      "coins": [],
+      "source": "coingecko_trending",
+      "timestamp": 1774373908.229486
+    },
+    {
+      "headline": "Hyperliquid (HYPE) is trending on CoinGecko",
+      "score": 1,
+      "coins": [
+        "HYPEUSD"
+      ],
+      "source": "coingecko_trending",
+      "timestamp": 1774373908.229491
+    },
+    {
+      "headline": "Siren (SIREN) is trending on CoinGecko",
+      "score": 1,
+      "coins": [],
+      "source": "coingecko_trending",
+      "timestamp": 1774373908.2294981
+    },
+    {
+      "headline": "Bitcoin (BTC) is trending on CoinGecko",
+      "score": 1,
+      "coins": [
+        "XBTUSD"
+      ],
+      "source": "coingecko_trending",
+      "timestamp": 1774373908.229502
+    },
+    {
+      "headline": "Ethereum (ETH) is trending on CoinGecko",
+      "score": 1,
+      "coins": [
+        "ETHUSD"
+      ],
+      "source": "coingecko_trending",
+      "timestamp": 1774373908.229507
+    },
+    {
+      "headline": "Sui (SUI) is trending on CoinGecko",
+      "score": 1,
+      "coins": [
+        "SUIUSD"
+      ],
+      "source": "coingecko_trending",
+      "timestamp": 1774373908.229512
+    },
+    {
+      "headline": "Solana (SOL) is trending on CoinGecko",
+      "score": 1,
+      "coins": [
+        "SOLUSD"
+      ],
+      "source": "coingecko_trending",
+      "timestamp": 1774373908.229517
+    }
+  ],
+  "updated": 1774373908.229887
+}

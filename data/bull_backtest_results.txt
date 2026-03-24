@@ -1,0 +1,306 @@
+============================================================
+  BULL/NEUTRAL/GREED STRATEGY BACKTEST RESULTS
+  Period: 90 days | Pairs: 16 | Interval: 1h
+  Generated: 2026-03-24 00:50
+  Fees: 0.16% maker + 0.05% slippage per side
+============================================================
+
+============================================================
+  pullback_buy (LONG, hold=24h, SL=3.0%)
+============================================================
+  Total trades:    207
+  Win rate:        42.0%  (87W / 120L)
+  Avg win:         +3.87%
+  Avg loss:        -2.54%
+  Total PnL:       +31.62%
+  Profit factor:   1.10
+  Best trade:      +27.73%
+  Worst trade:     -3.37%
+  Exits:           74 SL, 133 timeout
+
+  Per-pair breakdown:
+    AAVEUSD        11 trades  WR=36%  PnL=-15.03%
+    ADAUSD         10 trades  WR=40%  PnL=-5.16%
+    ATOMUSD        12 trades  WR=67%  PnL=+3.94%
+    AVAXUSD        14 trades  WR=43%  PnL=+5.42%
+    DOGEUSD        12 trades  WR=50%  PnL=+6.29%
+    DOTUSD         15 trades  WR=40%  PnL=+19.43%
+    ETHUSD         14 trades  WR=43%  PnL=+5.52%
+    FILUSD         12 trades  WR=50%  PnL=+3.22%
+    LINKUSD        15 trades  WR=33%  PnL=-3.04%
+    LTCUSD         14 trades  WR=29%  PnL=-11.05%
+    NEARUSD        14 trades  WR=43%  PnL=+5.95%
+    SOLUSD         12 trades  WR=42%  PnL=+0.29%
+    UNIUSD         13 trades  WR=46%  PnL=+18.59%
+    XBTUSD         13 trades  WR=46%  PnL=+1.57%
+    XLMUSD         13 trades  WR=31%  PnL=-6.60%
+    XRPUSD         13 trades  WR=38%  PnL=+2.29%
+
+============================================================
+  breakout_detect (LONG, hold=24h, SL=4.0%)
+============================================================
+  Total trades:    11
+  Win rate:        90.9%  (10W / 1L)
+  Avg win:         +2.91%
+  Avg loss:        -0.91%
+  Total PnL:       +28.17%
+  Profit factor:   31.83
+  Best trade:      +7.38%
+  Worst trade:     -0.91%
+  Exits:           0 SL, 11 timeout
+
+  Per-pair breakdown:
+    AAVEUSD         2 trades  WR=100%  PnL=+6.73%
+    ADAUSD          1 trades  WR=100%  PnL=+7.38%
+    ATOMUSD         1 trades  WR=100%  PnL=+6.02%
+    AVAXUSD         1 trades  WR=100%  PnL=+1.73%
+    ETHUSD          2 trades  WR=100%  PnL=+3.75%
+    LTCUSD          1 trades  WR=0%  PnL=-0.91%
+    NEARUSD         1 trades  WR=100%  PnL=+0.58%
+    XBTUSD          1 trades  WR=100%  PnL=+1.86%
+    XLMUSD          1 trades  WR=100%  PnL=+1.03%
+
+============================================================
+  ema_crossover (LONG, hold=24h, SL=3.0%)
+============================================================
+  Total trades:    83
+  Win rate:        53.0%  (44W / 39L)
+  Avg win:         +4.95%
+  Avg loss:        -2.72%
+  Total PnL:       +111.38%
+  Profit factor:   2.05
+  Best trade:      +28.13%
+  Worst trade:     -3.37%
+  Exits:           27 SL, 56 timeout
+
+  Per-pair breakdown:
+    AAVEUSD         3 trades  WR=67%  PnL=+5.51%
+    ADAUSD          3 trades  WR=33%  PnL=+6.00%
+    ATOMUSD         2 trades  WR=50%  PnL=+2.27%
+    AVAXUSD         6 trades  WR=67%  PnL=+5.37%
+    DOGEUSD         6 trades  WR=83%  PnL=+15.86%
+    DOTUSD          7 trades  WR=43%  PnL=+30.48%
+    ETHUSD          6 trades  WR=50%  PnL=-0.16%
+    FILUSD          5 trades  WR=40%  PnL=+5.89%
+    LINKUSD         7 trades  WR=57%  PnL=+3.12%
+    LTCUSD          5 trades  WR=40%  PnL=+1.19%
+    NEARUSD         4 trades  WR=50%  PnL=+15.95%
+    SOLUSD          7 trades  WR=57%  PnL=+7.57%
+    UNIUSD          5 trades  WR=80%  PnL=+18.93%
+    XBTUSD          4 trades  WR=25%  PnL=-5.89%
+    XLMUSD          7 trades  WR=43%  PnL=+1.62%
+    XRPUSD          6 trades  WR=50%  PnL=-2.34%
+
+============================================================
+  trend_continuation (LONG, hold=12h, SL=2.5%)
+============================================================
+  Total trades:    227
+  Win rate:        41.4%  (94W / 133L)
+  Avg win:         +3.12%
+  Avg loss:        -2.05%
+  Total PnL:       +21.27%
+  Profit factor:   1.08
+  Best trade:      +31.30%
+  Worst trade:     -2.87%
+  Exits:           74 SL, 153 timeout
+
+  Per-pair breakdown:
+    AAVEUSD        13 trades  WR=38%  PnL=-8.02%
+    ADAUSD         11 trades  WR=36%  PnL=+8.00%
+    ATOMUSD        10 trades  WR=50%  PnL=-1.10%
+    AVAXUSD        16 trades  WR=38%  PnL=-10.41%
+    DOGEUSD        12 trades  WR=17%  PnL=-9.83%
+    DOTUSD         16 trades  WR=31%  PnL=+4.78%
+    ETHUSD         15 trades  WR=47%  PnL=+5.76%
+    FILUSD         15 trades  WR=33%  PnL=+6.93%
+    LINKUSD        18 trades  WR=44%  PnL=-3.41%
+    LTCUSD         11 trades  WR=55%  PnL=+9.35%
+    NEARUSD        18 trades  WR=50%  PnL=+22.96%
+    SOLUSD         13 trades  WR=38%  PnL=-16.85%
+    UNIUSD         13 trades  WR=31%  PnL=+3.37%
+    XBTUSD         14 trades  WR=50%  PnL=+6.10%
+    XLMUSD         18 trades  WR=56%  PnL=+2.51%
+    XRPUSD         14 trades  WR=43%  PnL=+1.12%
+
+============================================================
+  greed_short (SHORT, hold=24h, SL=6.0%)
+============================================================
+  Total trades:    37
+  Win rate:        40.5%  (15W / 22L)
+  Avg win:         +4.27%
+  Avg loss:        -4.96%
+  Total PnL:       -45.04%
+  Profit factor:   0.59
+  Best trade:      +11.14%
+  Worst trade:     -6.37%
+  Exits:           15 SL, 22 timeout
+
+  Per-pair breakdown:
+    AAVEUSD         1 trades  WR=100%  PnL=+11.14%
+    ADAUSD          2 trades  WR=0%  PnL=-9.72%
+    AVAXUSD         3 trades  WR=33%  PnL=-4.40%
+    DOGEUSD         4 trades  WR=50%  PnL=+3.24%
+    DOTUSD          2 trades  WR=0%  PnL=-12.75%
+    ETHUSD          3 trades  WR=33%  PnL=-10.21%
+    FILUSD          3 trades  WR=33%  PnL=-3.18%
+    LINKUSD         3 trades  WR=33%  PnL=-5.77%
+    LTCUSD          1 trades  WR=0%  PnL=-6.37%
+    NEARUSD         4 trades  WR=50%  PnL=-4.80%
+    SOLUSD          3 trades  WR=33%  PnL=-7.69%
+    UNIUSD          1 trades  WR=0%  PnL=-6.37%
+    XBTUSD          2 trades  WR=100%  PnL=+4.52%
+    XLMUSD          3 trades  WR=67%  PnL=+4.93%
+    XRPUSD          2 trades  WR=50%  PnL=+2.39%
+
+============================================================
+  distribution_short (SHORT, hold=24h, SL=4.0%)
+============================================================
+  Total trades:    160
+  Win rate:        43.8%  (70W / 90L)
+  Avg win:         +1.88%
+  Avg loss:        -2.35%
+  Total PnL:       -80.13%
+  Profit factor:   0.62
+  Best trade:      +7.32%
+  Worst trade:     -4.37%
+  Exits:           32 SL, 128 timeout
+
+  Per-pair breakdown:
+    AAVEUSD         6 trades  WR=33%  PnL=+3.04%
+    ADAUSD          7 trades  WR=29%  PnL=-3.21%
+    ATOMUSD        11 trades  WR=45%  PnL=-8.19%
+    AVAXUSD        13 trades  WR=46%  PnL=+3.86%
+    DOGEUSD         8 trades  WR=50%  PnL=-8.72%
+    DOTUSD          9 trades  WR=22%  PnL=-10.77%
+    ETHUSD          9 trades  WR=44%  PnL=-5.91%
+    FILUSD          5 trades  WR=40%  PnL=+5.20%
+    LINKUSD        10 trades  WR=50%  PnL=+1.69%
+    LTCUSD         15 trades  WR=47%  PnL=-8.44%
+    NEARUSD         9 trades  WR=22%  PnL=-22.36%
+    SOLUSD         10 trades  WR=40%  PnL=-11.80%
+    UNIUSD         12 trades  WR=67%  PnL=+6.06%
+    XBTUSD         12 trades  WR=50%  PnL=-6.88%
+    XLMUSD         12 trades  WR=33%  PnL=-12.65%
+    XRPUSD         12 trades  WR=58%  PnL=-1.08%
+
+============================================================
+  overextension_short (SHORT, hold=24h, SL=5.0%)
+============================================================
+  Total trades:    24
+  Win rate:        50.0%  (12W / 12L)
+  Avg win:         +3.75%
+  Avg loss:        -5.37%
+  Total PnL:       -19.46%
+  Profit factor:   0.70
+  Best trade:      +9.95%
+  Worst trade:     -5.37%
+  Exits:           12 SL, 12 timeout
+
+  Per-pair breakdown:
+    AAVEUSD         1 trades  WR=100%  PnL=+9.95%
+    ADAUSD          2 trades  WR=50%  PnL=-4.08%
+    AVAXUSD         1 trades  WR=0%  PnL=-5.37%
+    DOGEUSD         3 trades  WR=67%  PnL=+5.52%
+    DOTUSD          2 trades  WR=0%  PnL=-10.75%
+    ETHUSD          3 trades  WR=67%  PnL=-0.49%
+    FILUSD          2 trades  WR=50%  PnL=-2.21%
+    LINKUSD         1 trades  WR=0%  PnL=-5.37%
+    LTCUSD          1 trades  WR=100%  PnL=+1.26%
+    NEARUSD         3 trades  WR=33%  PnL=-7.98%
+    SOLUSD          1 trades  WR=0%  PnL=-5.37%
+    UNIUSD          1 trades  WR=0%  PnL=-5.37%
+    XLMUSD          2 trades  WR=100%  PnL=+7.02%
+    XRPUSD          1 trades  WR=100%  PnL=+3.77%
+
+============================================================
+  ALL STRATEGIES COMBINED
+============================================================
+  Total trades:    749
+  Win rate:        44.3%  (332W / 417L)
+  Avg win:         +3.37%
+  Avg loss:        -2.57%
+  Total PnL:       +47.80%
+  Profit factor:   1.04
+  Best trade:      +31.30%
+  Worst trade:     -6.37%
+  Exits:           234 SL, 515 timeout
+
+  Per-pair breakdown:
+    AAVEUSD        37 trades  WR=46%  PnL=+13.33%
+    ADAUSD         36 trades  WR=36%  PnL=-0.78%
+    ATOMUSD        36 trades  WR=56%  PnL=+2.93%
+    AVAXUSD        54 trades  WR=44%  PnL=-3.78%
+    DOGEUSD        45 trades  WR=47%  PnL=+12.36%
+    DOTUSD         51 trades  WR=31%  PnL=+20.43%
+    ETHUSD         52 trades  WR=48%  PnL=-1.73%
+    FILUSD         42 trades  WR=40%  PnL=+15.85%
+    LINKUSD        54 trades  WR=43%  PnL=-12.78%
+    LTCUSD         48 trades  WR=42%  PnL=-14.98%
+    NEARUSD        53 trades  WR=43%  PnL=+10.30%
+    SOLUSD         46 trades  WR=41%  PnL=-33.85%
+    UNIUSD         45 trades  WR=49%  PnL=+35.21%
+    XBTUSD         46 trades  WR=50%  PnL=+1.29%
+    XLMUSD         56 trades  WR=46%  PnL=-2.14%
+    XRPUSD         48 trades  WR=48%  PnL=+6.16%
+
+============================================================
+  ALL LONG STRATEGIES
+============================================================
+  Total trades:    528
+  Win rate:        44.5%  (235W / 293L)
+  Avg win:         +3.73%
+  Avg loss:        -2.34%
+  Total PnL:       +192.43%
+  Profit factor:   1.28
+  Best trade:      +31.30%
+  Worst trade:     -3.37%
+  Exits:           175 SL, 353 timeout
+
+  Per-pair breakdown:
+    AAVEUSD        29 trades  WR=45%  PnL=-10.80%
+    ADAUSD         25 trades  WR=40%  PnL=+16.22%
+    ATOMUSD        25 trades  WR=60%  PnL=+11.12%
+    AVAXUSD        37 trades  WR=46%  PnL=+2.12%
+    DOGEUSD        30 trades  WR=43%  PnL=+12.32%
+    DOTUSD         38 trades  WR=37%  PnL=+54.68%
+    ETHUSD         37 trades  WR=49%  PnL=+14.87%
+    FILUSD         32 trades  WR=41%  PnL=+16.03%
+    LINKUSD        40 trades  WR=42%  PnL=-3.33%
+    LTCUSD         31 trades  WR=39%  PnL=-1.43%
+    NEARUSD        37 trades  WR=49%  PnL=+45.44%
+    SOLUSD         32 trades  WR=44%  PnL=-8.99%
+    UNIUSD         31 trades  WR=45%  PnL=+40.89%
+    XBTUSD         32 trades  WR=47%  PnL=+3.64%
+    XLMUSD         39 trades  WR=46%  PnL=-1.45%
+    XRPUSD         33 trades  WR=42%  PnL=+1.08%
+
+============================================================
+  ALL SHORT STRATEGIES
+============================================================
+  Total trades:    221
+  Win rate:        43.9%  (97W / 124L)
+  Avg win:         +2.48%
+  Avg loss:        -3.11%
+  Total PnL:       -144.63%
+  Profit factor:   0.62
+  Best trade:      +11.14%
+  Worst trade:     -6.37%
+  Exits:           59 SL, 162 timeout
+
+  Per-pair breakdown:
+    AAVEUSD         8 trades  WR=50%  PnL=+24.13%
+    ADAUSD         11 trades  WR=27%  PnL=-17.01%
+    ATOMUSD        11 trades  WR=45%  PnL=-8.19%
+    AVAXUSD        17 trades  WR=41%  PnL=-5.91%
+    DOGEUSD        15 trades  WR=53%  PnL=+0.04%
+    DOTUSD         13 trades  WR=15%  PnL=-34.26%
+    ETHUSD         15 trades  WR=47%  PnL=-16.61%
+    FILUSD         10 trades  WR=40%  PnL=-0.18%
+    LINKUSD        14 trades  WR=43%  PnL=-9.45%
+    LTCUSD         17 trades  WR=47%  PnL=-13.55%
+    NEARUSD        16 trades  WR=31%  PnL=-35.14%
+    SOLUSD         14 trades  WR=36%  PnL=-24.86%
+    UNIUSD         14 trades  WR=57%  PnL=-5.68%
+    XBTUSD         14 trades  WR=57%  PnL=-2.36%
+    XLMUSD         17 trades  WR=47%  PnL=-0.69%
+    XRPUSD         15 trades  WR=60%  PnL=+5.08%
