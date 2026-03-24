@@ -93,6 +93,11 @@ RISK_PER_TRADE = 0.05       # 5% of active balance per trade
 GRID_REANCHOR_PCT = 0.10    # Reanchor grid when price moves >10% from center
 LIMIT_ORDER_TIMEOUT = 2     # Cancel and re-place limit orders after 2 cycles (10 min)
 
+# Multi-timeframe confirmation
+ENABLE_MTF = True  # Multi-timeframe confirmation
+MTF_BOOST = 1.3    # Score multiplier when HTF aligns
+MTF_PENALTY = 0.6  # Score multiplier when HTF conflicts
+
 # UPGRADE 1: Kraken Pro fees (corrected)
 ENTRY_FEE = 0.0025         # 0.25% maker fee for limit orders
 EXIT_FEE = 0.004           # 0.40% taker fee for market orders
@@ -342,7 +347,7 @@ class FinalTradingBot:
             logger.error(f"Failed to save state: {e}")
     
     def get_market_data(self) -> dict:
-        """Fetch 1h market data for all pairs."""
+        """Fetch 1h and 4h market data for all pairs with multi-timeframe support."""
         market_data = {}
         
         for pair in PAIRS:
@@ -359,6 +364,22 @@ class FinalTradingBot:
                         
                 if len(df) < 50:  # Need enough data for indicators
                     continue
+                
+                # MTF: Fetch 4h candles for higher timeframe confirmation
+                df_4h = None
+                if ENABLE_MTF:
+                    try:
+                        klines_4h = self.client.get_klines(pair, interval="4h", limit=100)  # 100 bars = ~16 days
+                        if klines_4h:
+                            df_4h = pd.DataFrame(klines_4h)
+                            for col in ['open', 'high', 'low', 'close', 'volume']:
+                                if col in df_4h.columns:
+                                    df_4h[col] = pd.to_numeric(df_4h[col], errors='coerce')
+                            if len(df_4h) < 15:  # Need minimum data for HTF indicators
+                                df_4h = None
+                    except Exception as e:
+                        logger.debug(f"Failed to fetch 4h data for {pair}: {e}")
+                        # Graceful degradation - continue without MTF for this pair
                     
                 # Get current ticker
                 ticker = self.client.get_ticker(pair)
@@ -375,7 +396,8 @@ class FinalTradingBot:
                     "ask": ask_price,
                     "high": float(df['high'].iloc[-1]),
                     "low": float(df['low'].iloc[-1]),
-                    "df": df
+                    "df": df,
+                    "df_4h": df_4h  # MTF: 4h data for higher timeframe analysis
                 }
                 # Cache close prices for cross-pair signals
                 self._price_cache[pair] = df['close'].values.astype(float)
@@ -541,6 +563,85 @@ class FinalTradingBot:
         except:
             return 0.5
     
+    # ===== MULTI-TIMEFRAME ANALYSIS =====
+    
+    def get_htf_context(self, data: dict) -> dict:
+        """Compute higher timeframe (4h) context for multi-timeframe confirmation."""
+        df_4h = data.get("df_4h")
+        if df_4h is None or len(df_4h) < 15:
+            # No 4h data available, return neutral context
+            return {
+                "trend_4h": "neutral",
+                "rsi_4h": 50.0,
+                "momentum_4h": 0.0,
+                "atr_pct_4h": 0.0,
+                "above_sma50_4h": False,
+                "htf_available": False
+            }
+        
+        try:
+            # Extract 4h OHLC data
+            close_4h = df_4h['close'].values.astype(float)
+            high_4h = df_4h['high'].values.astype(float)
+            low_4h = df_4h['low'].values.astype(float)
+            
+            current_price = data["price"]
+            
+            # 1. Trend: EMA5 vs EMA13 on 4h
+            ema5_4h = self.calc_ema(close_4h, 5)
+            ema13_4h = self.calc_ema(close_4h, 13)
+            
+            if not np.isnan(ema5_4h[-1]) and not np.isnan(ema13_4h[-1]):
+                if ema5_4h[-1] > ema13_4h[-1]:
+                    trend_4h = "bullish"
+                elif ema5_4h[-1] < ema13_4h[-1]:
+                    trend_4h = "bearish"
+                else:
+                    trend_4h = "neutral"
+            else:
+                trend_4h = "neutral"
+            
+            # 2. RSI(7) on 4h
+            rsi7_4h = self.calc_rsi(close_4h, 7)
+            rsi_4h = rsi7_4h[-1] if not np.isnan(rsi7_4h[-1]) else 50.0
+            
+            # 3. Momentum: 4h return over last 3 candles (12 hours)
+            if len(close_4h) >= 4:
+                momentum_4h = (close_4h[-1] - close_4h[-4]) / close_4h[-4] * 100
+            else:
+                momentum_4h = 0.0
+            
+            # 4. ATR as % of price on 4h
+            atr14_4h = self.calc_atr(high_4h, low_4h, close_4h, 14)
+            if current_price > 0 and not np.isnan(atr14_4h[-1]):
+                atr_pct_4h = atr14_4h[-1] / current_price * 100
+            else:
+                atr_pct_4h = 0.0
+            
+            # 5. Price vs SMA50 on 4h
+            sma50_4h = self.calc_sma(close_4h, 50)
+            above_sma50_4h = (not np.isnan(sma50_4h[-1])) and (current_price > sma50_4h[-1])
+            
+            return {
+                "trend_4h": trend_4h,
+                "rsi_4h": rsi_4h,
+                "momentum_4h": momentum_4h,
+                "atr_pct_4h": atr_pct_4h,
+                "above_sma50_4h": above_sma50_4h,
+                "htf_available": True
+            }
+            
+        except Exception as e:
+            logger.debug(f"Error computing HTF context: {e}")
+            return {
+                "trend_4h": "neutral",
+                "rsi_4h": 50.0,
+                "momentum_4h": 0.0,
+                "atr_pct_4h": 0.0,
+                "above_sma50_4h": False,
+                "htf_available": False
+            }
+    
     # ===== SIGNAL SCANNING - SAME 30 VALIDATED TOOLS WITH SCORE ADJUSTMENT =====
     
     def scan_signals(self, pair: str, data: dict) -> List[Tuple[dict, float]]:
@@ -575,17 +676,55 @@ class FinalTradingBot:
         ret_12h = (price - close[-13]) / close[-13] * 100 if len(close) >= 13 else 0
         ret_24h = (price - close[-25]) / close[-25] * 100 if len(close) >= 25 else 0
         
+        # MTF: Get higher timeframe context for confirmation
+        htf_context = self.get_htf_context(data) if ENABLE_MTF else {"htf_available": False}
+        
         # Helper function to apply score adjustment from UPGRADE 7
         def adjust_score(tool: str, base_score: float) -> float:
             if tool in self.tool_stats:
                 return base_score * self.tool_stats[tool].get("score_adj", 1.0)
             return base_score
         
+        # MTF: Helper function to apply multi-timeframe confirmation
+        def apply_mtf_confirmation(tool: str, direction: str, base_score: float) -> float:
+            if not ENABLE_MTF or not htf_context.get("htf_available", False):
+                return base_score  # No HTF data, use original score
+            
+            # Crash signals should not be penalized (they work against the trend)
+            crash_signals = {
+                'volatile_oversold', 'crash_buy', 'mega_crash', 'crash_neg_ac', 
+                'blood_in_streets', 'quick_crash', 'crash_mean_revert', 'mega_pump_sell_t1'
+            }
+            
+            trend_4h = htf_context["trend_4h"]
+            rsi_4h = htf_context["rsi_4h"]
+            
+            if direction == "long":
+                # Boost LONG signals when 4h trend is bullish AND 4h RSI < 50
+                if trend_4h == "bullish" and rsi_4h < 50:
+                    return base_score * MTF_BOOST
+                # Penalize LONG signals when 4h trend is bearish AND 4h RSI > 70 (but not crash signals)
+                elif trend_4h == "bearish" and rsi_4h > 70 and tool not in crash_signals:
+                    return base_score * MTF_PENALTY
+            
+            elif direction == "short":
+                # Boost SHORT signals when 4h trend is bearish AND 4h RSI > 50
+                if trend_4h == "bearish" and rsi_4h > 50:
+                    return base_score * MTF_BOOST
+                # Penalize SHORT signals when 4h trend is bullish AND 4h RSI < 30
+                elif trend_4h == "bullish" and rsi_4h < 30:
+                    return base_score * MTF_PENALTY
+            
+            # Neutral (no adjustment) for everything else
+            return base_score
+        
         # ===== CRASH/BEAR SIGNALS (LONG) - 15 tools =====
         
         # 1. volatile_oversold: atr_pct>3 AND rsi7<25 → LONG | WR_8h=73.8%, Ret_8h=+2.07%
         if cur_atr_pct > 3 and cur_rsi < 25:
-            score = adjust_score('volatile_oversold', cur_atr_pct * (25 - cur_rsi) * 0.5)  # 30-50 range
+            base_score = cur_atr_pct * (25 - cur_rsi) * 0.5  # 30-50 range
+            score = adjust_score('volatile_oversold', base_score)
+            score = apply_mtf_confirmation('volatile_oversold', 'long', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'volatile_oversold', 'direction': 'long',
                 'hold': 8, 'sl_pct': 0.08,
@@ -594,7 +733,9 @@ class FinalTradingBot:
         
         # 2. crash_buy: ret_24h<-10 AND rsi7<20 → LONG | WR_8h=65.1%, Ret_24h=+1.90%
         if ret_24h < -10 and cur_rsi < 20:
-            score = adjust_score('crash_buy', abs(ret_24h) * (20 - cur_rsi) * 0.3)  # 25-40 range
+            base_score = abs(ret_24h) * (20 - cur_rsi) * 0.3  # 25-40 range
+            score = adjust_score('crash_buy', base_score)
+            score = apply_mtf_confirmation('crash_buy', 'long', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'crash_buy', 'direction': 'long',
                 'hold': 24, 'sl_pct': 0.05,
@@ -603,7 +744,9 @@ class FinalTradingBot:
         
         # 3. mega_crash: ret_24h<-15 → LONG | WR_24h=52.5%, Ret_24h=+1.35%
         if ret_24h < -15:
-            score = adjust_score('mega_crash', abs(ret_24h) * 2)  # 30-50 range
+            base_score = abs(ret_24h) * 2  # 30-50 range
+            score = adjust_score('mega_crash', base_score)
+            score = apply_mtf_confirmation('mega_crash', 'long', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'mega_crash', 'direction': 'long',
                 'hold': 24, 'sl_pct': 0.08,
@@ -614,7 +757,9 @@ class FinalTradingBot:
         if ret_24h < -10:
             autocorr = self.calc_autocorrelation(close[-30:]) if len(close) >= 30 else 0
             if autocorr < -0.05:
-                score = adjust_score('crash_neg_ac', abs(ret_24h) * abs(autocorr) * 50)  # 30-50 range
+                base_score = abs(ret_24h) * abs(autocorr) * 50  # 30-50 range
+                score = adjust_score('crash_neg_ac', base_score)
+                score = apply_mtf_confirmation('crash_neg_ac', 'long', score)  # MTF confirmation
                 signals.append(({
                     'pair': pair, 'tool': 'crash_neg_ac', 'direction': 'long',
                     'hold': 8, 'sl_pct': 0.05,
@@ -627,7 +772,9 @@ class FinalTradingBot:
                          if len(cached) >= 5 and (cached[-1]-cached[-5])/cached[-5]*100 < -2)
             panic_pct = dropping / len(self._price_cache) * 100
             if panic_pct >= 70:
-                score = adjust_score('blood_in_streets', (20 - cur_rsi) * 2)  # High priority
+                base_score = (20 - cur_rsi) * 2  # High priority
+                score = adjust_score('blood_in_streets', base_score)
+                score = apply_mtf_confirmation('blood_in_streets', 'long', score)  # MTF confirmation
                 signals.append(({
                     'pair': pair, 'tool': 'blood_in_streets', 'direction': 'long',
                     'hold': 24, 'sl_pct': 0.06,
@@ -636,7 +783,9 @@ class FinalTradingBot:
         
         # 6. quick_crash: ret_8h<-10 → LONG (8h hold only) | WR_8h=59.1%, Ret_8h=+0.98%
         if ret_8h < -10:
-            score = adjust_score('quick_crash', abs(ret_8h) * 2)  # 20-30 range
+            base_score = abs(ret_8h) * 2  # 20-30 range
+            score = adjust_score('quick_crash', base_score)
+            score = apply_mtf_confirmation('quick_crash', 'long', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'quick_crash', 'direction': 'long',
                 'hold': 8, 'sl_pct': 0.07,
@@ -647,7 +796,9 @@ class FinalTradingBot:
         if ret_24h < -8:
             hurst = self.calc_hurst(close[-50:]) if len(close) >= 50 else 0.5
             if hurst < 0.45:
-                score = adjust_score('crash_mean_revert', abs(ret_24h) * (0.45 - hurst) * 10)  # 20-30 range
+                base_score = abs(ret_24h) * (0.45 - hurst) * 10  # 20-30 range
+                score = adjust_score('crash_mean_revert', base_score)
+                score = apply_mtf_confirmation('crash_mean_revert', 'long', score)  # MTF confirmation
                 signals.append(({
                     'pair': pair, 'tool': 'crash_mean_revert', 'direction': 'long',
                     'hold': 8, 'sl_pct': 0.05,
@@ -658,7 +809,9 @@ class FinalTradingBot:
         if ret_8h < -5:
             vpin = self.calc_vpin(df)
             if vpin > 0.5:
-                score = adjust_score('vpin_dip', abs(ret_8h) * vpin * 2)  # 15-25 range
+                base_score = abs(ret_8h) * vpin * 2  # 15-25 range
+                score = adjust_score('vpin_dip', base_score)
+                score = apply_mtf_confirmation('vpin_dip', 'long', score)  # MTF confirmation
                 signals.append(({
                     'pair': pair, 'tool': 'vpin_dip', 'direction': 'long',
                     'hold': 8, 'sl_pct': 0.05,
@@ -671,7 +824,11 @@ class FinalTradingBot:
                          if len(cached) >= 5 and (cached[-1]-cached[-5])/cached[-5]*100 < -3)
             panic_pct = dropping / len(self._price_cache) * 100
             if panic_pct >= 70:
-                score = adjust_score('market_panic_70', panic_pct * 0.3)  # 21-30 range
+                base_score = panic_pct * 0.3  # 21-30 range
+
+                score = adjust_score('market_panic_70', base_score)
+
+                score = apply_mtf_confirmation('market_panic_70', 'long', score)  # MTF confirmation
                 signals.append(({
                     'pair': pair, 'tool': 'market_panic_70', 'direction': 'long',
                     'hold': 24, 'sl_pct': 0.04,
@@ -680,7 +837,9 @@ class FinalTradingBot:
         
         # 10. flash_crash: ret_12h<-10 → LONG | WR_8h=55.8%, Ret_8h=+0.51%
         if ret_12h < -10:
-            score = adjust_score('flash_crash', abs(ret_12h) * 1.5)  # 15-25 range
+            base_score = abs(ret_12h) * 1.5  # 15-25 range
+            score = adjust_score('flash_crash', base_score)
+            score = apply_mtf_confirmation('flash_crash', 'long', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'flash_crash', 'direction': 'long',
                 'hold': 8, 'sl_pct': 0.07,
@@ -689,7 +848,9 @@ class FinalTradingBot:
         
         # 11. deep_dip_8h: -10<ret_8h<-8 → LONG | WR_8h=54.8%, Ret_8h=+0.22%
         if -10 < ret_8h < -8:
-            score = adjust_score('deep_dip_8h', abs(ret_8h) * 1.5)  # 12-15 range
+            base_score = abs(ret_8h) * 1.5  # 12-15 range
+            score = adjust_score('deep_dip_8h', base_score)
+            score = apply_mtf_confirmation('deep_dip_8h', 'long', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'deep_dip_8h', 'direction': 'long',
                 'hold': 8, 'sl_pct': 0.05,
@@ -712,7 +873,11 @@ class FinalTradingBot:
             vpin = self.calc_vpin(df)
             is_red = close[-1] < df['open'].iloc[-1]
             if vpin > 0.7 and is_red:
-                score = adjust_score('vpin_toxic', vpin * 20)  # 14-20 range
+                base_score = vpin * 20  # 14-20 range
+
+                score = adjust_score('vpin_toxic', base_score)
+
+                score = apply_mtf_confirmation('vpin_toxic', 'long', score)  # MTF confirmation
                 signals.append(({
                     'pair': pair, 'tool': 'vpin_toxic', 'direction': 'long',
                     'hold': 8, 'sl_pct': 0.04,
@@ -734,7 +899,9 @@ class FinalTradingBot:
         
         # 15. quick_dip: ret_4h<-5 → LONG | WR_8h=55.5%, Ret_8h=+0.13%
         if ret_4h < -5:
-            score = adjust_score('quick_dip', abs(ret_4h) * 1.2)  # 6-12 range
+            base_score = abs(ret_4h) * 1.2  # 6-12 range
+            score = adjust_score('quick_dip', base_score)
+            score = apply_mtf_confirmation('quick_dip', 'long', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'quick_dip', 'direction': 'long',
                 'hold': 8, 'sl_pct': 0.05,
@@ -745,7 +912,9 @@ class FinalTradingBot:
         
         # 16. mega_pump_sell_t1: rsi7>80 AND ret_12h>=10 → SHORT | WR_24h=58.7%, Ret_24h=+0.61%
         if cur_rsi > 80 and ret_12h >= 10:
-            score = adjust_score('mega_pump_sell_t1', 25 + (cur_rsi - 80) * 0.5 + (ret_12h - 10) * 0.3)  # 25-35 range
+            base_score = 25 + (cur_rsi - 80) * 0.5 + (ret_12h - 10) * 0.3  # 25-35 range
+            score = adjust_score('mega_pump_sell_t1', base_score)
+            score = apply_mtf_confirmation('mega_pump_sell_t1', 'short', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'mega_pump_sell_t1', 'direction': 'short',
                 'hold': 24, 'sl_pct': 0.05,
@@ -754,7 +923,9 @@ class FinalTradingBot:
         
         # 17. rsi_pump_8h: rsi7>80 AND ret_8h>=10 → SHORT | WR_24h=60.3%, Ret_24h=+0.56%
         if cur_rsi > 80 and ret_8h >= 10:
-            score = adjust_score('rsi_pump_8h', 25 + (cur_rsi - 80) * 0.4 + (ret_8h - 10) * 0.4)  # 25-35 range
+            base_score = 25 + (cur_rsi - 80) * 0.4 + (ret_8h - 10) * 0.4  # 25-35 range
+            score = adjust_score('rsi_pump_8h', base_score)
+            score = apply_mtf_confirmation('rsi_pump_8h', 'short', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'rsi_pump_8h', 'direction': 'short',
                 'hold': 24, 'sl_pct': 0.05,
@@ -784,7 +955,11 @@ class FinalTradingBot:
             # Boost score if Fear & Greed is high
             if self.current_fng > 75:
                 base_score *= 1.5
-            score = adjust_score('greed_short_t2', base_score)  # 15-25 range
+            base_score = base_score  # 15-25 range
+
+            score = adjust_score('greed_short_t2', base_score)
+
+            score = apply_mtf_confirmation('greed_short_t2', 'short', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'greed_short_t2', 'direction': 'short',
                 'hold': 24, 'sl_pct': 0.04,
@@ -795,7 +970,11 @@ class FinalTradingBot:
         try:
             dow = datetime.now(timezone.utc).weekday()
             if dow == 3 and not np.isnan(sma50[-1]) and price > sma50[-1]:  # Thursday
-                score = adjust_score('thursday_short', 12)  # Fixed score
+                base_score = 12  # Fixed score
+
+                score = adjust_score('thursday_short', base_score)
+
+                score = apply_mtf_confirmation('thursday_short', 'short', score)  # MTF confirmation
                 signals.append(({
                     'pair': pair, 'tool': 'thursday_short', 'direction': 'short',
                     'hold': 24, 'sl_pct': 0.03,
@@ -837,7 +1016,11 @@ class FinalTradingBot:
         try:
             current_hour = datetime.now(timezone.utc).hour
             if current_hour == 21 and not np.isnan(sma50[-1]) and price > sma50[-1]:
-                score = adjust_score('late_us_short', 10)  # Fixed score
+                base_score = 10  # Fixed score
+
+                score = adjust_score('late_us_short', base_score)
+
+                score = apply_mtf_confirmation('late_us_short', 'short', score)  # MTF confirmation
                 signals.append(({
                     'pair': pair, 'tool': 'late_us_short', 'direction': 'short',
                     'hold': 24, 'sl_pct': 0.03,
@@ -884,7 +1067,11 @@ class FinalTradingBot:
                         kurt = 0
                 
                 if kurt > 5:
-                    score = adjust_score('rsi_pump_fat_tail', 15 + kurt * 0.5)  # 15-20 range
+                    base_score = 15 + kurt * 0.5  # 15-20 range
+
+                    score = adjust_score('rsi_pump_fat_tail', base_score)
+
+                    score = apply_mtf_confirmation('rsi_pump_fat_tail', 'short', score)  # MTF confirmation
                     signals.append(({
                         'pair': pair, 'tool': 'rsi_pump_fat_tail', 'direction': 'short',
                         'hold': 24, 'sl_pct': 0.04,
@@ -909,7 +1096,11 @@ class FinalTradingBot:
                 btc_ret24 = (btc_prices[-1] - btc_prices[-25]) / btc_prices[-25] * 100
                 outperformance = ret_24h - btc_ret24
                 if 3 <= outperformance <= 5:  # Alt outperforming BTC by 3-5%
-                    score = adjust_score('alt_btc_revert_t3', outperformance * 2)  # 6-10 range
+                    base_score = outperformance * 2  # 6-10 range
+
+                    score = adjust_score('alt_btc_revert_t3', base_score)
+
+                    score = apply_mtf_confirmation('alt_btc_revert_t3', 'short', score)  # MTF confirmation
                     signals.append(({
                         'pair': pair, 'tool': 'alt_btc_revert_t3', 'direction': 'short',
                         'hold': 24, 'sl_pct': 0.03,
@@ -922,7 +1113,11 @@ class FinalTradingBot:
         try:
             day_of_month = datetime.now(timezone.utc).day
             if 1 <= day_of_month <= 3:
-                score = adjust_score('month_start_long', 15)  # Fixed score
+                base_score = 15  # Fixed score
+
+                score = adjust_score('month_start_long', base_score)
+
+                score = apply_mtf_confirmation('month_start_long', 'long', score)  # MTF confirmation
                 signals.append(({
                     'pair': pair, 'tool': 'month_start_long', 'direction': 'long',
                     'hold': 24, 'sl_pct': 0.04,
@@ -933,7 +1128,9 @@ class FinalTradingBot:
         
         # 30. dip_buy_5pct: ret_4h<-5 → LONG | WR_8h=52.7%, Ret_8h=+0.11%
         if ret_4h < -5:
-            score = adjust_score('dip_buy_5pct', abs(ret_4h) * 1.0)  # 5-10 range
+            base_score = abs(ret_4h) * 1.0  # 5-10 range
+            score = adjust_score('dip_buy_5pct', base_score)
+            score = apply_mtf_confirmation('dip_buy_5pct', 'long', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'dip_buy_5pct', 'direction': 'long',
                 'hold': 8, 'sl_pct': 0.04,
@@ -1600,6 +1797,34 @@ class FinalTradingBot:
                 signal_str = ", ".join([f"{s[0]['tool']} {s[0]['pair']} (score {s[1]:.1f})" 
                                       for s in top_signals])
                 logger.info(f"Signals this cycle: {signal_str}")
+            
+            # MTF: Show multi-timeframe regime across all pairs
+            if ENABLE_MTF:
+                htf_regimes = []
+                htf_rsi_values = []
+                
+                for pair, data in market_data.items():
+                    htf_context = self.get_htf_context(data)
+                    if htf_context.get("htf_available", False):
+                        htf_regimes.append(htf_context["trend_4h"])
+                        htf_rsi_values.append(htf_context["rsi_4h"])
+                
+                if htf_regimes:
+                    regime_counts = {}
+                    for regime in htf_regimes:
+                        regime_counts[regime] = regime_counts.get(regime, 0) + 1
+                    
+                    total_pairs = len(htf_regimes)
+                    regime_pcts = []
+                    for regime in ["bearish", "neutral", "bullish"]:
+                        count = regime_counts.get(regime, 0)
+                        pct = count / total_pairs * 100
+                        if pct > 0:
+                            regime_pcts.append(f"{pct:.0f}% {regime} 4h")
+                    
+                    avg_rsi_4h = sum(htf_rsi_values) / len(htf_rsi_values)
+                    mtf_str = ", ".join(regime_pcts) + f" | Avg 4h RSI: {avg_rsi_4h:.1f}"
+                    logger.info(f"MTF: {mtf_str}")
             
             # UPGRADE 7: Show tool streaks
             hot_tools = []
