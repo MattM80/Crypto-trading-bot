@@ -1,5 +1,5 @@
 {
-  "total_balance": 293.3024318857727,
+  "total_balance": 300.1568671512894,
   "grid_positions": {
     "NEARUSD": [],
     "UNIUSD": [],
@@ -7,14 +7,7 @@
     "LINKUSD": [],
     "AAVEUSD": [],
     "SOLUSD": [],
-    "ETHUSD": [
-      {
-        "buy_price": 2125.19065,
-        "qty": 0.00041214873152396113,
-        "bar": 3,
-        "level": 1
-      }
-    ],
+    "ETHUSD": [],
     "XBTUSD": [],
     "DOTUSD": [],
     "XLMUSD": [],
@@ -28,7 +21,14 @@
     "PEPEUSD": [],
     "SHIBUSD": [],
     "BNBUSD": [],
-    "TRXUSD": [],
+    "TRXUSD": [
+      {
+        "buy_price": 0.30590554799999997,
+        "qty": 2.8622631421728126,
+        "bar": 93,
+        "level": 1
+      }
+    ],
     "HBARUSD": [],
     "HYPEUSD": [],
     "TAOUSD": [],
@@ -48,8 +48,8 @@
     "ENAUSD": [],
     "FLOKIUSD": []
   },
-  "grid_profit": 0.14379442392705907,
-  "grid_round_trips": 11,
+  "grid_profit": 0.156867151289422,
+  "grid_round_trips": 12,
   "grid_anchors": {
     "NEARUSD": {
       "center": 1.285,
@@ -409,13 +409,13 @@
       "tool": "ema_cross_short",
       "direction": "short",
       "leverage": 1,
-      "entry_price": 336.17310255,
-      "entry_bar": 71,
-      "position_size": 3.981952374657901,
-      "qty": 0.011844946381650666,
+      "entry_price": 336.9826071,
+      "entry_bar": 93,
+      "position_size": 156.0,
+      "qty": 0.4629319042383301,
       "sl_pct": 0.03,
       "hold": 24,
-      "score": 35.443140243851225,
+      "score": 34.0869375894307,
       "total_margin_cost": 0
     },
     "APTUSD": {
@@ -423,27 +423,13 @@
       "tool": "ema_cross_short",
       "direction": "short",
       "leverage": 1,
-      "entry_price": 1.0942468499999998,
-      "entry_bar": 73,
-      "position_size": 147.34134806975018,
-      "qty": 134.65092275088588,
+      "entry_price": 1.1142568499999999,
+      "entry_bar": 93,
+      "position_size": 31.200000000000003,
+      "qty": 28.00072532648106,
       "sl_pct": 0.03,
       "hold": 24,
-      "score": 22.66087516990034,
-      "total_margin_cost": 0
-    },
-    "HYPEUSD": {
-      "pair": "HYPEUSD",
-      "tool": "ema_cross_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 40.060019999999994,
-      "entry_bar": 73,
-      "position_size": 29.468269613950042,
-      "qty": 0.7356029680951244,
-      "sl_pct": 0.03,
-      "hold": 24,
-      "score": 22.01172551878392,
+      "score": 29.093791166341255,
       "total_margin_cost": 0
     },
     "XLMUSD": {
@@ -451,31 +437,45 @@
       "tool": "ema_cross_short",
       "direction": "short",
       "leverage": 1,
-      "entry_price": 0.17292642,
-      "entry_bar": 73,
-      "position_size": 5.893653922790008,
-      "qty": 34.081859341042325,
+      "entry_price": 0.174054984,
+      "entry_bar": 93,
+      "position_size": 6.239999999999998,
+      "qty": 35.85074013163564,
       "sl_pct": 0.03,
       "hold": 24,
-      "score": 21.48343419527383,
+      "score": 24.782770976401643,
       "total_margin_cost": 0
     },
-    "ENAUSD": {
-      "pair": "ENAUSD",
+    "HYPEUSD": {
+      "pair": "HYPEUSD",
       "tool": "ema_cross_short",
       "direction": "short",
       "leverage": 1,
-      "entry_price": 0.09594794999999999,
-      "entry_bar": 73,
-      "position_size": 1.1787307845580017,
-      "qty": 12.28510650366164,
+      "entry_price": 40.420199999999994,
+      "entry_bar": 93,
+      "position_size": 1.247999999999999,
+      "qty": 0.03087565128326924,
       "sl_pct": 0.03,
       "hold": 24,
-      "score": 17.683568148564476,
+      "score": 22.76522872128936,
+      "total_margin_cost": 0
+    },
+    "PEPEUSD": {
+      "pair": "PEPEUSD",
+      "tool": "ema_cross_short",
+      "direction": "short",
+      "leverage": 1,
+      "entry_price": 3.535767e-06,
+      "entry_bar": 93,
+      "position_size": 0.2495999999999997,
+      "qty": 70592.88691817071,
+      "sl_pct": 0.03,
+      "hold": 24,
+      "score": 19.721823523180774,
       "total_margin_cost": 0
     }
   },
-  "active_profit": -6.841362538154334,
+  "active_profit": 0.0,
   "tool_stats": {
     "volatile_oversold": {
       "trades": 100,
@@ -1007,6 +1007,6 @@
       "reason": "Hold timeout (24 bars)"
     }
   ],
-  "current_bar": 82,
-  "last_update": "2026-03-24T19:11:49.925712"
+  "current_bar": 96,
+  "last_update": "2026-03-24T20:17:01.789152"
 }
