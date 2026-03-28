@@ -2737,8 +2737,12 @@ class FinalTradingBot:
         direction = signal['direction']
         tool = signal['tool']
         
-        # Shorts use Kraken margin (leverage=2) — account has margin enabled
-        # place_order passes leverage param which Kraken handles natively
+        # US retail accounts (Non-ECP) cannot open margin positions on Kraken
+        # "Reduce only" restriction — shorts require margin which is blocked by SEC/CFTC rules
+        if direction == 'short' and ENABLE_LIVE_TRADING:
+            logger.debug(f"Skipping {tool} ({pair}) — short blocked (US Non-ECP margin restriction)")
+            self._log_rejection(pair, tool, direction, score, "short_blocked_us_margin")
+            return
         
         # Skip if we already have a position in this pair
         if pair in self.active_positions:
