@@ -1,5 +1,5 @@
 {
-  "total_balance": 328.166783362411,
+  "total_balance": 328.16762572284864,
   "grid_positions": {
     "NEARUSD": [],
     "UNIUSD": [],
@@ -860,40 +860,40 @@
     }
   },
   "pending_limit_orders": {
+    "ENAUSD": {
+      "direction": "long",
+      "qty": 1423.5407296408384,
+      "price": 0.08885555,
+      "placed_bar": 33,
+      "order_id": null,
+      "tool": "btc_alt_spread"
+    },
     "TRXUSD": {
       "direction": "short",
       "qty": 226.88384253098977,
-      "price": 0.3103641045,
-      "placed_bar": 28,
+      "price": 0.3110404425,
+      "placed_bar": 34,
       "order_id": null,
       "tool": "alt_btc_revert_t3"
     },
     "HYPEUSD": {
       "direction": "short",
       "qty": 0.3666906599504507,
-      "price": 38.389185,
-      "placed_bar": 28,
+      "price": 38.369175,
+      "placed_bar": 34,
       "order_id": null,
       "tool": "alt_btc_revert_t3"
     },
     "LDOUSD": {
       "direction": "short",
       "qty": 9.504225483580603,
-      "price": 0.29614799999999997,
-      "placed_bar": 28,
+      "price": 0.298149,
+      "placed_bar": 34,
       "order_id": null,
       "tool": "ema_cross_short"
-    },
-    "ENAUSD": {
-      "direction": "long",
-      "qty": 1423.5407296408384,
-      "price": 0.0889555,
-      "placed_bar": 29,
-      "order_id": null,
-      "tool": "btc_alt_spread"
     }
   },
   "trade_history": [],
-  "current_bar": 29,
-  "last_update": "2026-03-27T23:06:46.626333"
+  "current_bar": 34,
+  "last_update": "2026-03-27T23:31:42.454186"
 }

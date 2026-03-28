@@ -33,6 +33,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 try:
     from kraken_client import KrakenClient
+    from ws_monitor import CrashMonitor
 except ImportError as e:
     logger.error(f"Failed to import KrakenClient: {e}")
     sys.exit(1)
@@ -158,6 +159,19 @@ class FinalTradingBot:
     def __init__(self):
         self.client = KrakenClient()
         self.running = True
+        
+        # Real-time crash detection via websocket
+        self.crash_monitor = None
+        self.pending_crash_signals = []  # Queue of crash events from websocket
+        try:
+            self.crash_monitor = CrashMonitor(on_crash_callback=self._on_crash_detected)
+            if ENABLE_LIVE_TRADING:
+                self.crash_monitor.start()
+                logger.info("🔌 Real-time crash monitor: ACTIVE")
+            else:
+                logger.info("🔌 Real-time crash monitor: DISABLED (dry run)")
+        except Exception as e:
+            logger.warning(f"Crash monitor failed to start: {e}")
         self.state = self.load_state()
         
         # UPGRADE 5: Balance tracking — syncs from Kraken account
@@ -1695,6 +1709,65 @@ class FinalTradingBot:
             # Default for any unclassified tool
             return ('default', None, None, None)
     
+    # ===== REAL-TIME CRASH HANDLER =====
+    
+    def _on_crash_detected(self, pair, crash_type, drop_pct, current_price):
+        """Called by websocket thread when a crash is detected. Queue for main loop."""
+        self.pending_crash_signals.append({
+            'pair': pair,
+            'crash_type': crash_type,
+            'drop_pct': drop_pct,
+            'price': current_price,
+            'timestamp': time.time()
+        })
+        logger.info(f"🚨 CRASH QUEUED: {pair} {crash_type} {drop_pct*100:.1f}% @ ${current_price:.2f}")
+    
+    def process_crash_signals(self):
+        """Process any queued crash signals between regular cycles. Buy the blood."""
+        if not self.pending_crash_signals:
+            return
+        
+        signals = self.pending_crash_signals.copy()
+        self.pending_crash_signals.clear()
+        
+        for crash in signals:
+            pair = crash['pair']
+            price = crash['price']
+            drop = crash['drop_pct']
+            
+            # Skip if already have position in this pair
+            if pair in self.active_positions:
+                logger.info(f"Crash signal for {pair} but already have position, skipping")
+                continue
+            
+            # Skip if at max positions
+            if len(self.active_positions) >= MAX_ACTIVE_POSITIONS:
+                logger.info(f"Crash signal for {pair} but at max positions, skipping")
+                continue
+            
+            # Determine signal strength based on crash magnitude
+            if abs(drop) >= 0.05:
+                tool = 'ws_mega_crash'
+                score = abs(drop) * 500
+                sl_pct = 0.08
+            elif abs(drop) >= 0.03:
+                tool = 'ws_flash_crash'
+                score = abs(drop) * 300
+                sl_pct = 0.05
+            else:
+                tool = 'ws_flash_dip'
+                score = abs(drop) * 200
+                sl_pct = 0.04
+            
+            logger.info(f"🚨 EXECUTING CRASH BUY: {pair} @ ${price:.2f} ({drop*100:.1f}%) tool={tool}")
+            
+            signal = {
+                'pair': pair, 'tool': tool, 'direction': 'long',
+                'hold': 24, 'sl_pct': sl_pct,
+                'reason': f"WS CRASH: {crash['crash_type']} {drop*100:.1f}% detected real-time"
+            }
+            self.execute_signal(signal, score)
+    
     # ===== SMART EXIT HELPERS =====
     
     def _check_volume_spike_exit(self, pos, data, current_price):
@@ -2304,6 +2377,9 @@ class FinalTradingBot:
     def run_cycle(self):
         """Run one complete trading cycle with all upgrades."""
         try:
+            # Process any real-time crash signals from websocket
+            self.process_crash_signals()
+            
             # UPGRADE 8: Enhanced status logging
             logger.info("═" * 80)
             self.current_bar += 1
@@ -2510,7 +2586,15 @@ class FinalTradingBot:
                 if sleep_time > 0:
                     logger.info(f"Cycle took {cycle_time:.1f}s, sleeping {sleep_time:.1f}s")
                     logger.info("═" * 80)
-                    time.sleep(sleep_time)
+                    # Sleep in 10s chunks, checking for crash signals between
+                    remaining = sleep_time
+                    while remaining > 0 and self.running:
+                        time.sleep(min(10, remaining))
+                        remaining -= 10
+                        # Process any real-time crash signals during sleep
+                        if self.pending_crash_signals:
+                            logger.info(f"🚨 Crash detected during sleep! Processing {len(self.pending_crash_signals)} signals")
+                            self.process_crash_signals()
                 else:
                     logger.warning(f"Cycle took {cycle_time:.1f}s, longer than {CHECK_INTERVAL}s interval!")
                     
