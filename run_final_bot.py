@@ -223,6 +223,9 @@ class FinalTradingBot:
         # UPGRADE 1: Pending limit orders tracking
         self.pending_limit_orders = self.state.get("pending_limit_orders", {})  # pair -> order_info
         
+        # Pending EXIT orders — don't delete positions until exit fills
+        self.pending_exit_orders = self.state.get("pending_exit_orders", {})  # pair -> exit_info
+        
         # Trade journal — detailed CSV for post-analysis
         self.trade_journal_path = LOGS_DIR / "trade_journal.csv"
         self._init_trade_journal()
@@ -587,6 +590,7 @@ class FinalTradingBot:
             "tool_stats": self.tool_stats,
             "tool_streaks": self.tool_streaks,
             "pending_limit_orders": self.pending_limit_orders,
+            "pending_exit_orders": self.pending_exit_orders,
             "trade_history": self.trade_history[-500:],  # Keep last 500
             "current_bar": self.current_bar,
             "last_update": datetime.now().isoformat()
@@ -1983,6 +1987,10 @@ class FinalTradingBot:
         for pair in list(self.active_positions.keys()):
             if pair not in market_data:
                 continue
+            
+            # Skip positions with pending exit orders (waiting for fill confirmation)
+            if pair in self.pending_exit_orders or self.active_positions[pair].get('_pending_exit'):
+                continue
                 
             pos = self.active_positions[pair]
             data = market_data[pair]
@@ -2284,30 +2292,112 @@ class FinalTradingBot:
         
         pnl_dollar = pnl_pct * pos['position_size']
         
-        # UPGRADE 5: Update balances with current totals
+        # NOTE: Balance updates, tool stats, journal, and position removal
+        # are handled in _finalize_exit() AFTER the exit order is confirmed filled.
+        
+        # Execute close order — use post-only LIMIT for maker fees (0.25% vs 0.40% taker)
+        # Position stays in active_positions until exit order CONFIRMED filled
+        exit_order_id = None
+        if ENABLE_LIVE_TRADING:
+            try:
+                side = "sell" if pos['direction'] == 'long' else "buy"
+                qty = pos['qty']
+                if leverage == 2 and hasattr(self.client, 'close_leveraged_position'):
+                    self.client.close_leveraged_position(pair, side, qty, price)
+                    exit_order_id = "leveraged_close"
+                else:
+                    # Post-only limit at current price — guarantees maker fee
+                    result = self.client.place_order(pair, side, "limit", qty, price, post_only=True)
+                    if isinstance(result, dict) and 'txid' in result:
+                        exit_order_id = result['txid'][0] if isinstance(result['txid'], list) else result['txid']
+                    elif isinstance(result, str):
+                        exit_order_id = result
+                    logger.info(f"[EXIT PENDING] {pair} post-only limit @ ${price:.4f} (maker fee) — waiting for fill")
+            except Exception as e:
+                # Fallback to market if limit fails
+                logger.warning(f"Post-only limit failed for {pair}: {e}, falling back to market")
+                try:
+                    result = self.client.place_order(pair, side, "market", qty, price)
+                    exit_order_id = "market_fallback"
+                    logger.info(f"[EXIT MARKET] {pair} market fallback @ ${price:.4f} (taker fee)")
+                except Exception as e2:
+                    logger.error(f"Failed to close position for {pair}: {e2}")
+                    return  # Don't remove position if we couldn't place ANY exit order
+        else:
+            leverage_str = f" (2x margin)" if leverage == 2 else ""
+            logger.info(f"[DRY RUN] Close {pos['direction']} {pair} @ ${price:.4f}{leverage_str}")
+            exit_order_id = "dry_run"
+        
+        # Store pre-computed PnL and exit info for when fill is confirmed
+        entry_time = pos.get('entry_time', None)
+        if entry_time:
+            hours_held = (datetime.now(timezone.utc).timestamp() - entry_time) / 3600
+        else:
+            hours_held = (self.current_bar - pos['entry_bar']) * (CHECK_INTERVAL / 3600)
+        
+        # Track pending exit — position stays in active_positions until confirmed
+        self.pending_exit_orders[pair] = {
+            "order_id": exit_order_id,
+            "placed_bar": self.current_bar,
+            "exit_price": price,
+            "reason": reason,
+            "pnl_pct": pnl_pct,
+            "pnl_dollar": pnl_dollar,
+            "hours_held": hours_held,
+            "leverage": leverage,
+            "total_margin_cost_pct": total_margin_cost_pct if leverage == 2 else 0,
+            "side": "sell" if pos['direction'] == 'long' else "buy",
+            "qty": pos['qty']
+        }
+        
+        # Mark position as pending exit (so bot doesn't try to close again)
+        self.active_positions[pair]['_pending_exit'] = True
+        
+        leverage_str = f" (2x leverage)" if leverage == 2 else ""
+        margin_cost_str = f", margin: -{total_margin_cost_pct:.2%}" if leverage == 2 else ""
+        logger.info(f"[CLOSE PENDING] {pair} {pos['direction']} @ ${price:.4f}{leverage_str} | "
+                   f"{reason} | PnL: {pnl_pct:.2%} (${pnl_dollar:.2f}){margin_cost_str} | "
+                   f"Tool: {tool} | Held: {hours_held:.1f}h")
+        
+        # For dry run or market orders, finalize immediately
+        if exit_order_id in ("dry_run", "market_fallback", "leveraged_close"):
+            self._finalize_exit(pair, price, reason)
+    
+    def _finalize_exit(self, pair: str, exit_price: float, reason: str):
+        """Finalize a confirmed exit — update balances, stats, journal, remove position."""
+        if pair not in self.active_positions:
+            return
+        if pair not in self.pending_exit_orders:
+            return
+        
+        pos = self.active_positions[pair]
+        exit_info = self.pending_exit_orders[pair]
+        pnl_pct = exit_info["pnl_pct"]
+        pnl_dollar = exit_info["pnl_dollar"]
+        hours_held = exit_info["hours_held"]
+        leverage = exit_info["leverage"]
+        total_margin_cost_pct = exit_info["total_margin_cost_pct"]
+        tool = pos['tool']
+        
+        # Update balances
         self.active_balance += pos['position_size'] + pnl_dollar
         self.total_balance += pnl_dollar
         self.active_profit += pnl_dollar
         
-        # UPGRADE 7: Update tool stats and streaks + Kelly data
-        tool = pos['tool']
+        # Update tool stats and streaks
         if tool in self.tool_stats:
             self.tool_stats[tool]['trades'] += 1
             won = pnl_pct > 0
             if won:
                 self.tool_stats[tool]['wins'] += 1
-                # Running average of win %
                 prev_avg = self.tool_stats[tool].get('avg_win_pct', pnl_pct / 100)
                 n_wins = self.tool_stats[tool]['wins']
                 self.tool_stats[tool]['avg_win_pct'] = prev_avg + (pnl_pct / 100 - prev_avg) / n_wins
             else:
-                # Running average of loss %
                 n_losses = self.tool_stats[tool]['trades'] - self.tool_stats[tool]['wins']
                 prev_avg = self.tool_stats[tool].get('avg_loss_pct', pnl_pct / 100)
                 self.tool_stats[tool]['avg_loss_pct'] = prev_avg + (pnl_pct / 100 - prev_avg) / max(n_losses, 1)
             self.tool_stats[tool]['pnl'] += pnl_dollar
-            
-            # Update streak tracking
             self.update_tool_streak(tool, won)
         
         # Update daily stats
@@ -2317,73 +2407,101 @@ class FinalTradingBot:
             self._daily_stats["wins"] += 1
         else:
             self._daily_stats["losses"] += 1
-        tool_name = pos['tool']
-        self._daily_stats["tool_pnl"][tool_name] = self._daily_stats["tool_pnl"].get(tool_name, 0) + pnl_dollar
+        self._daily_stats["tool_pnl"][tool] = self._daily_stats["tool_pnl"].get(tool, 0) + pnl_dollar
         
-        # Execute close order — use post-only LIMIT for maker fees (0.25% vs 0.40% taker)
-        # If the limit doesn't fill within 2 cycles, fall back to market
-        if ENABLE_LIVE_TRADING:
-            try:
-                side = "sell" if pos['direction'] == 'long' else "buy"
-                qty = pos['qty']
-                if leverage == 2 and hasattr(self.client, 'close_leveraged_position'):
-                    self.client.close_leveraged_position(pair, side, qty, price)
-                else:
-                    # Post-only limit at current price — guarantees maker fee
-                    self.client.place_order(pair, side, "limit", qty, price, post_only=True)
-                    logger.info(f"[EXIT] {pair} post-only limit @ ${price:.4f} (maker fee)")
-            except Exception as e:
-                # Fallback to market if limit fails
-                try:
-                    self.client.place_order(pair, side, "market", qty, price)
-                    logger.info(f"[EXIT] {pair} market fallback @ ${price:.4f} (taker fee)")
-                except Exception as e2:
-                    logger.error(f"Failed to close position for {pair}: {e2}")
-        else:
-            leverage_str = f" (2x margin)" if leverage == 2 else ""
-            logger.info(f"[DRY RUN] Close {pos['direction']} {pair} @ ${price:.4f}{leverage_str}")
-        
-        # Log close with enhanced details
-        entry_time = pos.get('entry_time', None)
-        if entry_time:
-            hours_held = (datetime.now(timezone.utc).timestamp() - entry_time) / 3600
-        else:
-            hours_held = (self.current_bar - pos['entry_bar']) * (CHECK_INTERVAL / 3600)
-        bars_held = self.current_bar - pos['entry_bar']
-        leverage_str = f" (2x leverage)" if leverage == 2 else ""
-        margin_cost_str = f", margin: -{total_margin_cost_pct:.2%}" if leverage == 2 else ""
-        
-        logger.info(f"[CLOSE] {pair} {pos['direction']} @ ${price:.4f}{leverage_str} | "
-                   f"{reason} | PnL: {pnl_pct:.2%} (${pnl_dollar:.2f}){margin_cost_str} | "
-                   f"Tool: {tool} | Held: {hours_held:.1f}h")
-        
-        # Record trade with leverage info
+        # Record trade
         trade = {
             'pair': pair,
             'tool': tool,
             'direction': pos['direction'],
             'leverage': leverage,
             'entry_price': pos['entry_price'],
-            'exit_price': price,
+            'exit_price': exit_price,
             'entry_bar': pos['entry_bar'],
             'exit_bar': self.current_bar,
             'pnl_pct': pnl_pct,
             'pnl_dollar': pnl_dollar,
-            'margin_cost_pct': total_margin_cost_pct if leverage == 2 else 0,
+            'margin_cost_pct': total_margin_cost_pct,
             'reason': reason
         }
         self.trade_history.append(trade)
         
-        # Journal: log close (use real hours held)
+        # Journal
         self._journal_close(
             pair=pair, tool=tool, direction=pos['direction'],
-            exit_price=price, pnl_pct=pnl_pct, pnl_dollar=pnl_dollar,
+            exit_price=exit_price, pnl_pct=pnl_pct, pnl_dollar=pnl_dollar,
             bars_held=round(hours_held, 1), close_reason=reason,
             entry_price=pos['entry_price']
         )
         
-        # Remove position
+        leverage_str = f" (2x)" if leverage == 2 else ""
+        logger.info(f"[EXIT CONFIRMED] {pair} {pos['direction']}{leverage_str} | "
+                   f"PnL: ${pnl_dollar:+.2f} ({pnl_pct:+.2%}) | Tool: {tool}")
+        
+        # Remove position and pending exit
         del self.active_positions[pair]
+        del self.pending_exit_orders[pair]
+    
+    def manage_pending_exit_orders(self, market_data: dict):
+        """Check if pending exit orders filled. Escalate to market if stale."""
+        if not self.pending_exit_orders:
+            return
+        
+        # Get open orders from Kraken
+        open_txids = set()
+        if ENABLE_LIVE_TRADING:
+            try:
+                open_orders = self.client.get_open_orders()
+                if isinstance(open_orders, dict) and 'open' in open_orders:
+                    open_txids = set(open_orders['open'].keys())
+                elif isinstance(open_orders, dict):
+                    open_txids = set(open_orders.keys())
+            except Exception as e:
+                logger.debug(f"Error checking exit orders: {e}")
+                return
+        
+        for pair in list(self.pending_exit_orders.keys()):
+            exit_info = self.pending_exit_orders[pair]
+            order_id = exit_info.get("order_id")
+            
+            # Skip non-limit exits (already finalized)
+            if order_id in ("dry_run", "market_fallback", "leveraged_close"):
+                continue
+            
+            # Check if order filled (not in open orders anymore)
+            if order_id and order_id not in open_txids:
+                logger.info(f"[EXIT FILLED] {pair} exit order {order_id} confirmed filled!")
+                self._finalize_exit(pair, exit_info["exit_price"], exit_info["reason"])
+                continue
+            
+            # Check if stale — escalate to market order after 2 cycles
+            bars_since = self.current_bar - exit_info.get("placed_bar", self.current_bar)
+            if bars_since >= LIMIT_ORDER_TIMEOUT:
+                logger.warning(f"[EXIT STALE] {pair} exit limit unfilled after {bars_since} cycles — escalating to MARKET")
+                
+                if ENABLE_LIVE_TRADING:
+                    # Cancel the stale limit
+                    try:
+                        if order_id:
+                            self.client.cancel_order(order_id)
+                    except Exception as e:
+                        logger.error(f"Failed to cancel stale exit for {pair}: {e}")
+                    
+                    # Place market order
+                    try:
+                        side = exit_info["side"]
+                        qty = exit_info["qty"]
+                        self.client.place_order(pair, side, "market", qty, 0)
+                        logger.info(f"[EXIT MARKET] {pair} forced market exit")
+                    except Exception as e:
+                        logger.error(f"Failed to market-exit {pair}: {e}")
+                        continue  # Don't finalize if market order also failed
+                
+                # Finalize with current price (market fill)
+                current_price = exit_info["exit_price"]
+                if pair in market_data:
+                    current_price = market_data[pair]["price"]
+                self._finalize_exit(pair, current_price, exit_info["reason"] + " (market fallback)")
     
     def execute_signal(self, signal: dict, score: float):
         """Execute a signal with UPGRADE 1 (limit orders) and UPGRADE 3 (2x margin)."""
@@ -2655,6 +2773,9 @@ class FinalTradingBot:
             
             # 7. UPGRADE 1: Manage pending limit orders (can now compare vs fresh signals)
             self.manage_pending_limit_orders(market_data)
+            
+            # 7b. Check pending EXIT orders (confirm fills or escalate to market)
+            self.manage_pending_exit_orders(market_data)
             
             # 8. Manage existing active positions
             self.manage_positions(market_data)

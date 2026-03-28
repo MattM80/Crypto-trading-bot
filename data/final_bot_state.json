@@ -1,5 +1,5 @@
 {
-  "total_balance": 343.03110405740404,
+  "total_balance": 341.0529982353047,
   "grid_positions": {
     "NEARUSD": [],
     "UNIUSD": [],
@@ -801,6 +801,6 @@
       "reason": "Hold timeout (8.1h)"
     }
   ],
-  "current_bar": 227,
-  "last_update": "2026-03-28T15:42:55.240860"
+  "current_bar": 241,
+  "last_update": "2026-03-28T16:51:58.557054"
 }
