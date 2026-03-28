@@ -75,7 +75,12 @@ PAIRS = ORIGINAL_PAIRS + NEW_PAIRS  # 40 total
 # Dynamic pair selection — refresh volatile pairs every hour
 VOLATILITY_REFRESH_INTERVAL = 3600  # 1 hour
 MAX_TRADING_PAIRS = 60  # Top N most volatile pairs to scan
-MIN_PAIR_VOLUME_USD = 50000  # Min 24h volume to avoid illiquid pairs
+MIN_PAIR_VOLUME_USD = 500000   # Min 24h volume — need real liquidity to enter AND exit
+MIN_PAIR_PRICE_USD = 0.01      # No sub-penny coins — spread kills you
+MAX_POSITION_PCT_OF_VOLUME = 0.01  # Never be more than 1% of daily volume
+
+# Coins restricted for US:FL or known rug/dead projects
+GEO_BLOCKED_PAIRS = {'BLUAIUSD', 'B3USD'}
 
 # Grid configurations (ATR-based spacing per pair) - now with 40 pairs
 GRID_CONFIGS = {
@@ -935,12 +940,16 @@ class FinalTradingBot:
                             last = float(data['c'][0])       # Last price
                             vol_usd = float(data['v'][1]) * last  # 24h volume in USD
                             
-                            if low_24h > 0 and vol_usd >= MIN_PAIR_VOLUME_USD:
+                            if (low_24h > 0 and 
+                                vol_usd >= MIN_PAIR_VOLUME_USD and
+                                last >= MIN_PAIR_PRICE_USD and
+                                normalized not in GEO_BLOCKED_PAIRS):
                                 volatility = (high_24h - low_24h) / low_24h
                                 pair_volatility[normalized] = {
                                     'volatility': volatility,
                                     'volume_usd': vol_usd,
-                                    'price': last
+                                    'price': last,
+                                    'max_position_usd': vol_usd * MAX_POSITION_PCT_OF_VOLUME
                                 }
                         except (KeyError, ValueError, ZeroDivisionError):
                             pass
@@ -3073,6 +3082,13 @@ class FinalTradingBot:
         
         # Don't risk more than available balance
         position_size = min(position_size, self.active_balance * 0.8)
+        
+        # Cap position at 1% of pair's 24h volume (liquidity guard)
+        if hasattr(self, '_pair_volatility') and pair in self._pair_volatility:
+            max_pos = self._pair_volatility[pair].get('max_position_usd', float('inf'))
+            if position_size > max_pos:
+                logger.info(f"[LIQUIDITY CAP] {pair} capped ${position_size:.2f} → ${max_pos:.2f} (1% of 24h vol)")
+                position_size = max_pos
         
         # Check actual USD on Kraken before placing orders
         if ENABLE_LIVE_TRADING and position_size > 1.0:

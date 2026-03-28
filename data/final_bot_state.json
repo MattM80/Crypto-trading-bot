@@ -1,5 +1,5 @@
 {
-  "total_balance": 339.6596003108788,
+  "total_balance": 339.2539967092867,
   "grid_positions": {
     "NEARUSD": [],
     "UNIUSD": [],
@@ -417,7 +417,53 @@
       "num_levels": 3
     }
   },
-  "active_positions": {},
+  "active_positions": {
+    "B3USD": {
+      "pair": "B3USD",
+      "tool": "crash_neg_ac",
+      "direction": "long",
+      "leverage": 1,
+      "entry_price": 0.0003468265,
+      "entry_bar": 260,
+      "entry_time": 1774736854.067533,
+      "position_size": 271.7295322316093,
+      "qty": 783473.9624325399,
+      "sl_pct": 0.05,
+      "hold": 8,
+      "score": 271.8551552157167,
+      "total_margin_cost": 0
+    },
+    "PTBUSD": {
+      "pair": "PTBUSD",
+      "tool": "flash_crash",
+      "direction": "long",
+      "leverage": 1,
+      "entry_price": 0.0013553220000000002,
+      "entry_bar": 260,
+      "entry_time": 1774736891.49005,
+      "position_size": 54.345906446321855,
+      "qty": 40098.151174644736,
+      "sl_pct": 0.07,
+      "hold": 8,
+      "score": 103.1850311850312,
+      "total_margin_cost": 0
+    },
+    "GHSTUSD": {
+      "pair": "GHSTUSD",
+      "tool": "flash_crash",
+      "direction": "long",
+      "leverage": 1,
+      "entry_price": 0.0917541,
+      "entry_bar": 260,
+      "entry_time": 1774736925.700001,
+      "position_size": 10.869181289264368,
+      "qty": 118.45989758783932,
+      "sl_pct": 0.07,
+      "hold": 8,
+      "score": 97.75695461200587,
+      "total_margin_cost": 0
+    }
+  },
   "active_profit": 2.6068316356306784,
   "tool_stats": {
     "volatile_oversold": {
@@ -784,7 +830,26 @@
       "type": null
     }
   },
-  "pending_limit_orders": {},
+  "pending_limit_orders": {
+    "B3USD": {
+      "direction": "long",
+      "qty": 783473.9624325399,
+      "price": 0.0003468265,
+      "original_price": 0.0003468265,
+      "original_score": 271.8551552157167,
+      "placed_bar": 260,
+      "order_id": {
+        "txid": [
+          "OVEYVU-JMVBQ-YZXEY5"
+        ],
+        "descr": {
+          "order": "buy 783473.9 B3USD @ limit 0.000346"
+        }
+      },
+      "tool": "crash_neg_ac",
+      "retries": 0
+    }
+  },
   "pending_exit_orders": {},
   "trade_history": [
     {
@@ -816,6 +881,6 @@
       "reason": "reconciled_exit (market fallback)"
     }
   ],
-  "current_bar": 258,
-  "last_update": "2026-03-28T18:09:53.797683"
+  "current_bar": 261,
+  "last_update": "2026-03-28T18:32:07.427379"
 }
