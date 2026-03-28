@@ -1,5 +1,5 @@
 {
-  "total_balance": 341.0529982353047,
+  "total_balance": 341.05314896505047,
   "grid_positions": {
     "NEARUSD": [],
     "UNIUSD": [],
@@ -785,6 +785,7 @@
     }
   },
   "pending_limit_orders": {},
+  "pending_exit_orders": {},
   "trade_history": [
     {
       "pair": "KAVAUSD",
@@ -799,8 +800,22 @@
       "pnl_dollar": 2.6068316356306784,
       "margin_cost_pct": 0,
       "reason": "Hold timeout (8.1h)"
+    },
+    {
+      "pair": "KAVAUSD",
+      "tool": "reconciled",
+      "direction": "long",
+      "leverage": 1,
+      "entry_price": 0.0552,
+      "exit_price": 0.0552,
+      "entry_bar": 243,
+      "exit_bar": 245,
+      "pnl_pct": 0,
+      "pnl_dollar": 0,
+      "margin_cost_pct": 0,
+      "reason": "reconciled_exit (market fallback)"
     }
   ],
-  "current_bar": 241,
-  "last_update": "2026-03-28T16:51:58.557054"
+  "current_bar": 245,
+  "last_update": "2026-03-28T17:04:27.528605"
 }

@@ -239,6 +239,9 @@ class FinalTradingBot:
             "tool_pnl": {}
         }
         
+        # Reconcile state with actual Kraken holdings/orders
+        self._reconcile_with_kraken()
+        
         logger.info(f"🚀 FINAL Trading Bot initialized with 8 UPGRADES")
         logger.info(f"Total balance: ${self.total_balance:.2f} (start: ${self.starting_balance:.2f})")
         logger.info(f"Growth: {(self.total_balance/self.starting_balance-1)*100:+.1f}%")
@@ -291,6 +294,218 @@ class FinalTradingBot:
             logger.warning(f"Kraken balance sync failed: {e}")
             return None
 
+    def _reconcile_with_kraken(self):
+        """Sync bot state with actual Kraken holdings and open orders.
+        
+        On startup (and optionally each cycle), pull real data from Kraken:
+        - Any held asset not in active_positions → create a position for it
+        - Any open buy order not in pending_limit_orders → track it
+        - Any open sell order not in pending_exit_orders → track it
+        - Any active_position for an asset we don't hold → clean it up
+        """
+        if not ENABLE_LIVE_TRADING:
+            return
+        
+        try:
+            # 1. Get actual holdings
+            balances = self.client.get_account_balance()
+            if not balances:
+                return
+            
+            usd_assets = {'USD', 'ZUSD', 'USDT', 'USDC', 'DAI', 'USDG'}
+            held_assets = {}  # asset -> qty
+            for asset, amount in balances.items():
+                if asset not in usd_assets and amount > 0:
+                    # Normalize asset name to match PAIRS format (e.g., KAVA -> KAVAUSD)
+                    pair = f"{asset}USD"
+                    # Also handle Kraken's X/Z prefix (XXBT -> XBTUSD, XETH -> ETHUSD)
+                    if asset.startswith('X') and len(asset) == 4:
+                        pair = f"{asset[1:]}USD"
+                    elif asset.startswith('X') and len(asset) > 4:
+                        pair = f"{asset}USD"
+                    
+                    if pair in PAIRS or pair.replace('X', '', 1) + 'USD' in PAIRS:
+                        # Get current price
+                        try:
+                            result = self.client._request('public/Ticker', {'pair': pair})
+                            if result:
+                                for key, data in result.items():
+                                    if 'c' in data:
+                                        price = float(data['c'][0])
+                                        value = amount * price
+                                        if value > 1.0:  # Skip dust (<$1)
+                                            held_assets[pair] = {
+                                                'qty': amount,
+                                                'price': price,
+                                                'value': value
+                                            }
+                                        break
+                        except Exception:
+                            pass
+            
+            # 2. Get open orders
+            open_orders = self.client.get_open_orders()
+            kraken_orders = {}  # txid -> order_info
+            if isinstance(open_orders, dict) and 'open' in open_orders:
+                kraken_orders = open_orders['open']
+            elif isinstance(open_orders, dict):
+                kraken_orders = open_orders
+            
+            # Parse open orders
+            open_buys = {}   # pair -> order_info
+            open_sells = {}  # pair -> order_info
+            for txid, order in kraken_orders.items():
+                descr = order.get('descr', {})
+                pair_raw = descr.get('pair', '')
+                side = descr.get('type', '')
+                price = float(descr.get('price', 0))
+                
+                # Normalize pair name
+                pair = pair_raw.upper()
+                if pair not in PAIRS:
+                    # Try common mappings
+                    for p in PAIRS:
+                        if pair_raw.upper().replace('/', '').endswith(p[-3:]) and pair_raw.upper().replace('/', '').startswith(p[:3]):
+                            pair = p
+                            break
+                
+                if pair in PAIRS:
+                    info = {
+                        'txid': txid,
+                        'pair': pair,
+                        'side': side,
+                        'price': price,
+                        'qty': float(order.get('vol', 0)),
+                        'descr': descr.get('order', '')
+                    }
+                    if side == 'buy':
+                        open_buys[pair] = info
+                    elif side == 'sell':
+                        open_sells[pair] = info
+            
+            # 3. Reconcile: held assets not tracked → add as positions
+            for pair, holding in held_assets.items():
+                if pair not in self.active_positions:
+                    # Check if there's an open sell (exit already placed)
+                    has_exit = pair in open_sells
+                    
+                    logger.info(f"[RECONCILE] Found untracked holding: {pair} "
+                               f"qty={holding['qty']:.4f} @ ${holding['price']:.4f} "
+                               f"(${holding['value']:.2f})"
+                               f"{' — exit order exists' if has_exit else ''}")
+                    
+                    # Create position record (use current price as entry since we don't know real entry)
+                    self.active_positions[pair] = {
+                        'pair': pair,
+                        'tool': 'reconciled',
+                        'direction': 'long',
+                        'leverage': 1,
+                        'entry_price': holding['price'],  # Best guess — current price
+                        'entry_bar': self.current_bar,
+                        'entry_time': datetime.now(timezone.utc).timestamp(),
+                        'position_size': holding['value'],
+                        'qty': holding['qty'],
+                        'sl_pct': 0.08,  # Default 8% SL
+                        'hold': 48,       # Default 48h hold
+                        'score': 0,
+                        'total_margin_cost': 0,
+                        '_reconciled': True
+                    }
+                    
+                    # Capital reservation handled by recalculation at end of reconcile
+                    
+                    # If there's an open sell order, track as pending exit
+                    if has_exit:
+                        sell = open_sells[pair]
+                        self.pending_exit_orders[pair] = {
+                            "order_id": sell['txid'],
+                            "placed_bar": self.current_bar,
+                            "exit_price": sell['price'],
+                            "reason": "reconciled_exit",
+                            "pnl_pct": 0,  # Unknown
+                            "pnl_dollar": 0,
+                            "hours_held": 0,
+                            "leverage": 1,
+                            "total_margin_cost_pct": 0,
+                            "side": "sell",
+                            "qty": sell['qty']
+                        }
+                        self.active_positions[pair]['_pending_exit'] = True
+                        logger.info(f"[RECONCILE] Tracking sell order {sell['txid']} for {pair} @ ${sell['price']:.4f}")
+            
+            # 4. Reconcile: open buy orders not tracked → add as pending entries
+            for pair, buy in open_buys.items():
+                if pair not in self.pending_limit_orders and pair not in self.active_positions:
+                    logger.info(f"[RECONCILE] Found untracked buy order: {pair} "
+                               f"qty={buy['qty']:.4f} @ ${buy['price']:.4f} ({buy['descr']})")
+                    
+                    position_size = buy['qty'] * buy['price']
+                    
+                    # Create pending limit order
+                    self.pending_limit_orders[pair] = {
+                        "direction": "long",
+                        "qty": buy['qty'],
+                        "price": buy['price'],
+                        "original_price": buy['price'],
+                        "original_score": 0,
+                        "placed_bar": self.current_bar,
+                        "order_id": buy['txid'],
+                        "tool": "reconciled",
+                        "retries": 0
+                    }
+                    
+                    # Create matching active position (capital reserved)
+                    self.active_positions[pair] = {
+                        'pair': pair,
+                        'tool': 'reconciled',
+                        'direction': 'long',
+                        'leverage': 1,
+                        'entry_price': buy['price'],
+                        'entry_bar': self.current_bar,
+                        'entry_time': datetime.now(timezone.utc).timestamp(),
+                        'position_size': position_size,
+                        'qty': buy['qty'],
+                        'sl_pct': 0.08,
+                        'hold': 48,
+                        'score': 0,
+                        'total_margin_cost': 0,
+                        '_reconciled': True
+                    }
+                    # Capital reservation handled by recalculation at end of reconcile
+                    logger.info(f"[RECONCILE] Tracking buy order: {pair} ${position_size:.2f}")
+            
+            # 5. Clean up: positions we think we have but don't hold and no pending entry
+            for pair in list(self.active_positions.keys()):
+                if pair not in held_assets and pair not in self.pending_limit_orders:
+                    pos = self.active_positions[pair]
+                    if not pos.get('_reconciled'):  # Don't clean up stuff we just added
+                        logger.warning(f"[RECONCILE] Phantom position {pair} — not held on Kraken, removing")
+                        self.active_balance += pos['position_size']
+                        del self.active_positions[pair]
+                        if pair in self.pending_exit_orders:
+                            del self.pending_exit_orders[pair]
+            
+            # 6. Recalculate active_balance based on reality
+            # active_balance = total available for trading minus what's deployed
+            deployed_capital = sum(
+                pos['position_size'] for pos in self.active_positions.values()
+            )
+            # active_balance should be: allocation minus deployed
+            grid_pct, active_pct = self.get_capital_allocation()
+            total_active_allocation = self.total_balance * active_pct
+            self.active_balance = max(0, total_active_allocation - deployed_capital)
+            
+            logger.info(f"[RECONCILE] Done — {len(self.active_positions)} positions, "
+                       f"{len(self.pending_limit_orders)} pending buys, "
+                       f"{len(self.pending_exit_orders)} pending exits, "
+                       f"deployed: ${deployed_capital:.2f}, "
+                       f"active balance: ${self.active_balance:.2f}")
+            
+        except Exception as e:
+            logger.error(f"Reconciliation failed: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+    
     def _compute_mtf_multiplier(self, tool, direction, htf_context):
         """Recompute the MTF multiplier for journal accuracy (mirrors apply_mtf_confirmation)."""
         if not ENABLE_MTF or not htf_context or not htf_context.get("htf_available", False):
