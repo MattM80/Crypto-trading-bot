@@ -3027,12 +3027,8 @@ class FinalTradingBot:
         
         # UPGRADE 3: Determine leverage
         # Tier 1 tools get 2x, ALL shorts need leverage=2 (margin required to sell short)
-        if direction == 'short':
-            leverage = 2  # Shorts always need margin
-        elif tool in TIER1_TOOLS:
-            leverage = 2  # Tier 1 longs get 2x
-        else:
-            leverage = 1
+        # US Non-ECP: margin restricted on Kraken. No leverage on any trades.
+        leverage = 1
         
         # UPGRADE 9: Kelly Criterion position sizing
         # Uses historical win rate and avg win/loss ratio per tool to optimize bet size
