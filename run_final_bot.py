@@ -2689,10 +2689,28 @@ class FinalTradingBot:
                 self._finalize_exit(pair, exit_info["exit_price"], exit_info["reason"])
                 continue
             
-            # Check if stale — escalate to market order after 2 cycles
+            # Check if stale — but ONLY escalate exits that should fill near current price
+            # Take-profit orders ABOVE current price are supposed to wait — don't nuke them
             bars_since = self.current_bar - exit_info.get("placed_bar", self.current_bar)
             if bars_since >= LIMIT_ORDER_TIMEOUT:
-                logger.warning(f"[EXIT STALE] {pair} exit limit unfilled after {bars_since} cycles — escalating to MARKET")
+                exit_price = exit_info["exit_price"]
+                current_price = exit_price
+                if pair in market_data:
+                    current_price = market_data[pair]["price"]
+                
+                # Is this a TP order waiting above/below current price?
+                side = exit_info["side"]
+                if side == "sell" and exit_price > current_price * 1.005:
+                    # Sell limit ABOVE current price = take-profit, let it sit
+                    logger.debug(f"[EXIT WAITING] {pair} TP sell @ ${exit_price:.4f} (current ${current_price:.4f}) — not stale, waiting for target")
+                    continue
+                elif side == "buy" and exit_price < current_price * 0.995:
+                    # Buy limit BELOW current price = TP for a short, let it sit
+                    logger.debug(f"[EXIT WAITING] {pair} TP buy @ ${exit_price:.4f} (current ${current_price:.4f}) — not stale, waiting for target")
+                    continue
+                
+                # Exit is near current price but didn't fill — escalate to market
+                logger.warning(f"[EXIT STALE] {pair} exit limit @ ${exit_price:.4f} unfilled after {bars_since} cycles — escalating to MARKET")
                 
                 if ENABLE_LIVE_TRADING:
                     # Cancel the stale limit
@@ -2704,7 +2722,6 @@ class FinalTradingBot:
                     
                     # Place market order
                     try:
-                        side = exit_info["side"]
                         qty = exit_info["qty"]
                         self.client.place_order(pair, side, "market", qty, 0)
                         logger.info(f"[EXIT MARKET] {pair} forced market exit")
@@ -2712,10 +2729,6 @@ class FinalTradingBot:
                         logger.error(f"Failed to market-exit {pair}: {e}")
                         continue  # Don't finalize if market order also failed
                 
-                # Finalize with current price (market fill)
-                current_price = exit_info["exit_price"]
-                if pair in market_data:
-                    current_price = market_data[pair]["price"]
                 self._finalize_exit(pair, current_price, exit_info["reason"] + " (market fallback)")
     
     def execute_signal(self, signal: dict, score: float):
