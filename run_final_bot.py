@@ -2288,6 +2288,72 @@ class FinalTradingBot:
         
         return adjusted
     
+    def _check_dca_opportunity(self, pair: str, pos: dict, current_price: float, market_data: dict):
+        """Check if we should DCA (average down) into an existing crash-buy position.
+        
+        Only DCA if:
+        1. Tool is a crash/dip buy tool
+        2. Price dropped >3% further since entry
+        3. Haven't already DCA'd on this position
+        4. Have enough active balance
+        """
+        DCA_TOOLS = {'crash_buy', 'mega_crash', 'blood_in_streets', 'volatile_oversold',
+                    'crash_neg_ac', 'crash_mean_revert', 'quick_crash', 'flash_crash',
+                    'market_panic_70', 'deep_dip_8h', 'entropy_dip', 'vpin_dip'}
+        
+        if pos['tool'] not in DCA_TOOLS:
+            return
+        if pos.get('_dca_done'):
+            return
+        if pos['direction'] != 'long':
+            return
+        
+        # Check if price dropped >3% from entry
+        drop_from_entry = (pos['entry_price'] - current_price) / pos['entry_price']
+        if drop_from_entry < 0.03:
+            return
+        
+        # Check if we have enough balance for DCA (use 50% of original position size)
+        dca_size = pos['position_size'] * 0.5
+        if self.active_balance < dca_size:
+            return
+        
+        # Execute DCA buy
+        dca_qty = dca_size / current_price
+        
+        if ENABLE_LIVE_TRADING:
+            try:
+                bid = market_data.get(pair, {}).get("bid", current_price) if isinstance(market_data, dict) else current_price
+                order_result = self.client.place_order(pair, "buy", "limit", dca_qty, bid)
+                if not order_result:
+                    return
+                logger.info(f"[DCA] {pair} adding ${dca_size:.2f} @ ${bid:.4f} (down {drop_from_entry:.1%} from entry)")
+            except Exception as e:
+                logger.error(f"DCA order failed for {pair}: {e}")
+                return
+        else:
+            logger.info(f"[DRY RUN DCA] {pair} adding ${dca_size:.2f} @ ${current_price:.4f} (down {drop_from_entry:.1%})")
+        
+        # Update position with new average
+        old_cost = pos['entry_price'] * pos['qty']
+        new_cost = current_price * dca_qty
+        total_qty = pos['qty'] + dca_qty
+        new_avg_price = (old_cost + new_cost) / total_qty
+        
+        pos['entry_price'] = new_avg_price
+        pos['qty'] = total_qty
+        pos['position_size'] += dca_size
+        pos['_dca_done'] = True
+        pos['_dca_price'] = current_price
+        pos['_dca_size'] = dca_size
+        
+        # Reserve additional capital
+        self.active_balance -= dca_size
+        
+        logger.info(f"[DCA COMPLETE] {pair} new avg: ${new_avg_price:.4f} | "
+                   f"Total size: ${pos['position_size']:.2f} | "
+                   f"New qty: {total_qty:.4f}")
+
     def manage_positions(self, market_data: dict):
         """Check all active positions for exits with margin cost tracking."""
         for pair in list(self.active_positions.keys()):
@@ -2301,6 +2367,9 @@ class FinalTradingBot:
             pos = self.active_positions[pair]
             data = market_data[pair]
             current_price = data["price"]
+            
+            # Check DCA opportunity for crash positions
+            self._check_dca_opportunity(pair, pos, current_price, market_data)
             
             # Calculate bars held
             bars_held = self.current_bar - pos.get("entry_bar", self.current_bar)
@@ -2389,12 +2458,18 @@ class FinalTradingBot:
                 if pos['direction'] == 'long':
                     tp_price = pos['entry_price'] * (1 + take_profit_pct)
                     if current_price >= tp_price:
-                        self.close_position(pair, current_price, f"Take profit @ ${tp_price:.4f}")
+                        if not pos.get('_partial_closed'):
+                            self._partial_close(pair, current_price, 0.5, f"TP hit @ ${tp_price:.4f}")
+                        else:
+                            self.close_position(pair, current_price, f"Take profit (remaining) @ ${tp_price:.4f}")
                         continue
                 else:  # short
                     tp_price = pos['entry_price'] * (1 - take_profit_pct)
                     if current_price <= tp_price:
-                        self.close_position(pair, current_price, f"Take profit @ ${tp_price:.4f}")
+                        if not pos.get('_partial_closed'):
+                            self._partial_close(pair, current_price, 0.5, f"TP hit @ ${tp_price:.4f}")
+                        else:
+                            self.close_position(pair, current_price, f"Take profit (remaining) @ ${tp_price:.4f}")
                         continue
             
             # Check hold timeout (based on real elapsed hours, not bar count)
@@ -2562,6 +2637,88 @@ class FinalTradingBot:
                             "retries": retries + 1
                         }
     
+    def _partial_close(self, pair: str, price: float, close_pct: float, reason: str):
+        """Close a percentage of a position and keep the rest running.
+        
+        Args:
+            pair: Trading pair
+            price: Current price
+            close_pct: Fraction to close (0.5 = 50%)
+            reason: Reason for partial close
+        """
+        if pair not in self.active_positions:
+            return
+        
+        pos = self.active_positions[pair]
+        close_qty = pos['qty'] * close_pct
+        keep_qty = pos['qty'] * (1 - close_pct)
+        close_size = pos['position_size'] * close_pct
+        
+        # Calculate PnL on the closed portion
+        if pos['direction'] == 'long':
+            pnl_pct = (price - pos['entry_price']) / pos['entry_price']
+        else:
+            pnl_pct = (pos['entry_price'] - price) / pos['entry_price']
+        
+        leverage = pos.get('leverage', 1)
+        if leverage == 2:
+            pnl_pct *= 2
+        pnl_pct -= ROUND_TRIP_FEE
+        pnl_dollar = pnl_pct * close_size
+        
+        # Execute partial sell
+        if ENABLE_LIVE_TRADING:
+            try:
+                side = "sell" if pos['direction'] == 'long' else "buy"
+                self.client.place_order(pair, side, "limit", close_qty, price, post_only=True)
+                logger.info(f"[PARTIAL EXIT] {pair} {close_pct:.0%} @ ${price:.4f} (maker fee)")
+            except Exception as e:
+                try:
+                    self.client.place_order(pair, side, "market", close_qty, price)
+                    logger.info(f"[PARTIAL EXIT] {pair} {close_pct:.0%} @ ${price:.4f} (market fallback)")
+                except Exception as e2:
+                    logger.error(f"Failed partial close for {pair}: {e2}")
+                    return
+        else:
+            logger.info(f"[DRY RUN] Partial close {close_pct:.0%} of {pair} @ ${price:.4f}")
+        
+        # Update position to reflect remaining
+        pos['qty'] = keep_qty
+        pos['position_size'] = pos['position_size'] * (1 - close_pct)
+        pos['_partial_closed'] = True
+        pos['_partial_close_price'] = price
+        
+        # Tighten stop loss for remaining portion (trail from current price)
+        if pos['direction'] == 'long':
+            # Set trailing stop at 3% below current (tighter than original)
+            pos['sl_pct'] = 0.03
+            pos['_trail_from'] = price
+        else:
+            pos['sl_pct'] = 0.03
+            pos['_trail_from'] = price
+        
+        # Update balances for closed portion
+        self.active_balance += close_size + pnl_dollar
+        self.active_profit += pnl_dollar
+        self.total_balance += pnl_dollar
+        
+        # Update daily stats
+        self._daily_stats["pnl"] += pnl_dollar
+        if pnl_dollar > 0:
+            self._daily_stats["wins"] += 1
+        
+        # Journal
+        self._journal_close(
+            pair=pair, tool=pos['tool'], direction=pos['direction'],
+            exit_price=price, pnl_pct=pnl_pct, pnl_dollar=pnl_dollar,
+            bars_held=0, close_reason=f"partial_{reason}",
+            entry_price=pos['entry_price']
+        )
+        
+        logger.info(f"[PARTIAL {close_pct:.0%}] {pair} @ ${price:.4f} | "
+                   f"PnL: ${pnl_dollar:+.2f} ({pnl_pct:+.2%}) | "
+                   f"Remaining: {keep_qty:.4f} with 3% trailing stop")
+
     def close_position(self, pair: str, price: float, reason: str):
         """Close an active position with improved fees and margin cost tracking."""
         if pair not in self.active_positions:
@@ -3063,6 +3220,52 @@ class FinalTradingBot:
         """Alias for get_fear_greed()."""
         return self.get_fear_greed()
     
+    def _manage_idle_staking(self):
+        """Stake idle USD into yield-bearing assets when no positions are open.
+        
+        Strategy: When active_balance > 80% of total (mostly idle), stake into
+        instant-unlock assets. When a signal fires, unstake to free capital.
+        
+        NOTE: Requires Earn permission on API key. Set ENABLE_STAKING=true when ready.
+        """
+        if not ENABLE_LIVE_TRADING or not os.getenv('ENABLE_STAKING', 'false').lower() == 'true':
+            return
+        
+        idle_pct = self.active_balance / self.total_balance if self.total_balance > 0 else 0
+        active_count = len([p for p in self.active_positions if not self.active_positions[p].get('_pending_exit')])
+        
+        # Stake when mostly idle (>80% available and <2 positions)
+        if idle_pct > 0.8 and active_count < 2:
+            stake_amount = self.active_balance * 0.5  # Stake 50% of idle
+            if stake_amount < 10:
+                return
+            
+            # Prefer USDG (stablecoin yield) for no price risk
+            try:
+                # USDG instant strategy
+                result = self.client._request('private/Earn/Allocate', {
+                    'strategy_id': 'ESDE4BG-5NNGK-5WTK6X',  # USDG instant
+                    'amount': str(stake_amount)
+                }, private=True)
+                if result:
+                    logger.info(f"[STAKE] Allocated ${stake_amount:.2f} to USDG earn")
+                    self._staked_amount = getattr(self, '_staked_amount', 0) + stake_amount
+            except Exception as e:
+                logger.debug(f"Staking failed (need Earn API permission): {e}")
+        
+        # Unstake when we need capital (positions filling up or new signals)
+        elif active_count >= 3 and getattr(self, '_staked_amount', 0) > 0:
+            try:
+                result = self.client._request('private/Earn/Deallocate', {
+                    'strategy_id': 'ESDE4BG-5NNGK-5WTK6X',
+                    'amount': str(self._staked_amount)
+                }, private=True)
+                if result:
+                    logger.info(f"[UNSTAKE] Deallocated ${self._staked_amount:.2f} from USDG earn")
+                    self._staked_amount = 0
+            except Exception as e:
+                logger.debug(f"Unstaking failed: {e}")
+    
     def run_cycle(self):
         """Run one complete trading cycle with all upgrades."""
         try:
@@ -3119,6 +3322,42 @@ class FinalTradingBot:
             
             # 8. Manage existing active positions
             self.manage_positions(market_data)
+            
+            # 8b. SIGNAL STACKING: boost score when multiple tools agree on same pair+direction
+            stacked = {}  # (pair, direction) -> [list of (signal, score)]
+            for signal, score in all_signals:
+                key = (signal['pair'], signal['direction'])
+                if key not in stacked:
+                    stacked[key] = []
+                stacked[key].append((signal, score))
+            
+            # Rebuild all_signals with stacking boost
+            stacked_signals = []
+            for (pair, direction), entries in stacked.items():
+                # Use the highest-scoring signal as the base
+                entries.sort(key=lambda x: x[1], reverse=True)
+                best_signal, best_score = entries[0]
+                tool_count = len(entries)
+                
+                if tool_count >= 3:
+                    stack_mult = 1.6
+                elif tool_count >= 2:
+                    stack_mult = 1.3
+                else:
+                    stack_mult = 1.0
+                
+                boosted_score = best_score * stack_mult
+                
+                if tool_count > 1:
+                    tools_str = "+".join([e[0]['tool'] for e in entries])
+                    best_signal['_stacked_tools'] = tools_str
+                    best_signal['_stack_count'] = tool_count
+                    logger.info(f"[STACK] {pair} {direction}: {tool_count} tools ({tools_str}) → "
+                               f"score {best_score:.1f} × {stack_mult} = {boosted_score:.1f}")
+                
+                stacked_signals.append((best_signal, boosted_score))
+            
+            all_signals = stacked_signals
             
             # 9. Filter and score signals with correlation-aware limits
             # Correlated asset groups — max 2 positions per group to limit concentrated risk
@@ -3254,7 +3493,10 @@ class FinalTradingBot:
                 streak_info = " | ".join(hot_tools + cold_tools)
                 logger.info(f"Tool streaks: {streak_info}")
             
-            # 11. Save state
+            # 11. Manage idle capital staking
+            self._manage_idle_staking()
+            
+            # 12. Save state
             self._log_balance_snapshot()
             self.save_state()
             
