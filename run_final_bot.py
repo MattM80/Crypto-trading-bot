@@ -2864,9 +2864,9 @@ class FinalTradingBot:
         if ENABLE_LIVE_TRADING:
             try:
                 side = "buy" if direction == 'long' else "sell"
-                # Check if pair supports leverage
-                if leverage == 2 and hasattr(self.client, 'place_leveraged_order'):
-                    order_id = self.client.place_order(pair, side, "limit", qty, entry_price, leverage=2)
+                # Pass leverage to Kraken (2x for shorts and Tier 1 longs)
+                if leverage >= 2:
+                    order_id = self.client.place_order(pair, side, "limit", qty, entry_price, leverage=leverage)
                 else:
                     order_id = self.client.place_order(pair, side, "limit", qty, entry_price)
                 
