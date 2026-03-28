@@ -96,11 +96,11 @@ LIMIT_ORDER_TIMEOUT = 2     # Cancel and re-place limit orders after 2 cycles (1
 # Multi-timeframe confirmation
 ENABLE_MTF = True  # Multi-timeframe confirmation
 MTF_BOOST = 1.3    # Score multiplier when HTF aligns
-MTF_PENALTY = 0.6  # Score multiplier when HTF conflicts
+MTF_PENALTY = 0.4  # Score multiplier when HTF conflicts (was 0.6, too mild)
 
 # UPGRADE 1: Kraken Pro fees (corrected)
 ENTRY_FEE = 0.0025         # 0.25% maker fee for limit orders
-EXIT_FEE = 0.004           # 0.40% taker fee for market orders
+EXIT_FEE = 0.0025          # 0.25% maker fee (post-only limit exits)
 ROUND_TRIP_FEE = 0.0065    # Mixed round trip: 0.25% entry + 0.40% exit = 0.65%
 
 # Grid fees are both limit orders (maker/maker)
@@ -136,8 +136,20 @@ BULL_GREED_TOOLS = [
 # NEUTRAL/TRANSITION TOOLS - 2 tools
 NEUTRAL_TOOLS = ["month_start_long", "dip_buy_5pct"]
 
+# BULL MOMENTUM TOOLS (LONG) - validated on 3yr OOS, bull regime only
+BULL_MOMENTUM_TOOLS = ["accumulation_breakout", "hurst_trend_long"]
+
+# BULL SWING TOOLS (LONG) - simple trend-following, 15% trail, hold weeks
+# Validated: 3yr OOS, bull regime only, 0.65% fees
+BULL_SWING_TOOLS = [
+    "buy_weekly_green",       # 257 sig, 44% WR, +5.92%/trade, PF=1.96
+    "buy_breakout_simple",    # 123 sig, 44% WR, +6.54%/trade, PF=2.20
+    "simple_buy_uptrend",     # 347 sig, 41% WR, +3.55%/trade, PF=1.52
+    "buy_btc_leading",        # 103 sig, 31% WR, +4.64%/trade, PF=1.52
+]
+
 # All validated tools combined
-VALIDATED_TOOLS = CRASH_BEAR_TOOLS + BULL_GREED_TOOLS + NEUTRAL_TOOLS
+VALIDATED_TOOLS = CRASH_BEAR_TOOLS + BULL_GREED_TOOLS + NEUTRAL_TOOLS + BULL_MOMENTUM_TOOLS + BULL_SWING_TOOLS
 
 
 class FinalTradingBot:
@@ -148,9 +160,9 @@ class FinalTradingBot:
         self.running = True
         self.state = self.load_state()
         
-        # UPGRADE 5: Balance tracking with starting point
+        # UPGRADE 5: Balance tracking — syncs from Kraken account
         self.starting_balance = STARTING_BALANCE
-        self.total_balance = self.state.get("total_balance", STARTING_BALANCE)
+        self.total_balance = self._sync_kraken_balance() or self.state.get("total_balance", STARTING_BALANCE)
         
         # Fear & Greed index (initialize before allocation)
         self.current_fng = 50
@@ -178,12 +190,20 @@ class FinalTradingBot:
         # Price cache for cross-pair signals
         self._price_cache = {}
         
+        # Market regime: default to 75% bullish (conservative — don't open weak shorts on cold start)
+        self._bullish_4h_pct = 75
+        self._avg_rsi_4h = 55.0
+        
         # Trade history and current bar
         self.trade_history = self.state.get("trade_history", [])
         self.current_bar = self.state.get("current_bar", 0)
         
         # UPGRADE 1: Pending limit orders tracking
         self.pending_limit_orders = self.state.get("pending_limit_orders", {})  # pair -> order_info
+        
+        # Trade journal — detailed CSV for post-analysis
+        self.trade_journal_path = LOGS_DIR / "trade_journal.csv"
+        self._init_trade_journal()
         
         logger.info(f"🚀 FINAL Trading Bot initialized with 8 UPGRADES")
         logger.info(f"Total balance: ${self.total_balance:.2f} (start: ${self.starting_balance:.2f})")
@@ -194,6 +214,132 @@ class FinalTradingBot:
         logger.info(f"Tier 1 tools with 2x margin: {len(TIER1_TOOLS)}")
         logger.info(f"Live trading: {ENABLE_LIVE_TRADING}")
         
+    def _sync_kraken_balance(self) -> Optional[float]:
+        """Pull total USD-equivalent balance from Kraken account.
+        
+        Sums USD cash + market value of all held assets via raw Ticker API.
+        Returns None on failure so caller can fall back to internal tracking.
+        """
+        try:
+            if not ENABLE_LIVE_TRADING:
+                return None
+            balances = self.client.get_account_balance()
+            if not balances:
+                logger.warning("Could not fetch Kraken balance, using internal tracking")
+                return None
+            
+            total_usd = 0.0
+            usd_assets = {'USD', 'ZUSD', 'USDT', 'USDC', 'DAI', 'USDG'}
+            
+            for asset, amount in balances.items():
+                if asset in usd_assets:
+                    total_usd += amount
+                elif amount > 0 and amount * 0.01 > 0:  # Skip dust
+                    # Use raw Ticker API with the pair format Kraken expects
+                    pair_name = f"{asset}USD"
+                    try:
+                        result = self.client._request('public/Ticker', {'pair': pair_name})
+                        if result:
+                            # Result keys may differ from input (e.g., KAVAUSD → KAVAUSD)
+                            for key, data in result.items():
+                                if 'c' in data:  # 'c' = last trade [price, volume]
+                                    last_price = float(data['c'][0])
+                                    total_usd += amount * last_price
+                                    break
+                    except Exception:
+                        pass  # Skip assets we can't price (dust)
+            
+            if total_usd > 0:
+                logger.info(f"💰 Kraken account balance: ${total_usd:.2f}")
+                return total_usd
+            return None
+        except Exception as e:
+            logger.warning(f"Kraken balance sync failed: {e}")
+            return None
+
+    def _compute_mtf_multiplier(self, tool, direction, htf_context):
+        """Recompute the MTF multiplier for journal accuracy (mirrors apply_mtf_confirmation)."""
+        if not ENABLE_MTF or not htf_context or not htf_context.get("htf_available", False):
+            return 1.0
+        crash_signals = {
+            'volatile_oversold', 'crash_buy', 'mega_crash', 'crash_neg_ac',
+            'blood_in_streets', 'quick_crash', 'crash_mean_revert', 'mega_pump_sell_t1'
+        }
+        if tool in crash_signals:
+            return 1.0
+        trend_4h = htf_context.get("trend_4h", "neutral")
+        rsi_4h = htf_context.get("rsi_4h", 50.0)
+        if direction == "long":
+            if trend_4h == "bullish":
+                return MTF_BOOST
+            elif trend_4h == "bearish" and rsi_4h > 60:
+                return MTF_PENALTY
+            elif trend_4h == "bearish":
+                return 0.8
+        elif direction == "short":
+            if trend_4h == "bearish":
+                return MTF_BOOST
+            elif trend_4h == "bullish" and rsi_4h > 50:
+                return MTF_PENALTY
+            elif trend_4h == "bullish":
+                return 0.7
+        return 1.0
+    
+    def _init_trade_journal(self):
+        """Initialize trade journal CSV with headers if it doesn't exist."""
+        if not self.trade_journal_path.exists():
+            with open(self.trade_journal_path, 'w') as f:
+                f.write("timestamp,event,pair,tool,direction,price,score,base_score,"
+                        "mtf_penalty_applied,trend_4h,rsi_4h,bullish_4h_pct,fng,fng_regime,"
+                        "leverage,position_size,sl_pct,hold_bars,reason,"
+                        "pnl_pct,pnl_dollar,bars_held,close_reason,"
+                        "tool_streak,balance,active_balance\n")
+    
+    def _journal_open(self, pair, tool, direction, price, score, base_score,
+                      mtf_multiplier, htf_context, leverage, position_size, sl_pct, hold_bars, reason):
+        """Log a trade open to the journal."""
+        try:
+            trend_4h = htf_context.get("trend_4h", "unknown") if htf_context else "unavailable"
+            rsi_4h = htf_context.get("rsi_4h", 0) if htf_context else 0
+            bullish_pct = getattr(self, '_bullish_4h_pct', -1)
+            fng = getattr(self, 'current_fng', -1)
+            fng_regime = ("Extreme Fear" if fng < 20 else "Fear" if fng < 30 else
+                         "Neutral" if fng <= 70 else "Greed" if fng <= 80 else "Extreme Greed")
+            streak_info = ""
+            if tool in self.tool_streaks:
+                s = self.tool_streaks[tool]
+                streak_info = f"{s['type']}{s['streak']}" if s['type'] else "0"
+            ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+            with open(self.trade_journal_path, 'a') as f:
+                f.write(f"{ts},OPEN,{pair},{tool},{direction},{price:.6f},{score:.2f},{base_score:.2f},"
+                        f"{mtf_multiplier:.2f},{trend_4h},{rsi_4h:.1f},{bullish_pct:.0f},{fng},{fng_regime},"
+                        f"{leverage},{position_size:.2f},{sl_pct:.3f},{hold_bars},{reason.replace(',', ';')},"
+                        f",,,,{streak_info},{self.total_balance:.2f},{self.active_balance:.2f}\n")
+        except Exception as e:
+            logger.debug(f"Journal write error (open): {e}")
+    
+    def _journal_close(self, pair, tool, direction, exit_price, pnl_pct, pnl_dollar,
+                       bars_held, close_reason, entry_price):
+        """Log a trade close to the journal."""
+        try:
+            bullish_pct = getattr(self, '_bullish_4h_pct', -1)
+            fng = getattr(self, 'current_fng', -1)
+            fng_regime = ("Extreme Fear" if fng < 20 else "Fear" if fng < 30 else
+                         "Neutral" if fng <= 70 else "Greed" if fng <= 80 else "Extreme Greed")
+            streak_info = ""
+            if tool in self.tool_streaks:
+                s = self.tool_streaks[tool]
+                streak_info = f"{s['type']}{s['streak']}" if s['type'] else "0"
+            ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+            with open(self.trade_journal_path, 'a') as f:
+                f.write(f"{ts},CLOSE,{pair},{tool},{direction},{exit_price:.6f},,,,"
+                        f",,{bullish_pct:.0f},{fng},{fng_regime},"
+                        f",,,,,"
+                        f"{pnl_pct:.4f},{pnl_dollar:.4f},{bars_held},{close_reason.replace(',', ';')},"
+                        f"{streak_info},{self.total_balance:.2f},{self.active_balance:.2f}\n")
+        except Exception as e:
+            logger.debug(f"Journal write error (close): {e}")
+    
     # UPGRADE 4: Dynamic capital allocation based on Fear & Greed
     def get_capital_allocation(self) -> Tuple[float, float]:
         """Get capital allocation based on market regime."""
@@ -390,12 +536,26 @@ class FinalTradingBot:
                 bid_price = float(orderbook['bids'][0][0]) if orderbook and orderbook['bids'] else current_price * 0.9995
                 ask_price = float(orderbook['asks'][0][0]) if orderbook and orderbook['asks'] else current_price * 1.0005
                 
+                # Calculate ATR for dynamic trailing stops
+                _high = df['high'].values.astype(float)
+                _low = df['low'].values.astype(float)
+                _close = df['close'].values.astype(float)
+                if len(_high) >= 15:
+                    _trs = []
+                    for _i in range(-14, 0):
+                        _tr = max(_high[_i] - _low[_i], abs(_high[_i] - _close[_i-1]), abs(_low[_i] - _close[_i-1]))
+                        _trs.append(_tr)
+                    _atr = np.mean(_trs)
+                else:
+                    _atr = 0
+                
                 market_data[pair] = {
                     "price": current_price,
                     "bid": bid_price,
                     "ask": ask_price,
                     "high": float(df['high'].iloc[-1]),
                     "low": float(df['low'].iloc[-1]),
+                    "atr": float(_atr),
                     "df": df,
                     "df_4h": df_4h  # MTF: 4h data for higher timeframe analysis
                 }
@@ -690,33 +850,35 @@ class FinalTradingBot:
             if not ENABLE_MTF or not htf_context.get("htf_available", False):
                 return base_score  # No HTF data, use original score
             
-            # Crash signals should not be penalized (they work against the trend)
+            # Crash signals bypass MTF (they're counter-trend by nature)
             crash_signals = {
                 'volatile_oversold', 'crash_buy', 'mega_crash', 'crash_neg_ac', 
                 'blood_in_streets', 'quick_crash', 'crash_mean_revert', 'mega_pump_sell_t1'
             }
+            if tool in crash_signals:
+                return base_score
             
             trend_4h = htf_context["trend_4h"]
             rsi_4h = htf_context["rsi_4h"]
+            multiplier = 1.0
             
             if direction == "long":
-                # Boost LONG signals when 4h trend is bullish AND 4h RSI < 50
-                if trend_4h == "bullish" and rsi_4h < 50:
-                    return base_score * MTF_BOOST
-                # Penalize LONG signals when 4h trend is bearish AND 4h RSI > 70 (but not crash signals)
-                elif trend_4h == "bearish" and rsi_4h > 70 and tool not in crash_signals:
-                    return base_score * MTF_PENALTY
+                if trend_4h == "bullish":
+                    multiplier = MTF_BOOST
+                elif trend_4h == "bearish" and rsi_4h > 60:
+                    multiplier = MTF_PENALTY
+                elif trend_4h == "bearish":
+                    multiplier = 0.8
             
             elif direction == "short":
-                # Boost SHORT signals when 4h trend is bearish AND 4h RSI > 50
-                if trend_4h == "bearish" and rsi_4h > 50:
-                    return base_score * MTF_BOOST
-                # Penalize SHORT signals when 4h trend is bullish AND 4h RSI < 30
-                elif trend_4h == "bullish" and rsi_4h < 30:
-                    return base_score * MTF_PENALTY
+                if trend_4h == "bearish":
+                    multiplier = MTF_BOOST
+                elif trend_4h == "bullish" and rsi_4h > 50:
+                    multiplier = MTF_PENALTY
+                elif trend_4h == "bullish":
+                    multiplier = 0.7
             
-            # Neutral (no adjustment) for everything else
-            return base_score
+            return base_score * multiplier
         
         # ===== CRASH/BEAR SIGNALS (LONG) - 15 tools =====
         
@@ -942,6 +1104,7 @@ class FinalTradingBot:
                 low_trend = np.polyfit(range(len(recent_lows)), recent_lows, 1)[0]
                 if high_trend < 0 and low_trend < 0 and high_trend > low_trend:  # Converging
                     score = adjust_score('falling_wedge_short', abs(high_trend - low_trend) * 1000)  # 20-30 range
+                    score = apply_mtf_confirmation('falling_wedge_short', 'short', score)  # MTF confirmation
                     signals.append(({
                         'pair': pair, 'tool': 'falling_wedge_short', 'direction': 'short',
                         'hold': 24, 'sl_pct': 0.04,
@@ -986,6 +1149,7 @@ class FinalTradingBot:
         # 21. mega_pump_sell_t2: rsi7>80 AND ret_12h>=8 → SHORT | WR_24h=55.0%, Ret_24h=+0.19%
         if cur_rsi > 80 and ret_12h >= 8:
             score = adjust_score('mega_pump_sell_t2', 18 + (cur_rsi - 80) * 0.3 + (ret_12h - 8) * 0.2)  # 18-25 range
+            score = apply_mtf_confirmation('mega_pump_sell_t2', 'short', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'mega_pump_sell_t2', 'direction': 'short',
                 'hold': 24, 'sl_pct': 0.05,
@@ -1006,6 +1170,7 @@ class FinalTradingBot:
                 
                 if high_trend < 0 and vol_trend < 0 and rsi_trend < 0:  # All declining
                     score = adjust_score('distribution_short', abs(high_trend) * 100)  # 15-20 range
+                    score = apply_mtf_confirmation('distribution_short', 'short', score)  # MTF confirmation
                     signals.append(({
                         'pair': pair, 'tool': 'distribution_short', 'direction': 'short',
                         'hold': 24, 'sl_pct': 0.04,
@@ -1032,6 +1197,7 @@ class FinalTradingBot:
         # 24. rsi_pump_12h: rsi7>80 AND ret_12h>=8 → SHORT | WR_24h=54.9%, Ret_24h=+0.13%
         if cur_rsi > 80 and ret_12h >= 8:
             score = adjust_score('rsi_pump_12h', 15 + (cur_rsi - 80) * 0.2 + (ret_12h - 8) * 0.1)  # 15-20 range
+            score = apply_mtf_confirmation('rsi_pump_12h', 'short', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'rsi_pump_12h', 'direction': 'short',
                 'hold': 24, 'sl_pct': 0.04,
@@ -1042,6 +1208,7 @@ class FinalTradingBot:
         if (not np.isnan(ema5[-1]) and not np.isnan(ema13[-1]) and not np.isnan(sma50[-1]) and
             ema5[-1] > ema13[-1] and price > sma50[-1]):
             score = adjust_score('ema_cross_short', 10 + (ema5[-1] - ema13[-1]) / price * 1000)  # 10-15 range
+            score = apply_mtf_confirmation('ema_cross_short', 'short', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'ema_cross_short', 'direction': 'short',
                 'hold': 24, 'sl_pct': 0.03,
@@ -1083,6 +1250,7 @@ class FinalTradingBot:
             entropy = self.calc_entropy(close[-30:]) if len(close) >= 30 else 3.0
             if entropy < 2.5:
                 score = adjust_score('entropy_short', (2.5 - entropy) * 4)  # 8-12 range
+                score = apply_mtf_confirmation('entropy_short', 'short', score)  # MTF confirmation
                 signals.append(({
                     'pair': pair, 'tool': 'entropy_short', 'direction': 'short',
                     'hold': 24, 'sl_pct': 0.03,
@@ -1136,6 +1304,154 @@ class FinalTradingBot:
                 'hold': 8, 'sl_pct': 0.04,
                 'reason': f"DIP BUY 5PCT: {ret_4h:.1f}% drop 4h"
             }, score))
+        
+        # ===== VALIDATED BULL MARKET TOOLS (regime-aware, OOS validated on 3yr data) =====
+        
+        # 31. accumulation_breakout: 2-4wk consolidation → volume breakout
+        # OOS: 64 signals, 50% WR, +3.19% avg, PF=2.24 (bull regime only)
+        if len(close) >= 500 and len(high) >= 336 and len(volume) >= 336:
+            ab_range_high = np.max(high[-336:-48])
+            ab_range_low = np.min(low[-336:-48])
+            ab_range_pct = (ab_range_high - ab_range_low) / ab_range_low * 100 if ab_range_low > 0 else 100
+            
+            if 3 <= ab_range_pct <= 20 and price > ab_range_high * 1.01:
+                ab_vol_short = np.mean(volume[-24:])
+                ab_vol_long = np.mean(volume[-336:-48])
+                ab_vol_ratio = ab_vol_short / ab_vol_long if ab_vol_long > 0 else 1
+                
+                if ab_vol_ratio >= 1.5 and cur_rsi < 72:
+                    ab_breakout_pct = (price - ab_range_high) / ab_range_high * 100
+                    base_score = ab_vol_ratio * 15 + ab_breakout_pct * 10 + (20 - ab_range_pct) * 2
+                    score = adjust_score('accumulation_breakout', base_score)
+                    score = apply_mtf_confirmation('accumulation_breakout', 'long', score)
+                    signals.append(({
+                        'pair': pair, 'tool': 'accumulation_breakout', 'direction': 'long',
+                        'hold': 336, 'sl_pct': 0.12,
+                        'reason': f"ACCUM BREAKOUT: {ab_range_pct:.1f}% range, vol {ab_vol_ratio:.1f}x, break +{ab_breakout_pct:.1f}%"
+                    }, score))
+        
+        # 32. hurst_trend_long: Chaos theory — Hurst > 0.6 = trending regime + momentum
+        # OOS: 140 signals, 45% WR, +2.37% avg, PF=1.76 (bull regime only)
+        if len(close) >= 500:
+            hurst_returns = np.diff(np.log(close[-168:]))
+            # Simplified R/S Hurst exponent
+            hurst_lags = range(10, min(100, len(hurst_returns) // 2), 5)
+            hurst_rs, hurst_lv = [], []
+            for hlag in hurst_lags:
+                hsub = hurst_returns[-hlag:]
+                hmean = np.mean(hsub)
+                hdev = np.cumsum(hsub - hmean)
+                hR = np.max(hdev) - np.min(hdev)
+                hS = np.std(hsub)
+                if hS > 0 and hR > 0:
+                    hurst_rs.append(np.log(hR / hS))
+                    hurst_lv.append(np.log(hlag))
+            
+            H = 0.5
+            if len(hurst_rs) >= 3:
+                from scipy import stats as sp_stats
+                H = np.clip(sp_stats.linregress(hurst_lv, hurst_rs)[0], 0, 1)
+            
+            if H > 0.6:
+                hurst_sma50 = np.mean(close[-50:])
+                hurst_ret24h = (price - close[-24]) / close[-24] if len(close) >= 25 else 0
+                hurst_vol_short = np.mean(volume[-48:]) if len(volume) >= 168 else 0
+                hurst_vol_long = np.mean(volume[-168:]) if len(volume) >= 168 else 1
+                hurst_vr = hurst_vol_short / hurst_vol_long if hurst_vol_long > 0 else 1
+                
+                if price > hurst_sma50 and hurst_ret24h > 0.01 and hurst_vr >= 1.2 and cur_rsi <= 70:
+                    base_score = (H - 0.5) * 100 + hurst_ret24h * 50 + hurst_vr * 5
+                    score = adjust_score('hurst_trend_long', base_score)
+                    score = apply_mtf_confirmation('hurst_trend_long', 'long', score)
+                    signals.append(({
+                        'pair': pair, 'tool': 'hurst_trend_long', 'direction': 'long',
+                        'hold': 168, 'sl_pct': 0.12,
+                        'reason': f"HURST TREND: H={H:.2f}, ret24h={hurst_ret24h*100:.1f}%, vol={hurst_vr:.1f}x"
+                    }, score))
+        
+        # ===== BULL SWING TOOLS — simple trend-following, hold for weeks =====
+        # These use 15% trailing stop, 18% hard stop, 6-week max hold
+        # Validated on 3yr OOS data, bull regime only
+        
+        # 33. simple_buy_uptrend: price > 50 SMA > 200 SMA, positive weekly momentum
+        # OOS: 347 signals, 41% WR, +3.55%/trade, PF=1.52
+        if len(close) >= 200:
+            swing_sma50 = np.mean(close[-50:])
+            swing_sma200 = np.mean(close[-200:])
+            swing_ret1w = (price - close[-168]) / close[-168] if len(close) >= 168 else 0
+            
+            if (price > swing_sma50 and price > swing_sma200 and swing_sma50 > swing_sma200
+                    and cur_rsi <= 70 and cur_rsi >= 35 and swing_ret1w > 0.02):
+                base_score = swing_ret1w * 100
+                score = adjust_score('simple_buy_uptrend', base_score)
+                score = apply_mtf_confirmation('simple_buy_uptrend', 'long', score)
+                signals.append(({
+                    'pair': pair, 'tool': 'simple_buy_uptrend', 'direction': 'long',
+                    'hold': 1008, 'sl_pct': 0.18,
+                    'reason': f"UPTREND BUY: 50>200 SMA, ret1w={swing_ret1w*100:.1f}%"
+                }, score))
+        
+        # 34. buy_weekly_green: 5%+ green week with above-avg volume
+        # OOS: 257 signals, 44% WR, +5.92%/trade, PF=1.96
+        if len(close) >= 336 and len(volume) >= 336:
+            bwg_ret1w = (price - close[-168]) / close[-168]
+            bwg_vol_ratio = np.mean(volume[-168:]) / np.mean(volume[-336:-168])
+            bwg_sma200 = np.mean(close[-200:]) if len(close) >= 200 else price
+            
+            if bwg_ret1w >= 0.05 and bwg_vol_ratio >= 1.1 and cur_rsi <= 72 and price > bwg_sma200:
+                base_score = bwg_ret1w * 100 + bwg_vol_ratio * 10
+                score = adjust_score('buy_weekly_green', base_score)
+                score = apply_mtf_confirmation('buy_weekly_green', 'long', score)
+                signals.append(({
+                    'pair': pair, 'tool': 'buy_weekly_green', 'direction': 'long',
+                    'hold': 1008, 'sl_pct': 0.18,
+                    'reason': f"WEEKLY GREEN: +{bwg_ret1w*100:.1f}%, vol {bwg_vol_ratio:.1f}x"
+                }, score))
+        
+        # 35. buy_breakout_simple: new 30-day high with volume surge
+        # OOS: 123 signals, 44% WR, +6.54%/trade, PF=2.20
+        if len(close) >= 720 and len(volume) >= 720:
+            bbs_high30d = np.max(close[-720:-24])
+            bbs_vol_now = np.mean(volume[-24:])
+            bbs_vol_avg = np.mean(volume[-720:-24])
+            bbs_vr = bbs_vol_now / bbs_vol_avg if bbs_vol_avg > 0 else 1
+            
+            if price > bbs_high30d * 1.005 and bbs_vr >= 1.3 and cur_rsi <= 78:
+                breakout_pct = (price / bbs_high30d - 1) * 100
+                base_score = bbs_vr * 20 + breakout_pct * 50
+                score = adjust_score('buy_breakout_simple', base_score)
+                score = apply_mtf_confirmation('buy_breakout_simple', 'long', score)
+                signals.append(({
+                    'pair': pair, 'tool': 'buy_breakout_simple', 'direction': 'long',
+                    'hold': 1008, 'sl_pct': 0.18,
+                    'reason': f"BREAKOUT: new 30d high +{breakout_pct:.1f}%, vol {bbs_vr:.1f}x"
+                }, score))
+        
+        # 36. buy_btc_leading: BTC pumping, alt lagging, rotation play
+        # OOS: 103 signals, 31% WR, +4.64%/trade, PF=1.52, avg win +43.4%
+        if pair != "XBTUSD" and "XBTUSD" in self._price_cache and len(close) >= 200:
+            btc_prices = self._price_cache.get("XBTUSD", [])
+            if len(btc_prices) >= 168:
+                btl_btc1w = (btc_prices[-1] - btc_prices[-168]) / btc_prices[-168]
+                btl_alt1w = (price - close[-168]) / close[-168] if len(close) >= 168 else 0
+                btl_lag = btl_btc1w - btl_alt1w
+                btl_alt48h = (price - close[-48]) / close[-48] if len(close) >= 48 else 0
+                btl_sma200 = np.mean(close[-200:])
+                
+                if (btl_btc1w >= 0.05 and btl_lag >= 0.03 and btl_alt48h > 0
+                        and cur_rsi <= 65 and price > btl_sma200 * 0.85):
+                    base_score = btl_lag * 100 + btl_alt48h * 50
+                    score = adjust_score('buy_btc_leading', base_score)
+                    score = apply_mtf_confirmation('buy_btc_leading', 'long', score)
+                    signals.append(({
+                        'pair': pair, 'tool': 'buy_btc_leading', 'direction': 'long',
+                        'hold': 1008, 'sl_pct': 0.18,
+                        'reason': f"BTC LEADING: BTC +{btl_btc1w*100:.1f}%, alt lag {btl_lag*100:.1f}%"
+                    }, score))
+        
+        # Enrich all signals with HTF context for journal logging
+        for sig, sc in signals:
+            sig['_htf_context'] = dict(htf_context) if htf_context else {}
         
         return signals
     
@@ -1286,7 +1602,7 @@ class FinalTradingBot:
                     # Execute buy order (LIMIT order for maker fees)
                     if ENABLE_LIVE_TRADING:
                         try:
-                            self.client.place_order(pair, "buy", qty, buy_level, "limit")
+                            self.client.place_order(pair, "buy", "limit", qty, buy_level)
                         except Exception as e:
                             logger.error(f"Failed to place grid buy order for {pair}: {e}")
                     else:
@@ -1308,7 +1624,7 @@ class FinalTradingBot:
                     # Execute sell order (LIMIT order for maker fees)
                     if ENABLE_LIVE_TRADING:
                         try:
-                            self.client.place_order(pair, "sell", pos["qty"], sell_target, "limit")
+                            self.client.place_order(pair, "sell", "limit", pos["qty"], sell_target)
                         except Exception as e:
                             logger.error(f"Failed to place grid sell order for {pair}: {e}")
                     else:
@@ -1352,7 +1668,20 @@ class FinalTradingBot:
         # Neutral tools — TP at 6%
         NEUTRAL = {'month_start_long'}
         
-        if tool in MEAN_REVERSION:
+        # Bull swing tools — 15% trailing stop, no fixed TP (let winners run)
+        BULL_SWING = {
+            'buy_weekly_green', 'buy_breakout_simple',
+            'simple_buy_uptrend', 'buy_btc_leading'
+        }
+        
+        # Bull momentum tools — 8% trailing stop
+        BULL_MOMENTUM = {'accumulation_breakout', 'hurst_trend_long'}
+        
+        if tool in BULL_SWING:
+            return ('trailing', None, 0.15, None)  # 15% trailing stop
+        elif tool in BULL_MOMENTUM:
+            return ('trailing', None, 0.08, None)  # 8% trailing stop
+        elif tool in MEAN_REVERSION:
             return ('fixed_tp', 0.08, None, None)  # 8% TP
         elif tool in CRASH_BUY:
             return ('fixed_tp', 0.10, None, None)  # 10% TP  
@@ -1365,6 +1694,71 @@ class FinalTradingBot:
         else:
             # Default for any unclassified tool
             return ('default', None, None, None)
+    
+    # ===== SMART EXIT HELPERS =====
+    
+    def _check_volume_spike_exit(self, pos, data, current_price):
+        """Exit profitable positions on 2x+ volume spike (local top signal)."""
+        df = data.get('df')
+        if df is None or len(df) < 20:
+            return None
+        if pos['direction'] == 'long':
+            pnl_pct = (current_price - pos['entry_price']) / pos['entry_price']
+        else:
+            pnl_pct = (pos['entry_price'] - current_price) / pos['entry_price']
+        if pnl_pct <= 0.01:  # Need at least 1% profit
+            return None
+        volumes = df['volume'].values.astype(float)[-20:]
+        cur_vol = volumes[-1]
+        avg_vol = np.mean(volumes[:-1])
+        spike = cur_vol / avg_vol if avg_vol > 0 else 0
+        if spike >= 2.0:
+            return f"Volume spike exit: {spike:.1f}x avg, pnl {pnl_pct*100:+.1f}%"
+        return None
+    
+    def _check_regime_exit(self, pos):
+        """Exit bull swing positions when F&G drops to fear."""
+        bull_swing_tools = {'buy_weekly_green', 'buy_breakout_simple', 
+                           'simple_buy_uptrend', 'buy_btc_leading',
+                           'accumulation_breakout', 'hurst_trend_long'}
+        if pos['direction'] != 'long' or pos.get('tool') not in bull_swing_tools:
+            return None
+        fng = self.get_fng()
+        if fng < 30:
+            return f"Regime exit: F&G={fng} < 30, bull tool in fear"
+        return None
+    
+    def _smart_trailing_adjustment(self, pos, data, base_trail):
+        """Tighten trail on RSI overbought or momentum exhaustion."""
+        df = data.get('df')
+        if df is None or len(df) < 20:
+            return base_trail
+        
+        close = df['close'].values.astype(float)
+        current_price = data['price']
+        adjusted = base_trail
+        
+        # RSI tightening: profitable long + RSI > 80 → tighten to 5%
+        rsi_vals = self.calc_rsi(close, 14)
+        cur_rsi = rsi_vals[-1] if not np.isnan(rsi_vals[-1]) else 50
+        
+        is_profitable = (current_price > pos['entry_price'] if pos['direction'] == 'long' 
+                        else current_price < pos['entry_price'])
+        
+        if is_profitable:
+            if pos['direction'] == 'long' and cur_rsi >= 80:
+                adjusted = min(adjusted, 0.05)
+            elif pos['direction'] == 'short' and cur_rsi <= 20:
+                adjusted = min(adjusted, 0.05)
+        
+        # Momentum exhaustion: 7d momentum < 3d momentum → tighten to 7%
+        if len(close) >= 168:
+            mom_7d = (close[-1] - close[-168]) / close[-168]
+            mom_3d = (close[-1] - close[-72]) / close[-72] if len(close) >= 72 else mom_7d
+            if mom_7d < mom_3d and mom_3d > 0 and is_profitable:
+                adjusted = min(adjusted, 0.07)
+        
+        return adjusted
     
     def manage_positions(self, market_data: dict):
         """Check all active positions for exits with margin cost tracking."""
@@ -1406,7 +1800,55 @@ class FinalTradingBot:
                     self.close_position(pair, current_price, f"Stop loss @ ${sl_price:.4f}")
                     continue
             
-            # Check take profit
+            # Smart trailing stop — volume spike, regime, RSI, momentum, ATR-adaptive
+            if trailing_stop_pct:
+                # Track highest/lowest price since entry
+                if 'best_price' not in pos:
+                    pos['best_price'] = pos['entry_price']
+                
+                # SMART EXIT #1: Volume spike (instant exit on profitable + 2x vol)
+                vol_exit = self._check_volume_spike_exit(pos, data, current_price)
+                if vol_exit:
+                    self.close_position(pair, current_price, vol_exit)
+                    continue
+                
+                # SMART EXIT #2: Regime change (bull tools exit on F&G fear)
+                regime_exit = self._check_regime_exit(pos)
+                if regime_exit:
+                    self.close_position(pair, current_price, regime_exit)
+                    continue
+                
+                # SMART EXIT #3: RSI + momentum tightening
+                smart_trail = self._smart_trailing_adjustment(pos, data, trailing_stop_pct)
+                
+                # Dynamic trail: use 3x ATR, bounded by smart-adjusted trail %
+                atr_pct = (data.get('atr', 0) / current_price) if current_price > 0 else 0
+                dynamic_trail = max(
+                    smart_trail * 0.5,               # Floor: half the adjusted trail
+                    min(atr_pct * 3,                  # 3x ATR
+                        smart_trail * 1.5)            # Cap: 1.5x the adjusted trail
+                ) if atr_pct > 0 else smart_trail
+                
+                if pos['direction'] == 'long':
+                    if current_price > pos['best_price']:
+                        pos['best_price'] = current_price
+                    trail_dd = (pos['best_price'] - current_price) / pos['best_price']
+                    if trail_dd >= dynamic_trail:
+                        pnl_pct = (current_price - pos['entry_price']) / pos['entry_price'] * 100
+                        self.close_position(pair, current_price, 
+                            f"Trailing stop {dynamic_trail:.1%} (peak ${pos['best_price']:.2f}, pnl {pnl_pct:+.1f}%)")
+                        continue
+                else:  # short
+                    if current_price < pos['best_price']:
+                        pos['best_price'] = current_price
+                    trail_up = (current_price - pos['best_price']) / pos['best_price']
+                    if trail_up >= dynamic_trail:
+                        pnl_pct = (pos['entry_price'] - current_price) / pos['entry_price'] * 100
+                        self.close_position(pair, current_price,
+                            f"Trailing stop {dynamic_trail:.1%} (trough ${pos['best_price']:.2f}, pnl {pnl_pct:+.1f}%)")
+                        continue
+            
+            # Check take profit (for fixed-TP tools)
             if take_profit_pct:
                 if pos['direction'] == 'long':
                     tp_price = pos['entry_price'] * (1 + take_profit_pct)
@@ -1419,15 +1861,69 @@ class FinalTradingBot:
                         self.close_position(pair, current_price, f"Take profit @ ${tp_price:.4f}")
                         continue
             
-            # Check hold timeout
-            if bars_held >= pos['hold']:
-                self.close_position(pair, current_price, f"Hold timeout ({bars_held} bars)")
+            # Check hold timeout (based on real elapsed hours, not bar count)
+            entry_time = pos.get('entry_time', None)
+            if entry_time:
+                elapsed_hours = (datetime.now(timezone.utc).timestamp() - entry_time) / 3600
+            else:
+                # Fallback for positions opened before this fix
+                elapsed_hours = bars_held * (CHECK_INTERVAL / 3600)
+            if elapsed_hours >= pos['hold']:
+                self.close_position(pair, current_price, f"Hold timeout ({elapsed_hours:.1f}h)")
                 continue
     
     # UPGRADE 1: Handle pending limit orders
     def manage_pending_limit_orders(self, market_data: dict):
-        """Cancel and re-place limit orders that don't fill within timeout."""
+        """Check if pending limit orders filled, cancel stale ones."""
         current_bar = self.current_bar
+        
+        # First: check if any pending orders already filled
+        if ENABLE_LIVE_TRADING:
+            try:
+                open_orders = self.client.get_open_orders()
+                open_txids = set()
+                if isinstance(open_orders, dict) and 'open' in open_orders:
+                    open_txids = set(open_orders['open'].keys())
+                elif isinstance(open_orders, dict):
+                    open_txids = set(open_orders.keys())
+                
+                for pair, order_info in list(self.pending_limit_orders.items()):
+                    order_id = order_info.get("order_id")
+                    # If order_id is a dict with txid, extract it
+                    if isinstance(order_id, dict) and 'txid' in order_id:
+                        txid = order_id['txid'][0] if isinstance(order_id['txid'], list) else order_id['txid']
+                    elif isinstance(order_id, str):
+                        txid = order_id
+                    else:
+                        txid = None
+                    
+                    if txid and txid not in open_txids:
+                        # Order not in open orders = it filled (or was cancelled)
+                        # Check if we hold the asset
+                        direction = order_info["direction"]
+                        if direction == 'long':
+                            logger.info(f"[FILLED] {pair} {direction} limit order filled! Moving to active positions.")
+                            # Move to active positions
+                            if pair not in self.active_positions:
+                                self.active_positions[pair] = {
+                                    'pair': pair,
+                                    'tool': order_info.get("tool", "unknown"),
+                                    'direction': direction,
+                                    'leverage': 1,
+                                    'entry_price': order_info["price"],
+                                    'entry_bar': order_info["placed_bar"],
+                                    'entry_time': datetime.now(timezone.utc).timestamp(),
+                                    'position_size': order_info["qty"] * order_info["price"],
+                                    'qty': order_info["qty"],
+                                    'sl_pct': 0.04,
+                                    'hold': 24,
+                                    'score': 0,
+                                    'total_margin_cost': 0
+                                }
+                        del self.pending_limit_orders[pair]
+                        continue
+            except Exception as e:
+                logger.debug(f"Error checking open orders: {e}")
         
         for pair, order_info in list(self.pending_limit_orders.items()):
             if current_bar - order_info["placed_bar"] >= LIMIT_ORDER_TIMEOUT:
@@ -1461,7 +1957,7 @@ class FinalTradingBot:
                     if ENABLE_LIVE_TRADING:
                         try:
                             side = "buy" if direction == 'long' else "sell"
-                            new_order_id = self.client.place_order(pair, side, qty, entry_price, "limit")
+                            new_order_id = self.client.place_order(pair, side, "limit", qty, entry_price)
                             self.pending_limit_orders[pair] = {
                                 "direction": direction,
                                 "qty": qty,
@@ -1500,9 +1996,14 @@ class FinalTradingBot:
         # UPGRADE 3: Subtract margin costs for leveraged positions
         total_margin_cost_pct = 0
         if leverage == 2:
-            bars_held = self.current_bar - pos.get("entry_bar", self.current_bar)
-            # Opening cost + holding cost per bar
-            total_margin_cost_pct = MARGIN_COST_OPEN + (MARGIN_COST_PER_BAR * bars_held)
+            # Use real elapsed time for margin cost (MARGIN_COST_PER_BAR is per 4h)
+            entry_time_m = pos.get('entry_time', None)
+            if entry_time_m:
+                hours_elapsed = (datetime.now(timezone.utc).timestamp() - entry_time_m) / 3600
+                four_hour_periods = hours_elapsed / 4.0
+            else:
+                four_hour_periods = (self.current_bar - pos.get("entry_bar", self.current_bar)) * (CHECK_INTERVAL / 14400)
+            total_margin_cost_pct = MARGIN_COST_OPEN + (MARGIN_COST_PER_BAR * four_hour_periods)
             pnl_pct -= total_margin_cost_pct
         
         pnl_dollar = pnl_pct * pos['position_size']
@@ -1512,42 +2013,63 @@ class FinalTradingBot:
         self.total_balance += pnl_dollar
         self.active_profit += pnl_dollar
         
-        # UPGRADE 7: Update tool stats and streaks
+        # UPGRADE 7: Update tool stats and streaks + Kelly data
         tool = pos['tool']
         if tool in self.tool_stats:
             self.tool_stats[tool]['trades'] += 1
             won = pnl_pct > 0
             if won:
                 self.tool_stats[tool]['wins'] += 1
+                # Running average of win %
+                prev_avg = self.tool_stats[tool].get('avg_win_pct', pnl_pct / 100)
+                n_wins = self.tool_stats[tool]['wins']
+                self.tool_stats[tool]['avg_win_pct'] = prev_avg + (pnl_pct / 100 - prev_avg) / n_wins
+            else:
+                # Running average of loss %
+                n_losses = self.tool_stats[tool]['trades'] - self.tool_stats[tool]['wins']
+                prev_avg = self.tool_stats[tool].get('avg_loss_pct', pnl_pct / 100)
+                self.tool_stats[tool]['avg_loss_pct'] = prev_avg + (pnl_pct / 100 - prev_avg) / max(n_losses, 1)
             self.tool_stats[tool]['pnl'] += pnl_dollar
             
             # Update streak tracking
             self.update_tool_streak(tool, won)
         
-        # Execute close order (MARKET order for taker fees)
+        # Execute close order — use post-only LIMIT for maker fees (0.25% vs 0.40% taker)
+        # If the limit doesn't fill within 2 cycles, fall back to market
         if ENABLE_LIVE_TRADING:
             try:
                 side = "sell" if pos['direction'] == 'long' else "buy"
                 qty = pos['qty']
-                # Check if pair supports leverage for close
                 if leverage == 2 and hasattr(self.client, 'close_leveraged_position'):
                     self.client.close_leveraged_position(pair, side, qty, price)
                 else:
-                    self.client.place_order(pair, side, qty, price, "market")
+                    # Post-only limit at current price — guarantees maker fee
+                    self.client.place_order(pair, side, "limit", qty, price, post_only=True)
+                    logger.info(f"[EXIT] {pair} post-only limit @ ${price:.4f} (maker fee)")
             except Exception as e:
-                logger.error(f"Failed to close position for {pair}: {e}")
+                # Fallback to market if limit fails
+                try:
+                    self.client.place_order(pair, side, "market", qty, price)
+                    logger.info(f"[EXIT] {pair} market fallback @ ${price:.4f} (taker fee)")
+                except Exception as e2:
+                    logger.error(f"Failed to close position for {pair}: {e2}")
         else:
             leverage_str = f" (2x margin)" if leverage == 2 else ""
             logger.info(f"[DRY RUN] Close {pos['direction']} {pair} @ ${price:.4f}{leverage_str}")
         
         # Log close with enhanced details
+        entry_time = pos.get('entry_time', None)
+        if entry_time:
+            hours_held = (datetime.now(timezone.utc).timestamp() - entry_time) / 3600
+        else:
+            hours_held = (self.current_bar - pos['entry_bar']) * (CHECK_INTERVAL / 3600)
         bars_held = self.current_bar - pos['entry_bar']
         leverage_str = f" (2x leverage)" if leverage == 2 else ""
         margin_cost_str = f", margin: -{total_margin_cost_pct:.2%}" if leverage == 2 else ""
         
         logger.info(f"[CLOSE] {pair} {pos['direction']} @ ${price:.4f}{leverage_str} | "
                    f"{reason} | PnL: {pnl_pct:.2%} (${pnl_dollar:.2f}){margin_cost_str} | "
-                   f"Tool: {tool} | Held: {bars_held}h")
+                   f"Tool: {tool} | Held: {hours_held:.1f}h")
         
         # Record trade with leverage info
         trade = {
@@ -1566,6 +2088,14 @@ class FinalTradingBot:
         }
         self.trade_history.append(trade)
         
+        # Journal: log close (use real hours held)
+        self._journal_close(
+            pair=pair, tool=tool, direction=pos['direction'],
+            exit_price=price, pnl_pct=pnl_pct, pnl_dollar=pnl_dollar,
+            bars_held=round(hours_held, 1), close_reason=reason,
+            entry_price=pos['entry_price']
+        )
+        
         # Remove position
         del self.active_positions[pair]
     
@@ -1579,19 +2109,60 @@ class FinalTradingBot:
         if pair in self.active_positions:
             return
         
-        # UPGRADE 7: Skip if tool has 5 consecutive losses
+        # UPGRADE 7: Skip if tool has consecutive losses
         if tool in self.tool_streaks:
             streak = self.tool_streaks[tool]
-            if streak["type"] == "L" and streak["streak"] >= 5:
-                logger.warning(f"Skipping {tool} - 5 consecutive losses")
+            if streak["type"] == "L":
+                # Weaker tools get benched faster
+                weak_tools = {'ema_cross_short', 'falling_wedge_short', 'distribution_short', 'entropy_short'}
+                threshold = 3 if tool in weak_tools else 5
+                if streak["streak"] >= threshold:
+                    logger.warning(f"Skipping {tool} - {streak['streak']} consecutive losses")
+                    return
+        
+        # Market regime filter: block weak shorts in strong bull market
+        if direction == 'short' and tool not in {'mega_pump_sell_t1', 'mega_pump_sell_t2', 'rsi_pump_8h', 'rsi_pump_fat_tail'}:
+            bullish_pct = getattr(self, '_bullish_4h_pct', 50)
+            if bullish_pct >= 75 and score < 20:
+                logger.warning(f"Skipping {tool} ({pair}) - weak short (score={score:.1f}) in strong bull regime ({bullish_pct:.0f}% bullish 4h)")
+                return
+        
+        # Regime filter: bull tools only fire in bull/greed regimes
+        bull_tools = {'accumulation_breakout', 'hurst_trend_long',
+                      'buy_weekly_green', 'buy_breakout_simple',
+                      'simple_buy_uptrend', 'buy_btc_leading'}
+        if tool in bull_tools:
+            fng = self.get_fng()
+            bullish_pct = getattr(self, '_bullish_4h_pct', 50)
+            if fng < 45 or bullish_pct < 50:
+                logger.info(f"Skipping {tool} ({pair}) - bull tool blocked in fear/bear (F&G={fng}, {bullish_pct:.0f}% bullish)")
                 return
         
         # UPGRADE 3: Determine if this is a Tier 1 tool (2x leverage)
         use_leverage = tool in TIER1_TOOLS
         leverage = 2 if use_leverage else 1
         
-        # UPGRADE 5: Calculate position size scaling with current active balance
-        risk_amount = self.active_balance * RISK_PER_TRADE
+        # UPGRADE 9: Kelly Criterion position sizing
+        # Uses historical win rate and avg win/loss ratio per tool to optimize bet size
+        # Kelly fraction = WR - (1-WR)/payoff_ratio, capped at 2x base risk
+        base_risk = RISK_PER_TRADE  # 5%
+        if tool in self.tool_stats and self.tool_stats[tool].get('total', 0) >= 5:
+            ts = self.tool_stats[tool]
+            total = ts['total']
+            win_rate = ts['wins'] / total if total > 0 else 0.5
+            avg_win = ts.get('avg_win_pct', 0.05)
+            avg_loss = abs(ts.get('avg_loss_pct', 0.03))
+            payoff_ratio = avg_win / avg_loss if avg_loss > 0 else 1.5
+            
+            kelly = win_rate - (1 - win_rate) / payoff_ratio if payoff_ratio > 0 else 0
+            # Half-Kelly for safety, bounded between 0.5x and 2x base risk
+            kelly_fraction = max(0.5, min(2.0, 1.0 + kelly))
+            risk_pct = base_risk * kelly_fraction
+            logger.debug(f"Kelly sizing for {tool}: WR={win_rate:.0%}, payoff={payoff_ratio:.1f}, kelly_f={kelly_fraction:.2f}")
+        else:
+            risk_pct = base_risk
+        
+        risk_amount = self.active_balance * risk_pct
         stop_loss_pct = signal['sl_pct']
         
         if direction == 'long':
@@ -1606,6 +2177,19 @@ class FinalTradingBot:
         
         # Don't risk more than available balance
         position_size = min(position_size, self.active_balance * 0.8)
+        
+        # Check actual USD on Kraken before placing orders
+        if ENABLE_LIVE_TRADING and position_size > 1.0:
+            try:
+                bal = self.client.get_account_balance()
+                actual_usd = bal.get('USD', 0) + bal.get('ZUSD', 0)
+                if position_size > actual_usd * 0.9:
+                    position_size = actual_usd * 0.8
+                    if position_size < 5.0:  # Below Kraken minimums
+                        logger.warning(f"Insufficient USD (${actual_usd:.2f}) for {pair}, skipping")
+                        return
+            except Exception:
+                pass
         
         # Get current price and bid/ask
         market_data = self.get_market_data()
@@ -1639,9 +2223,9 @@ class FinalTradingBot:
                 side = "buy" if direction == 'long' else "sell"
                 # Check if pair supports leverage
                 if leverage == 2 and hasattr(self.client, 'place_leveraged_order'):
-                    order_id = self.client.place_leveraged_order(pair, side, qty, entry_price, "limit", leverage=2)
+                    order_id = self.client.place_order(pair, side, "limit", qty, entry_price, leverage=2)
                 else:
-                    order_id = self.client.place_order(pair, side, qty, entry_price, "limit")
+                    order_id = self.client.place_order(pair, side, "limit", qty, entry_price)
                 
                 # Track pending limit order
                 self.pending_limit_orders[pair] = {
@@ -1671,6 +2255,7 @@ class FinalTradingBot:
             'leverage': leverage,
             'entry_price': entry_price,
             'entry_bar': self.current_bar,
+            'entry_time': datetime.now(timezone.utc).timestamp(),
             'position_size': position_size,
             'qty': qty,
             'sl_pct': stop_loss_pct,
@@ -1688,6 +2273,19 @@ class FinalTradingBot:
         logger.info(f"[OPEN] {pair} {direction} LIMIT @ ${entry_price:.4f}{leverage_str} | "
                    f"Tool: {tool} | Size: ${position_size:.2f}{margin_str} | "
                    f"Score: {score:.1f} | SL: {stop_loss_pct:.1%}")
+        
+        # Journal: log open with full context
+        htf_ctx = signal.get('_htf_context', {})
+        mtf_m = self._compute_mtf_multiplier(tool, direction, htf_ctx)
+        base_score = score / mtf_m if mtf_m != 0 else score
+        self._journal_open(
+            pair=pair, tool=tool, direction=direction, price=entry_price,
+            score=score, base_score=base_score,
+            mtf_multiplier=mtf_m,
+            htf_context=htf_ctx, leverage=leverage,
+            position_size=position_size, sl_pct=stop_loss_pct,
+            hold_bars=signal['hold'], reason=signal.get('reason', '')
+        )
     
     def get_fear_greed(self) -> int:
         """Get crypto Fear & Greed Index. Cached for 1 hour."""
@@ -1725,8 +2323,12 @@ class FinalTradingBot:
             self.rebalance_capital()
             grid_pct, active_pct = self.get_capital_allocation()
             
-            # 4. UPGRADE 5: Update total balance
-            self.total_balance = self.starting_balance + self.grid_profit + self.active_profit
+            # 4. UPGRADE 5: Update total balance from Kraken (fall back to internal)
+            kraken_balance = self._sync_kraken_balance()
+            if kraken_balance is not None:
+                self.total_balance = kraken_balance
+            else:
+                self.total_balance = self.starting_balance + self.grid_profit + self.active_profit
             
             # 5. UPGRADE 6: Update smart grid engine
             self.update_grids(market_data)
@@ -1743,21 +2345,47 @@ class FinalTradingBot:
                 signals = self.scan_signals(pair, data)
                 all_signals.extend(signals)
             
-            # 9. Filter and score signals
+            # 9. Filter and score signals with correlation-aware limits
+            # Correlated asset groups — max 2 positions per group to limit concentrated risk
+            CORRELATION_GROUPS = {
+                'large_cap': {'XBTUSD', 'ETHUSD', 'SOLUSD', 'BNBUSD'},
+                'alt_l1': {'ADAUSD', 'AVAXUSD', 'DOTUSD', 'NEARUSD', 'ATOMUSD', 'APTUSD', 'SUIUSD', 'ICPUSD'},
+                'defi': {'LINKUSD', 'UNIUSD', 'AAVEUSD', 'LDOUSD', 'JUPUSD'},
+                'meme': {'DOGEUSD', 'SHIBUSD', 'PEPEUSD', 'FLOKIUSD'},
+                'mid_cap': {'XRPUSD', 'LTCUSD', 'BCHUSD', 'FILUSD', 'XLMUSD', 'TRXUSD', 'STXUSD',
+                           'HBARUSD', 'ARBUSD', 'OPUSD', 'TIAUSD', 'ONDOUSD', 'RENDERUSD',
+                           'ENAUSD', 'HYPEUSD', 'TAOUSD', 'INJUSD', 'KAVAUSD'},
+            }
+            MAX_PER_GROUP = 2  # Max same-direction positions in a correlated group
+            
             if all_signals:
-                # Sort by score (highest first)
                 all_signals.sort(key=lambda x: x[1], reverse=True)
                 
-                # Execute top signals up to max positions
                 open_positions = len(self.active_positions)
                 for signal, score in all_signals:
                     if open_positions >= MAX_ACTIVE_POSITIONS:
                         break
                     
                     pair = signal['pair']
-                    if pair not in self.active_positions:  # Don't double up
-                        self.execute_signal(signal, score)
-                        open_positions += 1
+                    if pair in self.active_positions:
+                        continue
+                    
+                    # Check correlation group limits
+                    direction = signal['direction']
+                    group_count = 0
+                    for group_name, group_pairs in CORRELATION_GROUPS.items():
+                        if pair in group_pairs:
+                            for open_pair, open_pos in self.active_positions.items():
+                                if open_pair in group_pairs and open_pos['direction'] == direction:
+                                    group_count += 1
+                            break
+                    
+                    if group_count >= MAX_PER_GROUP:
+                        logger.debug(f"Skipping {pair} ({direction}) — correlation group limit ({group_count}/{MAX_PER_GROUP})")
+                        continue
+                    
+                    self.execute_signal(signal, score)
+                    open_positions += 1
             
             # 10. UPGRADE 8: Enhanced status report
             grid_positions = sum(len(positions) for positions in self.grid_positions.values())
@@ -1787,10 +2415,14 @@ class FinalTradingBot:
                     if pos.get("leverage", 1) == 2:
                         pnl_pct *= 2
                     
-                    bars_held = self.current_bar - pos['entry_bar']
+                    entry_time = pos.get('entry_time', None)
+                    if entry_time:
+                        hours_held = (datetime.now(timezone.utc).timestamp() - entry_time) / 3600
+                    else:
+                        hours_held = (self.current_bar - pos['entry_bar']) * (CHECK_INTERVAL / 3600)
                     leverage_str = ", 2x margin" if pos.get("leverage", 1) == 2 else ""
                     logger.info(f"  → {pair} {pos['direction']} {pnl_pct:+.1%} "
-                               f"({pos['tool']}, {bars_held}h held{leverage_str})")
+                               f"({pos['tool']}, {hours_held:.1f}h held{leverage_str})")
             
             if all_signals:
                 top_signals = all_signals[:3]  # Show top 3
@@ -1825,6 +2457,8 @@ class FinalTradingBot:
                     avg_rsi_4h = sum(htf_rsi_values) / len(htf_rsi_values)
                     mtf_str = ", ".join(regime_pcts) + f" | Avg 4h RSI: {avg_rsi_4h:.1f}"
                     logger.info(f"MTF: {mtf_str}")
+                    # Track bullish percentage for regime filter
+                    self._bullish_4h_pct = regime_counts.get("bullish", 0) / total_pairs * 100
             
             # UPGRADE 7: Show tool streaks
             hot_tools = []

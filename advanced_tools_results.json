@@ -1,0 +1,7 @@
+{
+  "hurst_regime_detector": [],
+  "correlation_breakdown_detector": [],
+  "regime_momentum_detector": [],
+  "volume_profile_reversion": [],
+  "cross_asset_rotation": []
+}

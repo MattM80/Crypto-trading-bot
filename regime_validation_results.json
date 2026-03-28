@@ -1,0 +1,90 @@
+[
+  {
+    "tool_name": "trend_structure_long",
+    "total_trades": 4405,
+    "win_rate": 0.3614074914869467,
+    "avg_return": 0.0033938618699827796,
+    "profit_factor": 1.0836794237854424,
+    "max_dd": -0.9999999999999895,
+    "sharpe": 2.6443231394254694,
+    "passed": "False",
+    "reason": "Poor performance (WR: 36.1%, PF: 1.08)"
+  },
+  {
+    "tool_name": "weekly_momentum_pullback",
+    "total_trades": 17944,
+    "win_rate": 0.4033660276415515,
+    "avg_return": 0.02356217523361609,
+    "profit_factor": 1.609120089966915,
+    "max_dd": -1.0,
+    "sharpe": 14.715870414188478,
+    "passed": "True",
+    "reason": "PASSED validation criteria"
+  },
+  {
+    "tool_name": "golden_cross_swing",
+    "total_trades": 183450,
+    "win_rate": 0.43644589806486783,
+    "avg_return": 0.027045302295789848,
+    "profit_factor": 1.8350679567742325,
+    "max_dd": -0.9996991566087886,
+    "sharpe": 18.090459696380588,
+    "passed": "True",
+    "reason": "PASSED validation criteria"
+  },
+  {
+    "tool_name": "accumulation_breakout",
+    "total_trades": 4,
+    "win_rate": 1.0,
+    "avg_return": 0.1682332227776025,
+    "profit_factor": Infinity,
+    "max_dd": 0.0,
+    "sharpe": 77.60477459070367,
+    "passed": false,
+    "reason": "Insufficient signals (4 < 30)"
+  },
+  {
+    "tool_name": "dip_in_uptrend",
+    "total_trades": 4666,
+    "win_rate": 0.356408058294042,
+    "avg_return": 0.0025570478078133954,
+    "profit_factor": 1.0588682565728358,
+    "max_dd": -1.0,
+    "sharpe": 1.8136142720407589,
+    "passed": "False",
+    "reason": "Poor performance (WR: 35.6%, PF: 1.06)"
+  },
+  {
+    "tool_name": "mean_reversion_weekly",
+    "total_trades": 37,
+    "win_rate": 0.4594594594594595,
+    "avg_return": -0.012323738677327898,
+    "profit_factor": 0.6293147794326175,
+    "max_dd": -0.46210413430476105,
+    "sharpe": -13.28440108724327,
+    "passed": "False",
+    "reason": "Poor performance (WR: 45.9%, PF: 0.63)"
+  },
+  {
+    "tool_name": "hurst_trend_long",
+    "total_trades": 846479,
+    "win_rate": 0.456073925047166,
+    "avg_return": 0.02810069232902541,
+    "profit_factor": 1.862678081057711,
+    "max_dd": -0.9978143376140638,
+    "sharpe": 19.472404171224984,
+    "passed": "True",
+    "reason": "PASSED validation criteria"
+  },
+  {
+    "tool_name": "ou_mean_reversion_long",
+    "total_trades": 1524,
+    "win_rate": 0.33070866141732286,
+    "avg_return": -0.012822079507841873,
+    "profit_factor": 0.7055027952543361,
+    "max_dd": -0.9999999999982662,
+    "sharpe": -13.376788961474395,
+    "passed": "False",
+    "reason": "Poor performance (WR: 33.1%, PF: 0.71)"
+  }
+]

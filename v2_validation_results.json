@@ -1,0 +1,11 @@
+[
+  {
+    "tool": "hurst_trend_long",
+    "hold": 8,
+    "signals": 232,
+    "win_rate": 31.03448275862069,
+    "avg_return": -0.5116106881283942,
+    "total_return": -118.69367964578746,
+    "profit_factor": 0.6072644647366047,
+    "max_dd": -24.460649023314424,
+    "passed": 

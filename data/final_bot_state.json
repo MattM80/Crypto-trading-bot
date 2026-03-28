@@ -1,12 +1,19 @@
 {
-  "total_balance": 300.1568671512894,
+  "total_balance": 328.166783362411,
   "grid_positions": {
     "NEARUSD": [],
     "UNIUSD": [],
     "AVAXUSD": [],
     "LINKUSD": [],
     "AAVEUSD": [],
-    "SOLUSD": [],
+    "SOLUSD": [
+      {
+        "buy_price": 82.49708500000001,
+        "qty": 0.011603124873630149,
+        "bar": 5,
+        "level": 1
+      }
+    ],
     "ETHUSD": [],
     "XBTUSD": [],
     "DOTUSD": [],
@@ -15,27 +22,34 @@
     "ADAUSD": [],
     "ATOMUSD": [],
     "DOGEUSD": [],
-    "FILUSD": [],
+    "FILUSD": [
+      {
+        "buy_price": 0.8211,
+        "qty": 0.5585455745026391,
+        "bar": 10,
+        "level": 1
+      }
+    ],
     "LTCUSD": [],
     "SUIUSD": [],
     "PEPEUSD": [],
     "SHIBUSD": [],
     "BNBUSD": [],
-    "TRXUSD": [
-      {
-        "buy_price": 0.30590554799999997,
-        "qty": 2.8622631421728126,
-        "bar": 93,
-        "level": 1
-      }
-    ],
+    "TRXUSD": [],
     "HBARUSD": [],
     "HYPEUSD": [],
     "TAOUSD": [],
     "INJUSD": [],
     "ARBUSD": [],
     "OPUSD": [],
-    "APTUSD": [],
+    "APTUSD": [
+      {
+        "buy_price": 0.9562716,
+        "qty": 0.48032462204531967,
+        "bar": 21,
+        "level": 1
+      }
+    ],
     "TIAUSD": [],
     "ONDOUSD": [],
     "RENDERUSD": [],
@@ -48,430 +62,435 @@
     "ENAUSD": [],
     "FLOKIUSD": []
   },
-  "grid_profit": 0.156867151289422,
-  "grid_round_trips": 12,
+  "grid_profit": 0.0,
+  "grid_round_trips": 0,
   "grid_anchors": {
     "NEARUSD": {
-      "center": 1.285,
+      "center": 1.177,
       "levels": [
-        1.265725,
-        1.2464499999999998,
-        1.227175
+        1.159345,
+        1.14169,
+        1.124035
       ],
       "num_levels": 3
     },
     "UNIUSD": {
-      "center": 3.57,
+      "center": 3.389,
       "levels": [
-        3.51645,
-        3.4629,
-        3.40935
+        3.3127475,
+        3.2364949999999997,
+        3.1602425
       ],
       "num_levels": 3
     },
     "AVAXUSD": {
-      "center": 9.44,
+      "center": 8.77,
       "levels": [
-        9.3456,
-        9.251199999999999,
-        9.156799999999999
+        8.638449999999999,
+        8.5069,
+        8.37535
       ],
       "num_levels": 3
     },
     "LINKUSD": {
-      "center": 9.11392,
+      "center": 8.55072,
       "levels": [
-        9.04100864,
-        8.96809728,
-        8.89518592
+        8.44811136,
+        8.34550272,
+        8.24289408
       ],
       "num_levels": 3
     },
     "AAVEUSD": {
-      "center": 109.5,
+      "center": 98.27,
       "levels": [
-        107.8575,
-        106.215,
-        104.57249999999999
+        96.058925,
+        93.84785,
+        91.636775
       ],
       "num_levels": 3
     },
     "SOLUSD": {
-      "center": 89.69,
+      "center": 82.87,
       "levels": [
-        88.78188200865922,
-        87.87376401731845,
-        86.96564602597769
+        82.49708500000001,
+        82.12417,
+        81.75125500000001
       ],
       "num_levels": 3
     },
     "ETHUSD": {
-      "center": 2135.87,
+      "center": 1992.8,
       "levels": [
-        2125.19065,
-        2114.5112999999997,
-        2103.83195
+        1977.854,
+        1962.908,
+        1947.962
       ],
       "num_levels": 3
     },
     "XBTUSD": {
-      "center": 69791.8,
+      "center": 66427.4,
       "levels": [
-        69093.882,
-        68395.964,
-        67698.046
+        65430.988999999994,
+        64434.577999999994,
+        63438.166999999994
       ],
       "num_levels": 3
     },
     "DOTUSD": {
-      "center": 1.3723,
+      "center": 1.2834,
       "levels": [
-        1.3486980279708105,
-        1.3250960559416207,
-        1.301494083912431
+        1.2602988000000002,
+        1.2371976,
+        1.2140964
       ],
       "num_levels": 3
     },
     "XLMUSD": {
-      "center": 0.166312,
+      "center": 0.16606,
       "levels": [
-        0.16464888,
-        0.16298575999999998,
-        0.16132264
+        0.16356910000000002,
+        0.1610782,
+        0.15858730000000001
       ],
       "num_levels": 3
     },
     "XRPUSD": {
-      "center": 1.39836,
+      "center": 1.32567,
       "levels": [
-        1.3773846,
-        1.3564092,
-        1.3354338
+        1.3057849499999998,
+        1.2858998999999998,
+        1.26601485
       ],
       "num_levels": 3
     },
     "ADAUSD": {
-      "center": 0.259844,
+      "center": 0.246579,
       "levels": [
-        0.256725872,
-        0.253607744,
-        0.250489616
+        0.242140578,
+        0.237702156,
+        0.23326373399999997
       ],
       "num_levels": 3
     },
     "ATOMUSD": {
-      "center": 1.77,
+      "center": 1.6735,
       "levels": [
-        1.74876,
-        1.72752,
-        1.70628
+        1.653418,
+        1.633336,
+        1.613254
       ],
       "num_levels": 3
     },
     "DOGEUSD": {
-      "center": 0.0934422,
+      "center": 0.090234,
       "levels": [
-        0.0923208936,
-        0.0911995872,
-        0.0900782808
+        0.088609788,
+        0.086985576,
+        0.085361364
       ],
       "num_levels": 3
     },
     "FILUSD": {
-      "center": 0.915,
+      "center": 0.84,
       "levels": [
-        0.9050135918306118,
-        0.8950271836612235,
-        0.8850407754918352
+        0.8211,
+        0.8021999999999999,
+        0.7833
       ],
       "num_levels": 3
     },
     "LTCUSD": {
-      "center": 55.81,
+      "center": 53.7,
       "levels": [
-        55.2519,
-        54.6938,
-        54.1357
+        52.8945,
+        52.089,
+        51.283500000000004
       ],
       "num_levels": 3
     },
     "SUIUSD": {
-      "center": 0.9408,
+      "center": 0.8799,
       "levels": [
-        0.9295104,
-        0.9182208,
-        0.9069311999999999
+        0.8640618,
+        0.8482236,
+        0.8323853999999999
       ],
       "num_levels": 3
     },
     "PEPEUSD": {
-      "center": 3.419e-06,
+      "center": 3.282e-06,
       "levels": [
-        3.3808903922400843e-06,
-        3.342780784480169e-06,
-        3.3046711767202537e-06
+        3.222924e-06,
+        3.163848e-06,
+        3.104772e-06
       ],
       "num_levels": 3
     },
     "SHIBUSD": {
-      "center": 6.09e-06,
+      "center": 5.77e-06,
       "levels": [
-        6.0169200000000005e-06,
-        5.94384e-06,
-        5.87076e-06
+        5.66614e-06,
+        5.5622799999999995e-06,
+        5.45842e-06
       ],
       "num_levels": 3
     },
     "BNBUSD": {
-      "center": 630.08,
+      "center": 612.05,
       "levels": [
-        618.73856,
-        607.39712,
-        596.05568
+        601.0331,
+        590.0161999999999,
+        578.9993
       ],
       "num_levels": 3
     },
     "TRXUSD": {
-      "center": 0.309621,
+      "center": 0.310125,
       "levels": [
-        0.30590554799999997,
-        0.30219009599999996,
-        0.29847464399999996
+        0.30454275,
+        0.29896049999999996,
+        0.29337824999999995
       ],
       "num_levels": 3
     },
     "HBARUSD": {
-      "center": 0.09249,
+      "center": 0.08908,
       "levels": [
-        0.09138012,
-        0.09027024,
-        0.08916036
+        0.08747656000000001,
+        0.08587312,
+        0.08426968
       ],
       "num_levels": 3
     },
     "HYPEUSD": {
-      "center": 39.16,
+      "center": 38.04,
       "levels": [
-        38.62158289205631,
-        38.08316578411263,
-        37.54474867616895
+        37.35891241227111,
+        36.67782482454222,
+        35.99673723681333
       ],
       "num_levels": 3
     },
     "TAOUSD": {
-      "center": 316.2126,
+      "center": 315.62,
       "levels": [
-        308.0517925406379,
-        299.8909850812758,
-        291.73017762191364
+        305.37886699512285,
+        295.1377339902457,
+        284.89660098536854
       ],
       "num_levels": 3
     },
     "INJUSD": {
-      "center": 3.045,
+      "center": 2.881,
       "levels": [
-        3.00846,
-        2.97192,
-        2.93538
+        2.8291419999999996,
+        2.777284,
+        2.7254259999999997
       ],
       "num_levels": 3
     },
     "ARBUSD": {
-      "center": 0.0971,
+      "center": 0.0898,
       "levels": [
-        0.0959348,
-        0.09476960000000001,
-        0.0936044
+        0.0881836,
+        0.0865672,
+        0.0849508
       ],
       "num_levels": 3
     },
     "OPUSD": {
-      "center": 0.1116,
+      "center": 0.1037,
       "levels": [
-        0.10947267256382474,
-        0.10734534512764948,
-        0.10521801769147422
+        0.102122680439708,
+        0.10054536087941601,
+        0.098968041319124
       ],
       "num_levels": 3
     },
     "APTUSD": {
-      "center": 1.0474,
+      "center": 0.9738,
       "levels": [
-        1.0130641699438718,
-        0.9787283398877433,
-        0.9443925098316149
+        0.9562716,
+        0.9387432,
+        0.9212148
       ],
       "num_levels": 3
     },
     "TIAUSD": {
-      "center": 0.324,
+      "center": 0.298,
       "levels": [
-        0.320112,
-        0.316224,
-        0.312336
+        0.2934727692463325,
+        0.28894553849266497,
+        0.28441830773899746
       ],
       "num_levels": 3
     },
     "ONDOUSD": {
-      "center": 0.25211,
+      "center": 0.26756,
       "levels": [
-        0.24911169352092286,
-        0.2461133870418457,
-        0.24311508056276854
+        0.26000427417508637,
+        0.2524485483501727,
+        0.24489282252525904
       ],
       "num_levels": 3
     },
     "RENDERUSD": {
-      "center": 1.708,
+      "center": 1.644,
       "levels": [
-        1.6808600095368313,
-        1.653720019073663,
-        1.6265800286104943
+        1.6110627999605607,
+        1.5781255999211212,
+        1.545188399881682
       ],
       "num_levels": 3
     },
     "JUPUSD": {
-      "center": 0.1531,
+      "center": 0.14254,
       "levels": [
-        0.1503442,
-        0.1475884,
-        0.1448326
+        0.13997428,
+        0.13740855999999999,
+        0.13484284
       ],
       "num_levels": 3
     },
     "ICPUSD": {
-      "center": 2.361,
+      "center": 2.227,
       "levels": [
-        2.318502,
-        2.276004,
-        2.233506
+        2.186914,
+        2.1468279999999997,
+        2.1067419999999997
       ],
       "num_levels": 3
     },
     "LDOUSD": {
-      "center": 0.291,
+      "center": 0.296,
       "levels": [
-        0.287508,
-        0.284016,
-        0.280524
+        0.29168662193103834,
+        0.2873732438620767,
+        0.28305986579311504
       ],
       "num_levels": 3
     },
     "BCHUSD": {
-      "center": 473.77,
+      "center": 474.77,
       "levels": [
-        468.08475999999996,
-        462.39952,
-        456.71428
+        469.07275999999996,
+        463.37552,
+        457.67828
       ],
       "num_levels": 3
     },
     "STXUSD": {
-      "center": 0.2413,
+      "center": 0.2248,
       "levels": [
-        0.2384044,
-        0.2355088,
-        0.2326132
+        0.2207536,
+        0.2167072,
+        0.21266079999999998
       ],
       "num_levels": 3
     },
     "KAVAUSD": {
-      "center": 0.0533,
+      "center": 0.0517,
       "levels": [
-        0.0526604,
-        0.0520208,
-        0.0513812
+        0.04990624928615271,
+        0.04811249857230542,
+        0.04631874785845813
       ],
       "num_levels": 3
     },
     "ENAUSD": {
-      "center": 0.0923,
+      "center": 0.0897,
       "levels": [
-        0.0904883864764807,
-        0.0886767729529614,
-        0.08686515942944212
+        0.08789522581287924,
+        0.08609045162575847,
+        0.08428567743863771
       ],
       "num_levels": 3
     },
     "FLOKIUSD": {
-      "center": 2.936e-05,
+      "center": 2.769e-05,
       "levels": [
-        2.900768e-05,
-        2.865536e-05,
-        2.830304e-05
+        2.719158e-05,
+        2.669316e-05,
+        2.6194739999999998e-05
       ],
       "num_levels": 3
     }
   },
   "active_positions": {
-    "TAOUSD": {
-      "pair": "TAOUSD",
-      "tool": "ema_cross_short",
-      "direction": "short",
+    "KAVAUSD": {
+      "pair": "KAVAUSD",
+      "tool": "entropy_dip",
+      "direction": "long",
       "leverage": 1,
-      "entry_price": 336.9826071,
-      "entry_bar": 93,
-      "position_size": 156.0,
-      "qty": 0.4629319042383301,
-      "sl_pct": 0.03,
-      "hold": 24,
-      "score": 34.0869375894307,
+      "entry_price": 0.05167415000000001,
+      "entry_bar": 1,
+      "entry_time": 1774659393.634674,
+      "position_size": 170.520584,
+      "qty": 3299.9204437808844,
+      "sl_pct": 0.04,
+      "hold": 8,
+      "score": 8.055178213015054,
       "total_margin_cost": 0
     },
-    "APTUSD": {
-      "pair": "APTUSD",
-      "tool": "ema_cross_short",
-      "direction": "short",
+    "ENAUSD": {
+      "pair": "ENAUSD",
+      "tool": "btc_alt_spread",
+      "direction": "long",
       "leverage": 1,
-      "entry_price": 1.1142568499999999,
-      "entry_bar": 93,
-      "position_size": 31.200000000000003,
-      "qty": 28.00072532648106,
-      "sl_pct": 0.03,
+      "entry_price": 0.08835580000000001,
+      "entry_bar": 23,
+      "entry_time": 1774665543.367809,
+      "position_size": 125.77808,
+      "qty": 1423.5407296408384,
+      "sl_pct": 0.05,
       "hold": 24,
-      "score": 29.093791166341255,
+      "score": 8.019355148231968,
       "total_margin_cost": 0
     },
-    "XLMUSD": {
-      "pair": "XLMUSD",
-      "tool": "ema_cross_short",
+    "TRXUSD": {
+      "pair": "TRXUSD",
+      "tool": "alt_btc_revert_t3",
       "direction": "short",
       "leverage": 1,
-      "entry_price": 0.174054984,
-      "entry_bar": 93,
-      "position_size": 6.239999999999998,
-      "qty": 35.85074013163564,
+      "entry_price": 0.31014299399999995,
+      "entry_bar": 24,
+      "entry_time": 1774665842.040978,
+      "position_size": 70.36643421278569,
+      "qty": 226.88384253098977,
       "sl_pct": 0.03,
       "hold": 24,
-      "score": 24.782770976401643,
+      "score": 10.593996868992837,
       "total_margin_cost": 0
     },
     "HYPEUSD": {
       "pair": "HYPEUSD",
-      "tool": "ema_cross_short",
+      "tool": "alt_btc_revert_t3",
       "direction": "short",
       "leverage": 1,
-      "entry_price": 40.420199999999994,
-      "entry_bar": 93,
-      "position_size": 1.247999999999999,
-      "qty": 0.03087565128326924,
+      "entry_price": 38.37918,
+      "entry_bar": 24,
+      "entry_time": 1774665860.418436,
+      "position_size": 14.073286842557138,
+      "qty": 0.3666906599504507,
       "sl_pct": 0.03,
       "hold": 24,
-      "score": 22.76522872128936,
+      "score": 8.102630110865002,
       "total_margin_cost": 0
     },
-    "PEPEUSD": {
-      "pair": "PEPEUSD",
+    "LDOUSD": {
+      "pair": "LDOUSD",
       "tool": "ema_cross_short",
       "direction": "short",
       "leverage": 1,
-      "entry_price": 3.535767e-06,
-      "entry_bar": 93,
-      "position_size": 0.2495999999999997,
-      "qty": 70592.88691817071,
+      "entry_price": 0.29614799999999997,
+      "entry_bar": 24,
+      "entry_time": 1774665877.266296,
+      "position_size": 2.814657368511428,
+      "qty": 9.504225483580603,
       "sl_pct": 0.03,
       "hold": 24,
-      "score": 19.721823523180774,
+      "score": 7.535428579376575,
       "total_margin_cost": 0
     }
   },
@@ -580,10 +599,10 @@
       "score_adj": 1.0
     },
     "falling_wedge_short": {
-      "trades": 66,
-      "wins": 35,
-      "pnl": 54.95479192415431,
-      "score_adj": 0.5
+      "trades": 60,
+      "wins": 34,
+      "pnl": 60.0,
+      "score_adj": 1.0
     },
     "greed_short_t2": {
       "trades": 75,
@@ -604,9 +623,9 @@
       "score_adj": 1.0
     },
     "distribution_short": {
-      "trades": 74,
+      "trades": 70,
       "wins": 37,
-      "pnl": 16.61067219268584,
+      "pnl": 18.0,
       "score_adj": 1.0
     },
     "late_us_short": {
@@ -622,9 +641,9 @@
       "score_adj": 1.0
     },
     "ema_cross_short": {
-      "trades": 96,
-      "wins": 50,
-      "pnl": 12.59317334500552,
+      "trades": 90,
+      "wins": 48,
+      "pnl": 13.0,
       "score_adj": 1.0
     },
     "rsi_pump_fat_tail": {
@@ -655,6 +674,42 @@
       "trades": 80,
       "wins": 42,
       "pnl": 11.0,
+      "score_adj": 1.0
+    },
+    "accumulation_breakout": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0,
+      "score_adj": 1.0
+    },
+    "hurst_trend_long": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0,
+      "score_adj": 1.0
+    },
+    "buy_weekly_green": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0,
+      "score_adj": 1.0
+    },
+    "buy_breakout_simple": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0,
+      "score_adj": 1.0
+    },
+    "simple_buy_uptrend": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0,
+      "score_adj": 1.0
+    },
+    "buy_btc_leading": {
+      "trades": 0,
+      "wins": 0,
+      "pnl": 0.0,
       "score_adj": 1.0
     }
   },
@@ -728,8 +783,8 @@
       "type": null
     },
     "falling_wedge_short": {
-      "streak": 5,
-      "type": "L"
+      "streak": 0,
+      "type": null
     },
     "greed_short_t2": {
       "streak": 0,
@@ -744,8 +799,8 @@
       "type": null
     },
     "distribution_short": {
-      "streak": 4,
-      "type": "L"
+      "streak": 0,
+      "type": null
     },
     "late_us_short": {
       "streak": 0,
@@ -756,8 +811,8 @@
       "type": null
     },
     "ema_cross_short": {
-      "streak": 1,
-      "type": "L"
+      "streak": 0,
+      "type": null
     },
     "rsi_pump_fat_tail": {
       "streak": 0,
@@ -778,235 +833,67 @@
     "dip_buy_5pct": {
       "streak": 0,
       "type": null
+    },
+    "accumulation_breakout": {
+      "streak": 0,
+      "type": null
+    },
+    "hurst_trend_long": {
+      "streak": 0,
+      "type": null
+    },
+    "buy_weekly_green": {
+      "streak": 0,
+      "type": null
+    },
+    "buy_breakout_simple": {
+      "streak": 0,
+      "type": null
+    },
+    "simple_buy_uptrend": {
+      "streak": 0,
+      "type": null
+    },
+    "buy_btc_leading": {
+      "streak": 0,
+      "type": null
     }
   },
-  "pending_limit_orders": {},
-  "trade_history": [
-    {
-      "pair": "BCHUSD",
-      "tool": "distribution_short",
+  "pending_limit_orders": {
+    "TRXUSD": {
       "direction": "short",
-      "leverage": 1,
-      "entry_price": 474.00688499999995,
-      "exit_price": 473.32,
-      "entry_bar": 1,
-      "exit_bar": 25,
-      "pnl_pct": -0.005050896576112051,
-      "pnl_dollar": -0.78793986587348,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
+      "qty": 226.88384253098977,
+      "price": 0.3103641045,
+      "placed_bar": 28,
+      "order_id": null,
+      "tool": "alt_btc_revert_t3"
     },
-    {
-      "pair": "TAOUSD",
-      "tool": "distribution_short",
+    "HYPEUSD": {
       "direction": "short",
-      "leverage": 1,
-      "entry_price": 316.3418919,
-      "exit_price": 317.6096,
-      "entry_bar": 1,
-      "exit_bar": 25,
-      "pnl_pct": -0.01050739874313179,
-      "pnl_dollar": -0.3278308407857119,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
+      "qty": 0.3666906599504507,
+      "price": 38.389185,
+      "placed_bar": 28,
+      "order_id": null,
+      "tool": "alt_btc_revert_t3"
     },
-    {
-      "pair": "AAVEUSD",
-      "tool": "falling_wedge_short",
+    "LDOUSD": {
       "direction": "short",
-      "leverage": 1,
-      "entry_price": 109.55475,
-      "exit_price": 108.67,
-      "entry_bar": 1,
-      "exit_bar": 25,
-      "pnl_pct": 0.0015758707404288442,
-      "pnl_dollar": 0.009833433420275985,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
+      "qty": 9.504225483580603,
+      "price": 0.29614799999999997,
+      "placed_bar": 28,
+      "order_id": null,
+      "tool": "ema_cross_short"
     },
-    {
-      "pair": "HYPEUSD",
-      "tool": "ema_cross_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 39.179579999999994,
-      "exit_price": 39.52,
-      "entry_bar": 1,
-      "exit_bar": 25,
-      "pnl_pct": -0.015188709781983598,
-      "pnl_dollar": -0.018955509807915515,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
-    },
-    {
-      "pair": "ARBUSD",
-      "tool": "ema_cross_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 0.09714855,
-      "exit_price": 0.0955,
-      "entry_bar": 1,
-      "exit_bar": 25,
-      "pnl_pct": 0.010469373191879846,
-      "pnl_dollar": 0.0026131555486932066,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
-    },
-    {
-      "pair": "TAOUSD",
-      "tool": "ema_cross_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 317.6211312,
-      "exit_price": 328.7612,
-      "entry_bar": 25,
-      "exit_bar": 36,
-      "pnl_pct": -0.04157344979822928,
-      "pnl_dollar": -0.2579253015968427,
-      "margin_cost_pct": 0,
-      "reason": "Stop loss @ $327.1498"
-    },
-    {
-      "pair": "ETHUSD",
-      "tool": "falling_wedge_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 2116.847895,
-      "exit_price": 2141.79,
-      "entry_bar": 25,
-      "exit_bar": 49,
-      "pnl_pct": -0.01828266282566329,
-      "pnl_dollar": -2.8356807927829455,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
-    },
-    {
-      "pair": "BCHUSD",
-      "tool": "distribution_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 473.55665999999997,
-      "exit_price": 474.47,
-      "entry_bar": 25,
-      "exit_bar": 49,
-      "pnl_pct": -0.008428681564736229,
-      "pnl_dollar": -0.26146137080268655,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
-    },
-    {
-      "pair": "LTCUSD",
-      "tool": "falling_wedge_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 55.70784,
-      "exit_price": 56.08,
-      "entry_bar": 25,
-      "exit_bar": 49,
-      "pnl_pct": -0.01318056776209598,
-      "pnl_dollar": -0.016354677957954915,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
-    },
-    {
-      "pair": "HYPEUSD",
-      "tool": "ema_cross_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 39.489734999999996,
-      "exit_price": 40.24,
-      "entry_bar": 25,
-      "exit_bar": 49,
-      "pnl_pct": -0.02549898796484722,
-      "pnl_dollar": -0.006327917642790959,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
-    },
-    {
-      "pair": "TAOUSD",
-      "tool": "ema_cross_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 329.04834194999995,
-      "exit_price": 324.9368,
-      "entry_bar": 36,
-      "exit_bar": 60,
-      "pnl_pct": 0.005995251991346334,
-      "pnl_dollar": 0.028816550981614193,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
-    },
-    {
-      "pair": "TAOUSD",
-      "tool": "ema_cross_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 325.30387064999996,
-      "exit_price": 335.4733,
-      "entry_bar": 60,
-      "exit_bar": 71,
-      "pnl_pct": -0.037761322927637384,
-      "pnl_dollar": -0.15504763247724046,
-      "margin_cost_pct": 0,
-      "reason": "Stop loss @ $335.0630"
-    },
-    {
-      "pair": "XBTUSD",
-      "tool": "falling_wedge_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 69976.5708,
-      "exit_price": 70359.6,
-      "entry_bar": 49,
-      "exit_bar": 73,
-      "pnl_pct": -0.011973677769874434,
-      "pnl_dollar": -1.7787464271653592,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
-    },
-    {
-      "pair": "ETHUSD",
-      "tool": "falling_wedge_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 2140.6697999999997,
-      "exit_price": 2149.74,
-      "entry_bar": 49,
-      "exit_bar": 73,
-      "pnl_pct": -0.010737085046932559,
-      "pnl_dollar": -0.319008946665552,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
-    },
-    {
-      "pair": "AAVEUSD",
-      "tool": "falling_wedge_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 110.99547,
-      "exit_price": 112.24,
-      "entry_bar": 49,
-      "exit_bar": 73,
-      "pnl_pct": -0.017712439570732007,
-      "pnl_dollar": -0.10525066469415197,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
-    },
-    {
-      "pair": "BNBUSD",
-      "tool": "distribution_short",
-      "direction": "short",
-      "leverage": 1,
-      "entry_price": 634.33701,
-      "exit_price": 636.67,
-      "entry_bar": 49,
-      "exit_bar": 73,
-      "pnl_pct": -0.010177839954506194,
-      "pnl_dollar": -0.012095729852284859,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24 bars)"
+    "ENAUSD": {
+      "direction": "long",
+      "qty": 1423.5407296408384,
+      "price": 0.0889555,
+      "placed_bar": 29,
+      "order_id": null,
+      "tool": "btc_alt_spread"
     }
-  ],
-  "current_bar": 96,
-  "last_update": "2026-03-24T20:17:01.789152"
+  },
+  "trade_history": [],
+  "current_bar": 29,
+  "last_update": "2026-03-27T23:06:46.626333"
 }

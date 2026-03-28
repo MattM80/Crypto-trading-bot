@@ -1,0 +1,1596 @@
+{
+  "total_balance": 327.9242,
+  "grid_positions": {
+    "NEARUSD": [
+      {
+        "buy_price": 1.2361749999999998,
+        "qty": 0.7090761750405187,
+        "bar": 20,
+        "level": 1
+      },
+      {
+        "buy_price": 1.21735,
+        "qty": 0.7192407925391661,
+        "bar": 150,
+        "level": 2
+      },
+      {
+        "buy_price": 1.1985249999999998,
+        "qty": 0.7322715882366017,
+        "bar": 370,
+        "level": 3
+      }
+    ],
+    "UNIUSD": [
+      {
+        "buy_price": 3.61101,
+        "qty": 0.24306615078814017,
+        "bar": 32,
+        "level": 1
+      },
+      {
+        "buy_price": 3.5560199999999997,
+        "qty": 0.2464896177006492,
+        "bar": 69,
+        "level": 2
+      },
+      {
+        "buy_price": 3.5010299999999996,
+        "qty": 0.2508068895473253,
+        "bar": 170,
+        "level": 3
+      }
+    ],
+    "AVAXUSD": [
+      {
+        "buy_price": 9.40675,
+        "qty": 0.09318830062165118,
+        "bar": 55,
+        "level": 1
+      },
+      {
+        "buy_price": 9.2635,
+        "qty": 0.09449655970165277,
+        "bar": 75,
+        "level": 2
+      },
+      {
+        "buy_price": 9.12025,
+        "qty": 0.09597763646054444,
+        "bar": 161,
+        "level": 3
+      }
+    ],
+    "LINKUSD": [
+      {
+        "buy_price": 9.1294164,
+        "qty": 0.09601910286334452,
+        "bar": 25,
+        "level": 1
+      },
+      {
+        "buy_price": 9.0185328,
+        "qty": 0.09744137267610281,
+        "bar": 69,
+        "level": 2
+      },
+      {
+        "buy_price": 8.9076492,
+        "qty": 0.09835011736181631,
+        "bar": 137,
+        "level": 3
+      }
+    ],
+    "AAVEUSD": [
+      {
+        "buy_price": 108.05285,
+        "qty": 0.008113473739798838,
+        "bar": 32,
+        "level": 1
+      },
+      {
+        "buy_price": 105.5657,
+        "qty": 0.008301555809182144,
+        "bar": 139,
+        "level": 2
+      },
+      {
+        "buy_price": 103.07855,
+        "qty": 0.00849691230665211,
+        "bar": 370,
+        "level": 3
+      }
+    ],
+    "SOLUSD": [
+      {
+        "buy_price": 90.53077,
+        "qty": 0.00967171438045761,
+        "bar": 16,
+        "level": 1
+      },
+      {
+        "buy_price": 89.71231,
+        "qty": 0.009777628785339144,
+        "bar": 24,
+        "level": 3
+      }
+    ],
+    "ETHUSD": [
+      {
+        "buy_price": 2135.08585,
+        "qty": 0.0004113620550237885,
+        "bar": 24,
+        "level": 1
+      },
+      {
+        "buy_price": 2118.9516999999996,
+        "qty": 0.0004132563180987376,
+        "bar": 26,
+        "level": 2
+      },
+      {
+        "buy_price": 2102.8175499999998,
+        "qty": 0.0004200693889996086,
+        "bar": 69,
+        "level": 3
+      }
+    ],
+    "XBTUSD": [
+      {
+        "buy_price": 70080.417,
+        "qty": 1.2502554093193325e-05,
+        "bar": 26,
+        "level": 1
+      },
+      {
+        "buy_price": 69372.534,
+        "qty": 1.2628890507779123e-05,
+        "bar": 92,
+        "level": 2
+      },
+      {
+        "buy_price": 68664.651,
+        "qty": 1.278955761946124e-05,
+        "bar": 170,
+        "level": 3
+      }
+    ],
+    "DOTUSD": [
+      {
+        "buy_price": 1.3189241999999999,
+        "qty": 0.6639639903158848,
+        "bar": 66,
+        "level": 1
+      },
+      {
+        "buy_price": 1.2947484,
+        "qty": 0.6753686670434901,
+        "bar": 365,
+        "level": 2
+      }
+    ],
+    "XLMUSD": [
+      {
+        "buy_price": 0.17347671,
+        "qty": 5.059454842723173,
+        "bar": 136,
+        "level": 1
+      },
+      {
+        "buy_price": 0.17172442,
+        "qty": 5.100582389941001,
+        "bar": 172,
+        "level": 2
+      },
+      {
+        "buy_price": 0.16997213,
+        "qty": 5.145552473837702,
+        "bar": 372,
+        "level": 3
+      }
+    ],
+    "XRPUSD": [
+      {
+        "buy_price": 1.37885225,
+        "qty": 0.6382993112775677,
+        "bar": 69,
+        "level": 1
+      },
+      {
+        "buy_price": 1.3578545,
+        "qty": 0.6450994159500654,
+        "bar": 137,
+        "level": 2
+      },
+      {
+        "buy_price": 1.33685675,
+        "qty": 0.6576992856478225,
+        "bar": 370,
+        "level": 3
+      }
+    ],
+    "ADAUSD": [
+      {
+        "buy_price": 0.26154588,
+        "qty": 3.3488899118124724,
+        "bar": 34,
+        "level": 1
+      },
+      {
+        "buy_price": 0.25675176,
+        "qty": 3.416694164130112,
+        "bar": 136,
+        "level": 2
+      },
+      {
+        "buy_price": 0.25195764,
+        "qty": 3.4829215549438475,
+        "bar": 346,
+        "level": 3
+      }
+    ],
+    "ATOMUSD": [
+      {
+        "buy_price": 1.7211948,
+        "qty": 0.509394657607,
+        "bar": 32,
+        "level": 1
+      },
+      {
+        "buy_price": 1.7002895999999998,
+        "qty": 0.5149523735263944,
+        "bar": 142,
+        "level": 2
+      },
+      {
+        "buy_price": 1.6793844,
+        "qty": 0.5225821985263895,
+        "bar": 370,
+        "level": 3
+      }
+    ],
+    "DOGEUSD": [
+      {
+        "buy_price": 0.0928197202,
+        "qty": 9.429265422506525,
+        "bar": 25,
+        "level": 1
+      },
+      {
+        "buy_price": 0.0911183404,
+        "qty": 9.61932274220034,
+        "bar": 137,
+        "level": 2
+      },
+      {
+        "buy_price": 0.0894169606,
+        "qty": 10.121333877329295,
+        "bar": 416,
+        "level": 3
+      }
+    ],
+    "FILUSD": [
+      {
+        "buy_price": 0.8905025000000001,
+        "qty": 0.9831889245362974,
+        "bar": 76,
+        "level": 1
+      },
+      {
+        "buy_price": 0.870005,
+        "qty": 1.0061103960001898,
+        "bar": 174,
+        "level": 2
+      },
+      {
+        "buy_price": 0.8495075,
+        "qty": 1.0396340979244973,
+        "bar": 370,
+        "level": 3
+      }
+    ],
+    "LTCUSD": [
+      {
+        "buy_price": 55.031949999999995,
+        "qty": 0.01592715949831279,
+        "bar": 69,
+        "level": 1
+      },
+      {
+        "buy_price": 54.1939,
+        "qty": 0.01624850913128605,
+        "bar": 370,
+        "level": 2
+      }
+    ],
+    "SUIUSD": [
+      {
+        "buy_price": 0.9350604,
+        "qty": 0.9434373507679834,
+        "bar": 69,
+        "level": 1
+      },
+      {
+        "buy_price": 0.9179208,
+        "qty": 0.954230943551908,
+        "bar": 136,
+        "level": 2
+      },
+      {
+        "buy_price": 0.9007812,
+        "qty": 0.9766893167498908,
+        "bar": 370,
+        "level": 3
+      }
+    ],
+    "PEPEUSD": [
+      {
+        "buy_price": 3.4232520000000003e-06,
+        "qty": 257819.13460144508,
+        "bar": 69,
+        "level": 1
+      },
+      {
+        "buy_price": 3.360504e-06,
+        "qty": 260588.283572541,
+        "bar": 177,
+        "level": 2
+      },
+      {
+        "buy_price": 3.297756e-06,
+        "qty": 265190.256704429,
+        "bar": 370,
+        "level": 3
+      }
+    ],
+    "SHIBUSD": [
+      {
+        "buy_price": 5.93128e-06,
+        "qty": 147561.23825249658,
+        "bar": 69,
+        "level": 1
+      },
+      {
+        "buy_price": 5.82256e-06,
+        "qty": 150487.48302142895,
+        "bar": 353,
+        "level": 2
+      }
+    ],
+    "BNBUSD": [
+      {
+        "buy_price": 634.6912,
+        "qty": 0.001380012211136299,
+        "bar": 27,
+        "level": 1
+      },
+      {
+        "buy_price": 626.9824,
+        "qty": 0.0013968849454536485,
+        "bar": 138,
+        "level": 2
+      },
+      {
+        "buy_price": 619.2736,
+        "qty": 0.0014122232814630738,
+        "bar": 346,
+        "level": 3
+      }
+    ],
+    "TRXUSD": [
+      {
+        "buy_price": 0.310635104,
+        "qty": 2.9147535944494054,
+        "bar": 410,
+        "level": 1
+      }
+    ],
+    "HBARUSD": [
+      {
+        "buy_price": 0.091817,
+        "qty": 9.545523539187352,
+        "bar": 53,
+        "level": 1
+      },
+      {
+        "buy_price": 0.09013399999999999,
+        "qty": 9.759261930511244,
+        "bar": 370,
+        "level": 2
+      }
+    ],
+    "HYPEUSD": [
+      {
+        "buy_price": 38.807883387612385,
+        "qty": 0.022564160465118735,
+        "bar": 34,
+        "level": 1
+      },
+      {
+        "buy_price": 38.12576677522477,
+        "qty": 0.023020860356885265,
+        "bar": 374,
+        "level": 2
+      }
+    ],
+    "TAOUSD": [
+      {
+        "buy_price": 328.30096260098605,
+        "qty": 0.002663667299594089,
+        "bar": 351,
+        "level": 1
+      },
+      {
+        "buy_price": 316.9071252019721,
+        "qty": 0.002857894134440305,
+        "bar": 508,
+        "level": 2
+      }
+    ],
+    "INJUSD": [
+      {
+        "buy_price": 2.9754599999999995,
+        "qty": 0.29452647015728867,
+        "bar": 69,
+        "level": 1
+      },
+      {
+        "buy_price": 2.9209199999999997,
+        "qty": 0.2998443011632597,
+        "bar": 196,
+        "level": 2
+      },
+      {
+        "buy_price": 2.8663799999999995,
+        "qty": 0.3156619926024413,
+        "bar": 467,
+        "level": 3
+      }
+    ],
+    "ARBUSD": [
+      {
+        "buy_price": 0.095254,
+        "qty": 9.191577130643955,
+        "bar": 32,
+        "level": 1
+      },
+      {
+        "buy_price": 0.093508,
+        "qty": 9.371692125483568,
+        "bar": 173,
+        "level": 2
+      },
+      {
+        "buy_price": 0.091762,
+        "qty": 9.576476192272752,
+        "bar": 370,
+        "level": 3
+      }
+    ],
+    "OPUSD": [
+      {
+        "buy_price": 0.1095912,
+        "qty": 7.99852050125507,
+        "bar": 56,
+        "level": 1
+      },
+      {
+        "buy_price": 0.1075824,
+        "qty": 8.16740074064103,
+        "bar": 183,
+        "level": 2
+      },
+      {
+        "buy_price": 0.1055736,
+        "qty": 8.334912072016229,
+        "bar": 373,
+        "level": 3
+      }
+    ],
+    "APTUSD": [
+      {
+        "buy_price": 1.0169854648304195,
+        "qty": 0.8592339527025008,
+        "bar": 291,
+        "level": 1
+      },
+      {
+        "buy_price": 0.9968709296608393,
+        "qty": 0.8791676986973376,
+        "bar": 370,
+        "level": 2
+      },
+      {
+        "buy_price": 0.976756394491259,
+        "qty": 0.9273137257058188,
+        "bar": 463,
+        "level": 3
+      }
+    ],
+    "TIAUSD": [
+      {
+        "buy_price": 0.3198374,
+        "qty": 2.7404890160892723,
+        "bar": 69,
+        "level": 1
+      },
+      {
+        "buy_price": 0.3139748,
+        "qty": 2.7894074076487096,
+        "bar": 174,
+        "level": 2
+      },
+      {
+        "buy_price": 0.30811219999999995,
+        "qty": 2.8526338543376912,
+        "bar": 370,
+        "level": 3
+      }
+    ],
+    "ONDOUSD": [],
+    "RENDERUSD": [
+      {
+        "buy_price": 1.767807885897434,
+        "qty": 0.49703351020457776,
+        "bar": 346,
+        "level": 1
+      },
+      {
+        "buy_price": 1.7386157717948683,
+        "qty": 0.5053943793956661,
+        "bar": 352,
+        "level": 2
+      },
+      {
+        "buy_price": 1.7094236576923025,
+        "qty": 0.5119041430646969,
+        "bar": 370,
+        "level": 3
+      }
+    ],
+    "JUPUSD": [
+      {
+        "buy_price": 0.15059952,
+        "qty": 5.833587618915365,
+        "bar": 69,
+        "level": 1
+      },
+      {
+        "buy_price": 0.14783904,
+        "qty": 5.961425080161856,
+        "bar": 174,
+        "level": 2
+      },
+      {
+        "buy_price": 0.14507856,
+        "qty": 6.0348721449095954,
+        "bar": 370,
+        "level": 3
+      }
+    ],
+    "ICPUSD": [
+      {
+        "buy_price": 2.345998,
+        "qty": 0.373150593960471,
+        "bar": 31,
+        "level": 1
+      },
+      {
+        "buy_price": 2.302996,
+        "qty": 0.380616852038845,
+        "bar": 92,
+        "level": 2
+      },
+      {
+        "buy_price": 2.259994,
+        "qty": 0.389804849021178,
+        "bar": 370,
+        "level": 3
+      }
+    ],
+    "LDOUSD": [],
+    "BCHUSD": [],
+    "STXUSD": [
+      {
+        "buy_price": 0.2350908,
+        "qty": 3.723566565265126,
+        "bar": 69,
+        "level": 1
+      },
+      {
+        "buy_price": 0.2307816,
+        "qty": 3.794844949455305,
+        "bar": 353,
+        "level": 2
+      },
+      {
+        "buy_price": 0.2264724,
+        "qty": 3.8790251834716165,
+        "bar": 374,
+        "level": 3
+      }
+    ],
+    "KAVAUSD": [
+      {
+        "buy_price": 0.05807162913506518,
+        "qty": 15.697168336705607,
+        "bar": 351,
+        "level": 1
+      },
+      {
+        "buy_price": 0.05714325827013036,
+        "qty": 15.697168336705607,
+        "bar": 351,
+        "level": 2
+      },
+      {
+        "buy_price": 0.05621488740519554,
+        "qty": 15.697168336705607,
+        "bar": 351,
+        "level": 3
+      }
+    ],
+    "ENAUSD": [
+      {
+        "buy_price": 0.10204177120933032,
+        "qty": 8.59565955635859,
+        "bar": 27,
+        "level": 1
+      },
+      {
+        "buy_price": 0.09978354241866064,
+        "qty": 8.856661364750048,
+        "bar": 69,
+        "level": 2
+      },
+      {
+        "buy_price": 0.09752531362799095,
+        "qty": 9.017388141792031,
+        "bar": 346,
+        "level": 3
+      },
+      {
+        "buy_price": 0.09121427401078729,
+        "qty": 9.919816565774088,
+        "bar": 454,
+        "level": 1
+      },
+      {
+        "buy_price": 0.08902854802157456,
+        "qty": 10.183211649293012,
+        "bar": 512,
+        "level": 2
+      }
+    ],
+    "FLOKIUSD": [
+      {
+        "buy_price": 2.924396e-05,
+        "qty": 29926.065076515206,
+        "bar": 58,
+        "level": 1
+      },
+      {
+        "buy_price": 2.8707919999999998e-05,
+        "qty": 30509.447351696243,
+        "bar": 151,
+        "level": 2
+      },
+      {
+        "buy_price": 2.817188e-05,
+        "qty": 31137.189328864042,
+        "bar": 370,
+        "level": 3
+      }
+    ]
+  },
+  "grid_profit": 0.7697522234813425,
+  "grid_round_trips": 47,
+  "grid_anchors": {
+    "NEARUSD": {
+      "center": 1.255,
+      "levels": [
+        1.2361749999999998,
+        1.21735,
+        1.1985249999999998
+      ],
+      "num_levels": 3
+    },
+    "UNIUSD": {
+      "center": 3.666,
+      "levels": [
+        3.61101,
+        3.5560199999999997,
+        3.5010299999999996
+      ],
+      "num_levels": 3
+    },
+    "AVAXUSD": {
+      "center": 9.55,
+      "levels": [
+        9.40675,
+        9.2635,
+        9.12025
+      ],
+      "num_levels": 3
+    },
+    "LINKUSD": {
+      "center": 9.2403,
+      "levels": [
+        9.1294164,
+        9.0185328,
+        8.9076492
+      ],
+      "num_levels": 3
+    },
+    "AAVEUSD": {
+      "center": 99.42,
+      "levels": [
+        97.18305000000001,
+        94.9461,
+        92.70915000000001
+      ],
+      "num_levels": 3
+    },
+    "SOLUSD": {
+      "center": 90.94,
+      "levels": [
+        90.53077,
+        90.12154,
+        89.71231
+      ],
+      "num_levels": 3
+    },
+    "ETHUSD": {
+      "center": 2151.22,
+      "levels": [
+        2135.08585,
+        2118.9516999999996,
+        2102.8175499999998
+      ],
+      "num_levels": 3
+    },
+    "XBTUSD": {
+      "center": 70788.3,
+      "levels": [
+        70080.417,
+        69372.534,
+        68664.651
+      ],
+      "num_levels": 3
+    },
+    "DOTUSD": {
+      "center": 1.3431,
+      "levels": [
+        1.3189241999999999,
+        1.2947484,
+        1.2705726
+      ],
+      "num_levels": 3
+    },
+    "XLMUSD": {
+      "center": 0.175229,
+      "levels": [
+        0.17347671,
+        0.17172442,
+        0.16997213
+      ],
+      "num_levels": 3
+    },
+    "XRPUSD": {
+      "center": 1.39985,
+      "levels": [
+        1.37885225,
+        1.3578545,
+        1.33685675
+      ],
+      "num_levels": 3
+    },
+    "ADAUSD": {
+      "center": 0.26634,
+      "levels": [
+        0.26154588,
+        0.25675176,
+        0.25195764
+      ],
+      "num_levels": 3
+    },
+    "ATOMUSD": {
+      "center": 1.7421,
+      "levels": [
+        1.7211948,
+        1.7002895999999998,
+        1.6793844
+      ],
+      "num_levels": 3
+    },
+    "DOGEUSD": {
+      "center": 0.0945211,
+      "levels": [
+        0.0928197202,
+        0.0911183404,
+        0.0894169606
+      ],
+      "num_levels": 3
+    },
+    "FILUSD": {
+      "center": 0.911,
+      "levels": [
+        0.8905025000000001,
+        0.870005,
+        0.8495075
+      ],
+      "num_levels": 3
+    },
+    "LTCUSD": {
+      "center": 55.87,
+      "levels": [
+        55.031949999999995,
+        54.1939,
+        53.35585
+      ],
+      "num_levels": 3
+    },
+    "SUIUSD": {
+      "center": 0.9522,
+      "levels": [
+        0.9350604,
+        0.9179208,
+        0.9007812
+      ],
+      "num_levels": 3
+    },
+    "PEPEUSD": {
+      "center": 3.486e-06,
+      "levels": [
+        3.4232520000000003e-06,
+        3.360504e-06,
+        3.297756e-06
+      ],
+      "num_levels": 3
+    },
+    "SHIBUSD": {
+      "center": 6.04e-06,
+      "levels": [
+        5.93128e-06,
+        5.82256e-06,
+        5.71384e-06
+      ],
+      "num_levels": 3
+    },
+    "BNBUSD": {
+      "center": 642.4,
+      "levels": [
+        634.6912,
+        626.9824,
+        619.2736
+      ],
+      "num_levels": 3
+    },
+    "TRXUSD": {
+      "center": 0.314408,
+      "levels": [
+        0.310635104,
+        0.306862208,
+        0.303089312
+      ],
+      "num_levels": 3
+    },
+    "HBARUSD": {
+      "center": 0.0935,
+      "levels": [
+        0.091817,
+        0.09013399999999999,
+        0.088451
+      ],
+      "num_levels": 3
+    },
+    "HYPEUSD": {
+      "center": 39.49,
+      "levels": [
+        38.807883387612385,
+        38.12576677522477,
+        37.443650162837145
+      ],
+      "num_levels": 3
+    },
+    "TAOUSD": {
+      "center": 339.6948,
+      "levels": [
+        328.30096260098605,
+        316.9071252019721,
+        305.51328780295825
+      ],
+      "num_levels": 3
+    },
+    "INJUSD": {
+      "center": 3.03,
+      "levels": [
+        2.9754599999999995,
+        2.9209199999999997,
+        2.8663799999999995
+      ],
+      "num_levels": 3
+    },
+    "ARBUSD": {
+      "center": 0.097,
+      "levels": [
+        0.095254,
+        0.093508,
+        0.091762
+      ],
+      "num_levels": 3
+    },
+    "OPUSD": {
+      "center": 0.1116,
+      "levels": [
+        0.1095912,
+        0.1075824,
+        0.1055736
+      ],
+      "num_levels": 3
+    },
+    "APTUSD": {
+      "center": 1.0371,
+      "levels": [
+        1.0169854648304195,
+        0.9968709296608393,
+        0.976756394491259
+      ],
+      "num_levels": 3
+    },
+    "TIAUSD": {
+      "center": 0.3257,
+      "levels": [
+        0.3198374,
+        0.3139748,
+        0.30811219999999995
+      ],
+      "num_levels": 3
+    },
+    "ONDOUSD": {
+      "center": 0.26748,
+      "levels": [
+        0.26442776404244067,
+        0.26137552808488135,
+        0.258323292127322
+      ],
+      "num_levels": 3
+    },
+    "RENDERUSD": {
+      "center": 1.797,
+      "levels": [
+        1.767807885897434,
+        1.7386157717948683,
+        1.7094236576923025
+      ],
+      "num_levels": 3
+    },
+    "JUPUSD": {
+      "center": 0.15336,
+      "levels": [
+        0.15059952,
+        0.14783904,
+        0.14507856
+      ],
+      "num_levels": 3
+    },
+    "ICPUSD": {
+      "center": 2.389,
+      "levels": [
+        2.345998,
+        2.302996,
+        2.259994
+      ],
+      "num_levels": 3
+    },
+    "LDOUSD": {
+      "center": 0.296,
+      "levels": [
+        0.290672,
+        0.285344,
+        0.280016
+      ],
+      "num_levels": 3
+    },
+    "BCHUSD": {
+      "center": 470.3,
+      "levels": [
+        461.8346,
+        453.3692,
+        444.9038
+      ],
+      "num_levels": 3
+    },
+    "STXUSD": {
+      "center": 0.2394,
+      "levels": [
+        0.2350908,
+        0.2307816,
+        0.2264724
+      ],
+      "num_levels": 3
+    },
+    "KAVAUSD": {
+      "center": 0.0527,
+      "levels": [
+        0.05105624928615271,
+        0.04941249857230542,
+        0.047768747858458124
+      ],
+      "num_levels": 3
+    },
+    "ENAUSD": {
+      "center": 0.0934,
+      "levels": [
+        0.09121427401078729,
+        0.08902854802157456,
+        0.08684282203236185
+      ],
+      "num_levels": 3
+    },
+    "FLOKIUSD": {
+      "center": 2.978e-05,
+      "levels": [
+        2.924396e-05,
+        2.8707919999999998e-05,
+        2.817188e-05
+      ],
+      "num_levels": 3
+    }
+  },
+  "active_positions": {
+    "TRXUSD": {
+      "pair": "TRXUSD",
+      "tool": "ema_cross_short",
+      "direction": "short",
+      "leverage": 1,
+      "entry_price": 0.3132575505,
+      "entry_bar": 298,
+      "entry_time": 1774586403.455218,
+      "position_size": 6.94384222077116,
+      "qty": 22.1665597834366,
+      "sl_pct": 0.03,
+      "hold": 24,
+      "score": 4.365676587613796,
+      "total_margin_cost": 0
+    },
+    "LINKUSD": {
+      "pair": "LINKUSD",
+      "tool": "blood_in_streets",
+      "direction": "long",
+      "leverage": 2,
+      "entry_price": 8.59643963,
+      "entry_bar": 385,
+      "entry_time": 1774612526.37408,
+      "position_size": 1.7266525469584424,
+      "qty": 0.20085670594751123,
+      "sl_pct": 0.06,
+      "hold": 24,
+      "score": 17.68545326734943,
+      "total_margin_cost": 0.05421688997449501
+    },
+    "ETHUSD": {
+      "pair": "ETHUSD",
+      "tool": "blood_in_streets",
+      "direction": "long",
+      "leverage": 2,
+      "entry_price": 1985.4967550000001,
+      "entry_bar": 392,
+      "entry_time": 1774614630.235975,
+      "position_size": 126.37943313689584,
+      "qty": 0.06365129170754844,
+      "sl_pct": 0.06,
+      "hold": 24,
+      "score": 13.55883566311391,
+      "total_margin_cost": 3.791382994106881
+    },
+    "BCHUSD": {
+      "pair": "BCHUSD",
+      "tool": "alt_btc_revert_t3",
+      "direction": "short",
+      "leverage": 1,
+      "entry_price": 463.261515,
+      "entry_bar": 405,
+      "entry_time": 1774618528.696149,
+      "position_size": 54.526647181276815,
+      "qty": 0.11770165536258029,
+      "sl_pct": 0.03,
+      "hold": 24,
+      "score": 11.484891813715898,
+      "total_margin_cost": 0
+    },
+    "LDOUSD": {
+      "pair": "LDOUSD",
+      "tool": "ema_cross_short",
+      "direction": "short",
+      "leverage": 1,
+      "entry_price": 0.30215099999999995,
+      "entry_bar": 483,
+      "entry_time": 1774641948.659237,
+      "position_size": 11.45106001077717,
+      "qty": 37.898468020218935,
+      "sl_pct": 0.03,
+      "hold": 24,
+      "score": 11.570876139737225,
+      "total_margin_cost": 0
+    }
+  },
+  "active_profit": 8.916261476732423,
+  "tool_stats": {
+    "volatile_oversold": {
+      "trades": 100,
+      "wins": 74,
+      "pnl": 207.0,
+      "score_adj": 1.0
+    },
+    "crash_buy": {
+      "trades": 120,
+      "wins": 78,
+      "pnl": 190.0,
+      "score_adj": 1.0
+    },
+    "mega_crash": {
+      "trades": 40,
+      "wins": 21,
+      "pnl": 135.0,
+      "score_adj": 1.0
+    },
+    "crash_neg_ac": {
+      "trades": 80,
+      "wins": 50,
+      "pnl": 125.0,
+      "score_adj": 1.0
+    },
+    "blood_in_streets": {
+      "trades": 61,
+      "wins": 37,
+      "pnl": 109.91434760930284,
+      "score_adj": 1.0
+    },
+    "quick_crash": {
+      "trades": 90,
+      "wins": 53,
+      "pnl": 98.0,
+      "score_adj": 1.0
+    },
+    "crash_mean_revert": {
+      "trades": 80,
+      "wins": 49,
+      "pnl": 98.0,
+      "score_adj": 1.0
+    },
+    "vpin_dip": {
+      "trades": 70,
+      "wins": 41,
+      "pnl": 73.0,
+      "score_adj": 1.0
+    },
+    "market_panic_70": {
+      "trades": 50,
+      "wins": 30,
+      "pnl": 75.0,
+      "score_adj": 1.0
+    },
+    "flash_crash": {
+      "trades": 60,
+      "wins": 33,
+      "pnl": 51.0,
+      "score_adj": 1.0
+    },
+    "deep_dip_8h": {
+      "trades": 70,
+      "wins": 38,
+      "pnl": 22.0,
+      "score_adj": 1.0
+    },
+    "entropy_dip": {
+      "trades": 60,
+      "wins": 32,
+      "pnl": 45.0,
+      "score_adj": 1.0
+    },
+    "vpin_toxic": {
+      "trades": 65,
+      "wins": 35,
+      "pnl": 45.0,
+      "score_adj": 1.0
+    },
+    "btc_alt_spread": {
+      "trades": 57,
+      "wins": 30,
+      "pnl": 44.79357855193425,
+      "score_adj": 1.0
+    },
+    "quick_dip": {
+      "trades": 90,
+      "wins": 50,
+      "pnl": 13.0,
+      "score_adj": 1.0
+    },
+    "mega_pump_sell_t1": {
+      "trades": 70,
+      "wins": 41,
+      "pnl": 61.0,
+      "score_adj": 1.0
+    },
+    "rsi_pump_8h": {
+      "trades": 80,
+      "wins": 48,
+      "pnl": 56.0,
+      "score_adj": 1.0
+    },
+    "falling_wedge_short": {
+      "trades": 61,
+      "wins": 35,
+      "pnl": 60.5050239211652,
+      "score_adj": 1.0
+    },
+    "greed_short_t2": {
+      "trades": 75,
+      "wins": 44,
+      "pnl": 31.0,
+      "score_adj": 1.0
+    },
+    "thursday_short": {
+      "trades": 85,
+      "wins": 49,
+      "pnl": 28.0,
+      "score_adj": 1.0
+    },
+    "mega_pump_sell_t2": {
+      "trades": 60,
+      "wins": 33,
+      "pnl": 19.0,
+      "score_adj": 1.0
+    },
+    "distribution_short": {
+      "trades": 71,
+      "wins": 37,
+      "pnl": 16.852607461250102,
+      "score_adj": 1.0
+    },
+    "late_us_short": {
+      "trades": 75,
+      "wins": 40,
+      "pnl": 16.0,
+      "score_adj": 1.0
+    },
+    "rsi_pump_12h": {
+      "trades": 80,
+      "wins": 44,
+      "pnl": 13.0,
+      "score_adj": 1.0
+    },
+    "ema_cross_short": {
+      "trades": 95,
+      "wins": 50,
+      "pnl": 12.633084736459418,
+      "score_adj": 1.0
+    },
+    "rsi_pump_fat_tail": {
+      "trades": 45,
+      "wins": 27,
+      "pnl": 7.0,
+      "score_adj": 1.0
+    },
+    "entropy_short": {
+      "trades": 65,
+      "wins": 36,
+      "pnl": 2.0,
+      "score_adj": 1.0
+    },
+    "alt_btc_revert_t3": {
+      "trades": 72,
+      "wins": 41,
+      "pnl": 11.217619196620623,
+      "score_adj": 1.0
+    },
+    "month_start_long": {
+      "trades": 50,
+      "wins": 27,
+      "pnl": 72.0,
+      "score_adj": 1.0
+    },
+    "dip_buy_5pct": {
+      "trades": 80,
+      "wins": 42,
+      "pnl": 11.0,
+      "score_adj": 1.0
+    }
+  },
+  "tool_streaks": {
+    "volatile_oversold": {
+      "streak": 0,
+      "type": null
+    },
+    "crash_buy": {
+      "streak": 0,
+      "type": null
+    },
+    "mega_crash": {
+      "streak": 0,
+      "type": null
+    },
+    "crash_neg_ac": {
+      "streak": 0,
+      "type": null
+    },
+    "blood_in_streets": {
+      "streak": 1,
+      "type": "L"
+    },
+    "quick_crash": {
+      "streak": 0,
+      "type": null
+    },
+    "crash_mean_revert": {
+      "streak": 0,
+      "type": null
+    },
+    "vpin_dip": {
+      "streak": 0,
+      "type": null
+    },
+    "market_panic_70": {
+      "streak": 0,
+      "type": null
+    },
+    "flash_crash": {
+      "streak": 0,
+      "type": null
+    },
+    "deep_dip_8h": {
+      "streak": 0,
+      "type": null
+    },
+    "entropy_dip": {
+      "streak": 0,
+      "type": null
+    },
+    "vpin_toxic": {
+      "streak": 0,
+      "type": null
+    },
+    "btc_alt_spread": {
+      "streak": 2,
+      "type": "L"
+    },
+    "quick_dip": {
+      "streak": 0,
+      "type": null
+    },
+    "mega_pump_sell_t1": {
+      "streak": 0,
+      "type": null
+    },
+    "rsi_pump_8h": {
+      "streak": 0,
+      "type": null
+    },
+    "falling_wedge_short": {
+      "streak": 1,
+      "type": "W"
+    },
+    "greed_short_t2": {
+      "streak": 0,
+      "type": null
+    },
+    "thursday_short": {
+      "streak": 0,
+      "type": null
+    },
+    "mega_pump_sell_t2": {
+      "streak": 0,
+      "type": null
+    },
+    "distribution_short": {
+      "streak": 1,
+      "type": "L"
+    },
+    "late_us_short": {
+      "streak": 0,
+      "type": null
+    },
+    "rsi_pump_12h": {
+      "streak": 0,
+      "type": null
+    },
+    "ema_cross_short": {
+      "streak": 1,
+      "type": "L"
+    },
+    "rsi_pump_fat_tail": {
+      "streak": 0,
+      "type": null
+    },
+    "entropy_short": {
+      "streak": 0,
+      "type": null
+    },
+    "alt_btc_revert_t3": {
+      "streak": 2,
+      "type": "W"
+    },
+    "month_start_long": {
+      "streak": 0,
+      "type": null
+    },
+    "dip_buy_5pct": {
+      "streak": 0,
+      "type": null
+    }
+  },
+  "pending_limit_orders": {},
+  "trade_history": [
+    {
+      "pair": "ENAUSD",
+      "tool": "ema_cross_short",
+      "direction": "short",
+      "leverage": 1,
+      "entry_price": 0.10435215,
+      "exit_price": 0.0979,
+      "entry_bar": 4,
+      "exit_bar": 100,
+      "pnl_pct": 0.05533054206357994,
+      "pnl_dollar": 0.06905251649534772,
+      "margin_cost_pct": 0,
+      "reason": "Take profit @ $0.0981"
+    },
+    {
+      "pair": "ONDOUSD",
+      "tool": "ema_cross_short",
+      "direction": "short",
+      "leverage": 1,
+      "entry_price": 0.2671335,
+      "exit_price": 0.27552,
+      "entry_bar": 4,
+      "exit_bar": 257,
+      "pnl_pct": -0.037894415151974434,
+      "pnl_dollar": -0.009458446021932809,
+      "margin_cost_pct": 0,
+      "reason": "Stop loss @ $0.2751"
+    },
+    {
+      "pair": "ONDOUSD",
+      "tool": "ema_cross_short",
+      "direction": "short",
+      "leverage": 1,
+      "entry_price": 0.27565776,
+      "exit_price": 0.28406,
+      "entry_bar": 257,
+      "exit_bar": 269,
+      "pnl_pct": -0.03698069461204359,
+      "pnl_dollar": -0.01526657913615229,
+      "margin_cost_pct": 0,
+      "reason": "Stop loss @ $0.2839"
+    },
+    {
+      "pair": "TAOUSD",
+      "tool": "distribution_short",
+      "direction": "short",
+      "leverage": 1,
+      "entry_price": 340.04253629999994,
+      "exit_price": 340.3333,
+      "entry_bar": 1,
+      "exit_bar": 289,
+      "pnl_pct": -0.007355080376601903,
+      "pnl_dollar": -1.1473925387498969,
+      "margin_cost_pct": 0,
+      "reason": "Hold timeout (24.0h)"
+    },
+    {
+      "pair": "BNBUSD",
+      "tool": "falling_wedge_short",
+      "direction": "short",
+      "leverage": 1,
+      "entry_price": 642.7212,
+      "exit_price": 628.14,
+      "entry_bar": 1,
+      "exit_bar": 289,
+      "pnl_pct": 0.01618666413991007,
+      "pnl_dollar": 0.5050239211651942,
+      "margin_cost_pct": 0,
+      "reason": "Hold timeout (24.0h)"
+    },
+    {
+      "pair": "ATOMUSD",
+      "tool": "btc_alt_spread",
+      "direction": "long",
+      "leverage": 1,
+      "entry_price": 1.74122895,
+      "exit_price": 1.7044,
+      "entry_bar": 1,
+      "exit_bar": 290,
+      "pnl_pct": -0.02765112432514982,
+      "pnl_dollar": -0.17254301578893483,
+      "margin_cost_pct": 0,
+      "reason": "Hold timeout (24.1h)"
+    },
+    {
+      "pair": "ONDOUSD",
+      "tool": "ema_cross_short",
+      "direction": "short",
+      "leverage": 1,
+      "entry_price": 0.28420202999999994,
+      "exit_price": 0.26693,
+      "entry_bar": 269,
+      "exit_bar": 385,
+      "pnl_pct": 0.054273774205623876,
+      "pnl_dollar": 0.02174274599247603,
+      "margin_cost_pct": 0,
+      "reason": "Take profit @ $0.2671"
+    },
+    {
+      "pair": "FLOKIUSD",
+      "tool": "btc_alt_spread",
+      "direction": "long",
+      "leverage": 1,
+      "entry_price": 2.874562e-05,
+      "exit_price": 2.805e-05,
+      "entry_bar": 100,
+      "exit_bar": 388,
+      "pnl_pct": -0.030699164951042926,
+      "pnl_dollar": -0.03387843227681753,
+      "margin_cost_pct": 0,
+      "reason": "Hold timeout (24.0h)"
+    },
+    {
+      "pair": "TAOUSD",
+      "tool": "alt_btc_revert_t3",
+      "direction": "short",
+      "leverage": 1,
+      "entry_price": 340.50346665,
+      "exit_price": 319.2543,
+      "entry_bar": 289,
+      "exit_bar": 392,
+      "pnl_pct": 0.055905140420616645,
+      "pnl_dollar": 8.348103721476978,
+      "margin_cost_pct": 0,
+      "reason": "Take profit @ $320.0733"
+    },
+    {
+      "pair": "RENDERUSD",
+      "tool": "alt_btc_revert_t3",
+      "direction": "short",
+      "leverage": 1,
+      "entry_price": 1.7878934999999998,
+      "exit_price": 1.68,
+      "entry_bar": 292,
+      "exit_bar": 405,
+      "pnl_pct": 0.05384671528253773,
+      "pnl_dollar": 1.8695154751436458,
+      "margin_cost_pct": 0,
+      "reason": "Take profit @ $1.6806"
+    },
+    {
+      "pair": "AAVEUSD",
+      "tool": "blood_in_streets",
+      "direction": "long",
+      "leverage": 2,
+      "entry_price": 101.10942,
+      "exit_price": 97.86,
+      "entry_bar": 388,
+      "exit_bar": 473,
+      "pnl_pct": -0.07132937336904724,
+      "pnl_dollar": -0.08565239069716579,
+      "margin_cost_pct": 0.0005540565884742472,
+      "reason": "Stop loss @ $98.0761"
+    },
+    {
+      "pair": "LDOUSD",
+      "tool": "ema_cross_short",
+      "direction": "short",
+      "leverage": 1,
+      "entry_price": 0.2931465,
+      "exit_price": 0.302,
+      "entry_bar": 473,
+      "exit_bar": 483,
+      "pnl_pct": -0.03670162273811905,
+      "pnl_dollar": -0.4329855008703195,
+      "margin_cost_pct": 0,
+      "reason": "Stop loss @ $0.3019"
+    }
+  ],
+  "current_bar": 541,
+  "last_update": "2026-03-27T20:49:38.512661"
+}
