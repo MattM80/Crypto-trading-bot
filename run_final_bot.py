@@ -163,15 +163,21 @@ class FinalTradingBot:
         # Real-time crash detection via websocket
         self.crash_monitor = None
         self.pending_crash_signals = []  # Queue of crash events from websocket
+        self.pending_pump_signals = []   # Queue of pump events for exit tightening
+        self.pending_volume_spikes = []  # Queue of volume spikes
         try:
-            self.crash_monitor = CrashMonitor(on_crash_callback=self._on_crash_detected)
+            self.crash_monitor = CrashMonitor(
+                on_crash_callback=self._on_crash_detected,
+                on_pump_callback=self._on_pump_detected,
+                on_volume_spike_callback=self._on_volume_spike
+            )
             if ENABLE_LIVE_TRADING:
                 self.crash_monitor.start()
-                logger.info("🔌 Real-time crash monitor: ACTIVE")
+                logger.info("🔌 Real-time monitor: ACTIVE (crash + pump + volume)")
             else:
-                logger.info("🔌 Real-time crash monitor: DISABLED (dry run)")
+                logger.info("🔌 Real-time monitor: DISABLED (dry run)")
         except Exception as e:
-            logger.warning(f"Crash monitor failed to start: {e}")
+            logger.warning(f"Real-time monitor failed to start: {e}")
         self.state = self.load_state()
         
         # UPGRADE 5: Balance tracking — syncs from Kraken account
@@ -1722,6 +1728,59 @@ class FinalTradingBot:
         })
         logger.info(f"🚨 CRASH QUEUED: {pair} {crash_type} {drop_pct*100:.1f}% @ ${current_price:.2f}")
     
+    def _on_pump_detected(self, pair, pump_type, change_pct, current_price):
+        """Pump detected — tighten trailing stops on open positions."""
+        self.pending_pump_signals.append({
+            'pair': pair, 'pump_type': pump_type,
+            'change_pct': change_pct, 'price': current_price
+        })
+    
+    def _on_volume_spike(self, pair, volume_mult, current_price):
+        """Volume spike — potential exit signal for profitable positions."""
+        self.pending_volume_spikes.append({
+            'pair': pair, 'volume_mult': volume_mult, 'price': current_price
+        })
+    
+    def process_realtime_signals(self):
+        """Process all queued real-time signals: crashes, pumps, volume spikes."""
+        # Process crashes (buy the blood)
+        self.process_crash_signals()
+        
+        # Process pumps — tighten trailing stops on open longs
+        if self.pending_pump_signals:
+            pumps = self.pending_pump_signals.copy()
+            self.pending_pump_signals.clear()
+            for pump in pumps:
+                pair = pump['pair']
+                if pair in self.active_positions:
+                    pos = self.active_positions[pair]
+                    if pos['direction'] == 'long':
+                        # Tighten stop to 5% on pump (protect gains in rapid move)
+                        pnl = (pump['price'] - pos['entry_price']) / pos['entry_price']
+                        if pnl > 0.02:  # Only if profitable
+                            pos['_pump_tighten'] = True
+                            logger.info(f"🚀 PUMP TIGHTEN: {pair} +{pump['change_pct']*100:.1f}% surge, "
+                                       f"tightening trail to 5% (pnl {pnl*100:+.1f}%)")
+        
+        # Process volume spikes — exit profitable positions at potential tops
+        if self.pending_volume_spikes:
+            spikes = self.pending_volume_spikes.copy()
+            self.pending_volume_spikes.clear()
+            for spike in spikes:
+                pair = spike['pair']
+                if pair in self.active_positions:
+                    pos = self.active_positions[pair]
+                    price = spike['price']
+                    if pos['direction'] == 'long':
+                        pnl = (price - pos['entry_price']) / pos['entry_price']
+                    else:
+                        pnl = (pos['entry_price'] - price) / pos['entry_price']
+                    
+                    if pnl > 0.03:  # 3%+ profit + volume spike = exit
+                        logger.info(f"💰 VOLUME EXIT: {pair} {spike['volume_mult']:.1f}x volume, pnl {pnl*100:+.1f}%")
+                        self.close_position(pair, price, 
+                            f"RT volume spike {spike['volume_mult']:.1f}x, pnl {pnl*100:+.1f}%")
+    
     def process_crash_signals(self):
         """Process any queued crash signals between regular cycles. Buy the blood."""
         if not self.pending_crash_signals:
@@ -1891,8 +1950,12 @@ class FinalTradingBot:
                     self.close_position(pair, current_price, regime_exit)
                     continue
                 
-                # SMART EXIT #3: RSI + momentum tightening
+                # SMART EXIT #3: RSI + momentum tightening + real-time pump tighten
                 smart_trail = self._smart_trailing_adjustment(pos, data, trailing_stop_pct)
+                
+                # Real-time pump detection override — tighten to 5% if flagged
+                if pos.get('_pump_tighten'):
+                    smart_trail = min(smart_trail, 0.05)
                 
                 # Dynamic trail: use 3x ATR, bounded by smart-adjusted trail %
                 atr_pct = (data.get('atr', 0) / current_price) if current_price > 0 else 0
@@ -2377,8 +2440,8 @@ class FinalTradingBot:
     def run_cycle(self):
         """Run one complete trading cycle with all upgrades."""
         try:
-            # Process any real-time crash signals from websocket
-            self.process_crash_signals()
+            # Process any real-time signals from websocket (crashes, pumps, volume)
+            self.process_realtime_signals()
             
             # UPGRADE 8: Enhanced status logging
             logger.info("═" * 80)
@@ -2591,10 +2654,13 @@ class FinalTradingBot:
                     while remaining > 0 and self.running:
                         time.sleep(min(10, remaining))
                         remaining -= 10
-                        # Process any real-time crash signals during sleep
-                        if self.pending_crash_signals:
-                            logger.info(f"🚨 Crash detected during sleep! Processing {len(self.pending_crash_signals)} signals")
-                            self.process_crash_signals()
+                        # Process any real-time signals during sleep
+                        has_signals = (self.pending_crash_signals or 
+                                      self.pending_pump_signals or 
+                                      self.pending_volume_spikes)
+                        if has_signals:
+                            logger.info(f"🔌 Real-time event during sleep! Processing...")
+                            self.process_realtime_signals()
                 else:
                     logger.warning(f"Cycle took {cycle_time:.1f}s, longer than {CHECK_INTERVAL}s interval!")
                     
