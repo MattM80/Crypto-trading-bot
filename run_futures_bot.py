@@ -52,6 +52,17 @@ STATE_FILE = DATA_DIR / "futures_bot_state.json"
 DATA_DIR.mkdir(exist_ok=True)
 LOGS_DIR.mkdir(exist_ok=True)
 
+# CSV logging helper function
+def write_csv_log(filename: str, headers: List[str], data: List[str]):
+    """Write to CSV log with headers if file doesn't exist."""
+    filepath = LOGS_DIR / filename
+    file_exists = os.path.exists(filepath)
+    
+    with open(filepath, 'a', newline='') as f:
+        if not file_exists:
+            f.write(','.join(headers) + '\n')
+        f.write(','.join(str(d) for d in data) + '\n')
+
 # Setup logging
 logger.remove()
 logger.add(sys.stdout, format="<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | <level>{message}</level>")
@@ -212,6 +223,16 @@ class UltimateFuturesBot:
         self.trade_history = self.state.get("trade_history", [])
         self.current_bar = self.state.get("current_bar", 0)
         
+        # Daily tracking variables for logging
+        self.last_date = self.state.get("last_date", datetime.now(timezone.utc).date().isoformat())
+        self.daily_trades_opened = self.state.get("daily_trades_opened", 0)
+        self.daily_trades_closed = self.state.get("daily_trades_closed", 0)
+        self.daily_wins = self.state.get("daily_wins", 0)
+        self.daily_losses = self.state.get("daily_losses", 0)
+        self.daily_tool_pnl = self.state.get("daily_tool_pnl", {})
+        self.daily_starting_balance = self.state.get("daily_starting_balance", self.total_balance)
+        self.cycle_number = self.state.get("cycle_number", 0)
+        
         logger.info(f"🚀 ULTIMATE FUTURES BOT initialized")
         logger.info(f"Total balance: ${self.total_balance:.2f} (start: ${self.starting_balance:.2f})")
         logger.info(f"Growth: {(self.total_balance/self.starting_balance-1)*100:+.1f}%")
@@ -284,6 +305,14 @@ class UltimateFuturesBot:
             "margin_available": self.margin_available,
             "trade_history": self.trade_history[-500:],
             "current_bar": self.current_bar,
+            "last_date": self.last_date,
+            "daily_trades_opened": self.daily_trades_opened,
+            "daily_trades_closed": self.daily_trades_closed,
+            "daily_wins": self.daily_wins,
+            "daily_losses": self.daily_losses,
+            "daily_tool_pnl": self.daily_tool_pnl,
+            "daily_starting_balance": self.daily_starting_balance,
+            "cycle_number": self.cycle_number,
             "last_update": datetime.now().isoformat()
         }
         

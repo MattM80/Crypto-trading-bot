@@ -93,6 +93,8 @@ MAX_ACTIVE_POSITIONS = 5    # Max simultaneous active positions
 RISK_PER_TRADE = 0.05       # 5% of active balance per trade
 GRID_REANCHOR_PCT = 0.10    # Reanchor grid when price moves >10% from center
 LIMIT_ORDER_TIMEOUT = 2     # Cancel and re-place limit orders after 2 cycles (10 min)
+MAX_LIMIT_RETRIES = 3       # Max re-places before giving up (3 retries = ~15 min total)
+PRICE_DRIFT_ABANDON = 0.02  # Abandon pending order if price drifted >2% from original entry
 
 # Multi-timeframe confirmation
 ENABLE_MTF = True  # Multi-timeframe confirmation
@@ -224,6 +226,15 @@ class FinalTradingBot:
         # Trade journal — detailed CSV for post-analysis
         self.trade_journal_path = LOGS_DIR / "trade_journal.csv"
         self._init_trade_journal()
+        
+        # Daily tracking
+        self._current_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        self._daily_stats = {
+            "trades_opened": 0, "trades_closed": 0, 
+            "wins": 0, "losses": 0, "pnl": 0.0,
+            "start_balance": self.total_balance,
+            "tool_pnl": {}
+        }
         
         logger.info(f"🚀 FINAL Trading Bot initialized with 8 UPGRADES")
         logger.info(f"Total balance: ${self.total_balance:.2f} (start: ${self.starting_balance:.2f})")
@@ -359,6 +370,81 @@ class FinalTradingBot:
                         f"{streak_info},{self.total_balance:.2f},{self.active_balance:.2f}\n")
         except Exception as e:
             logger.debug(f"Journal write error (close): {e}")
+    
+    def _log_balance_snapshot(self):
+        """Append balance snapshot to CSV."""
+        try:
+            path = LOGS_DIR / "balance_history.csv"
+            write_header = not path.exists()
+            with open(path, 'a') as f:
+                if write_header:
+                    f.write("timestamp,cycle,total_balance,active_balance,grid_balance,"
+                            "margin_in_use,fng,active_positions,grid_positions,"
+                            "active_profit,grid_profit\n")
+                margin_in_use = sum(
+                    pos.get('position_size', 0) for pos in self.active_positions.values()
+                )
+                grid_pos_count = sum(len(p) for p in self.grid_positions.values())
+                ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+                f.write(f"{ts},{self.current_bar},{self.total_balance:.2f},"
+                        f"{self.active_balance:.2f},{self.grid_balance:.2f},"
+                        f"{margin_in_use:.2f},{getattr(self, 'current_fng', -1)},"
+                        f"{len(self.active_positions)},{grid_pos_count},"
+                        f"{self.active_profit:.2f},{self.grid_profit:.2f}\n")
+        except Exception as e:
+            logger.debug(f"Balance snapshot error: {e}")
+    
+    def _log_rejection(self, pair, tool, direction, score, reason):
+        """Log a rejected signal to CSV."""
+        try:
+            path = LOGS_DIR / "rejected_signals.csv"
+            write_header = not path.exists()
+            with open(path, 'a') as f:
+                if write_header:
+                    f.write("timestamp,pair,tool,direction,score,reason\n")
+                ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+                f.write(f"{ts},{pair},{tool},{direction},{score:.2f},{reason}\n")
+        except Exception as e:
+            logger.debug(f"Rejection log error: {e}")
+    
+    def _check_daily_rollover(self):
+        """Check if date changed; if so, write daily summary and reset counters."""
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        if today == self._current_date:
+            return
+        
+        # Write summary for previous day
+        try:
+            stats = self._daily_stats
+            path = LOGS_DIR / "daily_summary.csv"
+            write_header = not path.exists()
+            with open(path, 'a') as f:
+                if write_header:
+                    f.write("date,start_balance,end_balance,pnl,trades_opened,trades_closed,"
+                            "wins,losses,win_rate,best_tool,worst_tool\n")
+                closed = stats["trades_closed"]
+                wins = stats["wins"]
+                wr = (wins / closed * 100) if closed > 0 else 0
+                # Best/worst tool by PnL
+                tool_pnl = stats["tool_pnl"]
+                best = max(tool_pnl, key=tool_pnl.get) if tool_pnl else ""
+                worst = min(tool_pnl, key=tool_pnl.get) if tool_pnl else ""
+                f.write(f"{self._current_date},{stats['start_balance']:.2f},"
+                        f"{self.total_balance:.2f},{stats['pnl']:.2f},"
+                        f"{stats['trades_opened']},{closed},{wins},{closed - wins},"
+                        f"{wr:.1f},{best},{worst}\n")
+        except Exception as e:
+            logger.debug(f"Daily summary error: {e}")
+        
+        # Reset for new day
+        self._current_date = today
+        self._daily_stats = {
+            "trades_opened": 0, "trades_closed": 0,
+            "wins": 0, "losses": 0, "pnl": 0.0,
+            "start_balance": self.total_balance,
+            "tool_pnl": {}
+        }
+        logger.info(f"📅 New day: {today} — daily stats reset")
     
     # UPGRADE 4: Dynamic capital allocation based on Fear & Greed
     def get_capital_allocation(self) -> Tuple[float, float]:
@@ -2063,12 +2149,41 @@ class FinalTradingBot:
         
         for pair, order_info in list(self.pending_limit_orders.items()):
             if current_bar - order_info["placed_bar"] >= LIMIT_ORDER_TIMEOUT:
-                # Cancel old order and place new one at current price
-                logger.info(f"[LIMIT TIMEOUT] Cancelling stale limit order for {pair}")
+                retries = order_info.get("retries", 0)
+                original_price = order_info.get("original_price", order_info["price"])
+                original_score = order_info.get("original_score", 0)
+                tool = order_info["tool"]
+                direction = order_info["direction"]
                 
+                # Check if we should ABANDON this order entirely
+                should_abandon = False
+                abandon_reason = ""
+                
+                # 1. Max retries exceeded
+                if retries >= MAX_LIMIT_RETRIES:
+                    should_abandon = True
+                    abandon_reason = f"max retries ({retries}/{MAX_LIMIT_RETRIES})"
+                
+                # 2. Price drifted too far from original entry
+                if not should_abandon and pair in market_data:
+                    current_price = market_data[pair]["price"]
+                    drift = abs(current_price - original_price) / original_price
+                    if drift > PRICE_DRIFT_ABANDON:
+                        should_abandon = True
+                        abandon_reason = f"price drift {drift:.1%} > {PRICE_DRIFT_ABANDON:.0%} (was ${original_price:.4f}, now ${current_price:.4f})"
+                
+                # 3. Opportunity cost — better signal available
+                if not should_abandon and hasattr(self, '_current_cycle_signals'):
+                    for sig, sig_score in self._current_cycle_signals:
+                        if sig['pair'] != pair and sig['pair'] not in self.active_positions and sig_score > original_score * 1.5:
+                            should_abandon = True
+                            abandon_reason = f"stronger signal: {sig['tool']} {sig['pair']} (score {sig_score:.1f} vs {original_score:.1f})"
+                            break
+                
+                # Cancel the order on Kraken
+                logger.info(f"[LIMIT TIMEOUT] Cancelling stale limit order for {pair} (retry #{retries})")
                 if ENABLE_LIVE_TRADING:
                     try:
-                        # Cancel old order
                         if "order_id" in order_info:
                             self.client.cancel_order(order_info["order_id"])
                     except Exception as e:
@@ -2077,19 +2192,30 @@ class FinalTradingBot:
                 # Remove from pending
                 del self.pending_limit_orders[pair]
                 
-                # Re-place at current price if still valid signal
+                if should_abandon:
+                    # ABANDON: release all capital back
+                    logger.info(f"[ABANDON] {pair} {direction} — {abandon_reason}")
+                    if pair in self.active_positions:
+                        pos = self.active_positions[pair]
+                        self.active_balance += pos['position_size']
+                        if pos.get('leverage', 1) == 2:
+                            self.active_balance += pos.get('total_margin_cost', 0)
+                        del self.active_positions[pair]
+                        logger.info(f"[CAPITAL FREED] ${pos['position_size']:.2f} returned to active balance (now ${self.active_balance:.2f})")
+                    # Log rejection
+                    self._log_rejection(pair, tool, direction, original_score, f"pending_abandoned: {abandon_reason}")
+                    continue
+                
+                # RE-PLACE at current price (still worth trying)
                 if pair in market_data:
                     current_price = market_data[pair]["price"]
-                    direction = order_info["direction"]
                     qty = order_info["qty"]
                     
-                    # Use bid/ask for better entry
                     if direction == 'long':
                         entry_price = market_data[pair].get("bid", current_price)
                     else:
                         entry_price = market_data[pair].get("ask", current_price)
                     
-                    # Re-place limit order
                     if ENABLE_LIVE_TRADING:
                         try:
                             side = "buy" if direction == 'long' else "sell"
@@ -2098,15 +2224,29 @@ class FinalTradingBot:
                                 "direction": direction,
                                 "qty": qty,
                                 "price": entry_price,
+                                "original_price": original_price,
+                                "original_score": original_score,
                                 "placed_bar": current_bar,
                                 "order_id": new_order_id,
-                                "tool": order_info["tool"]
+                                "tool": tool,
+                                "retries": retries + 1
                             }
-                            logger.info(f"[LIMIT RETRY] {pair} {direction} limit @ ${entry_price:.4f}")
+                            logger.info(f"[LIMIT RETRY #{retries + 1}] {pair} {direction} limit @ ${entry_price:.4f}")
                         except Exception as e:
                             logger.error(f"Failed to re-place limit order: {e}")
                     else:
-                        logger.info(f"[DRY RUN] {pair} {direction} limit RETRY @ ${entry_price:.4f}")
+                        logger.info(f"[DRY RUN] {pair} {direction} limit RETRY #{retries + 1} @ ${entry_price:.4f}")
+                        self.pending_limit_orders[pair] = {
+                            "direction": direction,
+                            "qty": qty,
+                            "price": entry_price,
+                            "original_price": original_price,
+                            "original_score": original_score,
+                            "placed_bar": current_bar,
+                            "order_id": None,
+                            "tool": tool,
+                            "retries": retries + 1
+                        }
     
     def close_position(self, pair: str, price: float, reason: str):
         """Close an active position with improved fees and margin cost tracking."""
@@ -2169,6 +2309,16 @@ class FinalTradingBot:
             
             # Update streak tracking
             self.update_tool_streak(tool, won)
+        
+        # Update daily stats
+        self._daily_stats["trades_closed"] += 1
+        self._daily_stats["pnl"] += pnl_dollar
+        if pnl_dollar > 0:
+            self._daily_stats["wins"] += 1
+        else:
+            self._daily_stats["losses"] += 1
+        tool_name = pos['tool']
+        self._daily_stats["tool_pnl"][tool_name] = self._daily_stats["tool_pnl"].get(tool_name, 0) + pnl_dollar
         
         # Execute close order — use post-only LIMIT for maker fees (0.25% vs 0.40% taker)
         # If the limit doesn't fill within 2 cycles, fall back to market
@@ -2329,6 +2479,7 @@ class FinalTradingBot:
                     position_size = actual_usd * 0.8
                     if position_size < 5.0:  # Below Kraken minimums
                         logger.warning(f"Insufficient USD (${actual_usd:.2f}) for {pair}, skipping")
+                        self._log_rejection(pair, tool, direction, score, "insufficient_usd")
                         return
             except Exception:
                 pass
@@ -2337,6 +2488,7 @@ class FinalTradingBot:
         market_data = self.get_market_data()
         if pair not in market_data:
             logger.warning(f"No market data for {pair}, skipping signal")
+            self._log_rejection(pair, tool, direction, score, "no_market_data")
             return
             
         data = market_data[pair]
@@ -2356,6 +2508,7 @@ class FinalTradingBot:
             margin_opening_cost = position_size * MARGIN_COST_OPEN
             if self.active_balance < margin_opening_cost:
                 logger.warning(f"Insufficient balance for margin opening cost: {pair}")
+                self._log_rejection(pair, tool, direction, score, "insufficient_margin_balance")
                 return
             self.active_balance -= margin_opening_cost
         
@@ -2381,9 +2534,12 @@ class FinalTradingBot:
                     "direction": direction,
                     "qty": qty,
                     "price": entry_price,
+                    "original_price": entry_price,
+                    "original_score": score,
                     "placed_bar": self.current_bar,
                     "order_id": order_id,
-                    "tool": tool
+                    "tool": tool,
+                    "retries": 0
                 }
                 
             except Exception as e:
@@ -2414,6 +2570,9 @@ class FinalTradingBot:
         
         self.active_positions[pair] = position
         self.active_balance -= position_size  # Reserve capital
+        
+        # Update daily stats
+        self._daily_stats["trades_opened"] += 1
         
         leverage_str = " (2x margin)" if leverage == 2 else ""
         margin_str = f", margin cost: ${margin_opening_cost:.2f}" if leverage == 2 else ""
@@ -2459,6 +2618,9 @@ class FinalTradingBot:
             logger.info("═" * 80)
             self.current_bar += 1
             
+            # Check for daily rollover and log previous day's summary
+            self._check_daily_rollover()
+            
             # 1. Get market data
             market_data = self.get_market_data()
             if not market_data:
@@ -2484,17 +2646,18 @@ class FinalTradingBot:
             # 5. UPGRADE 6: Update smart grid engine
             self.update_grids(market_data)
             
-            # 6. UPGRADE 1: Manage pending limit orders
-            self.manage_pending_limit_orders(market_data)
-            
-            # 7. Manage existing active positions
-            self.manage_positions(market_data)
-            
-            # 8. Scan for new signals
+            # 6. Scan for signals FIRST (needed for opportunity cost checks)
             all_signals = []
             for pair, data in market_data.items():
                 signals = self.scan_signals(pair, data)
                 all_signals.extend(signals)
+            self._current_cycle_signals = all_signals
+            
+            # 7. UPGRADE 1: Manage pending limit orders (can now compare vs fresh signals)
+            self.manage_pending_limit_orders(market_data)
+            
+            # 8. Manage existing active positions
+            self.manage_positions(market_data)
             
             # 9. Filter and score signals with correlation-aware limits
             # Correlated asset groups — max 2 positions per group to limit concentrated risk
@@ -2515,10 +2678,15 @@ class FinalTradingBot:
                 open_positions = len(self.active_positions)
                 for signal, score in all_signals:
                     if open_positions >= MAX_ACTIVE_POSITIONS:
+                        # Log all remaining signals as rejected
+                        for rem_signal, rem_score in all_signals[all_signals.index((signal, score)):]:
+                            self._log_rejection(rem_signal['pair'], rem_signal['tool'], 
+                                              rem_signal['direction'], rem_score, "max_positions_reached")
                         break
                     
                     pair = signal['pair']
                     if pair in self.active_positions:
+                        self._log_rejection(pair, signal['tool'], signal['direction'], score, "pair_already_open")
                         continue
                     
                     # Check correlation group limits
@@ -2533,6 +2701,7 @@ class FinalTradingBot:
                     
                     if group_count >= MAX_PER_GROUP:
                         logger.debug(f"Skipping {pair} ({direction}) — correlation group limit ({group_count}/{MAX_PER_GROUP})")
+                        self._log_rejection(pair, signal['tool'], signal['direction'], score, "correlation_group_limit")
                         continue
                     
                     self.execute_signal(signal, score)
@@ -2625,6 +2794,7 @@ class FinalTradingBot:
                 logger.info(f"Tool streaks: {streak_info}")
             
             # 11. Save state
+            self._log_balance_snapshot()
             self.save_state()
             
         except Exception as e:

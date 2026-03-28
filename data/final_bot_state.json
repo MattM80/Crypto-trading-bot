@@ -1,5 +1,5 @@
 {
-  "total_balance": 329.817854895242,
+  "total_balance": 343.03110405740404,
   "grid_positions": {
     "NEARUSD": [],
     "UNIUSD": [],
@@ -417,24 +417,8 @@
       "num_levels": 3
     }
   },
-  "active_positions": {
-    "KAVAUSD": {
-      "pair": "KAVAUSD",
-      "tool": "entropy_dip",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 0.05167415000000001,
-      "entry_bar": 1,
-      "entry_time": 1774659393.634674,
-      "position_size": 170.520584,
-      "qty": 3299.9204437808844,
-      "sl_pct": 0.04,
-      "hold": 8,
-      "score": 8.055178213015054,
-      "total_margin_cost": 0
-    }
-  },
-  "active_profit": 0.0,
+  "active_positions": {},
+  "active_profit": 2.6068316356306784,
   "tool_stats": {
     "volatile_oversold": {
       "trades": 100,
@@ -503,10 +487,11 @@
       "score_adj": 1.0
     },
     "entropy_dip": {
-      "trades": 60,
-      "wins": 32,
-      "pnl": 45.0,
-      "score_adj": 1.0
+      "trades": 61,
+      "wins": 33,
+      "pnl": 47.60683163563068,
+      "score_adj": 1.0,
+      "avg_win_pct": 0.00015287489489425383
     },
     "vpin_toxic": {
       "trades": 65,
@@ -699,8 +684,8 @@
       "type": null
     },
     "entropy_dip": {
-      "streak": 0,
-      "type": null
+      "streak": 1,
+      "type": "W"
     },
     "vpin_toxic": {
       "streak": 0,
@@ -800,7 +785,22 @@
     }
   },
   "pending_limit_orders": {},
-  "trade_history": [],
-  "current_bar": 39,
-  "last_update": "2026-03-27T23:51:37.466602"
+  "trade_history": [
+    {
+      "pair": "KAVAUSD",
+      "tool": "entropy_dip",
+      "direction": "long",
+      "leverage": 1,
+      "entry_price": 0.05167415000000001,
+      "exit_price": 0.0528,
+      "entry_bar": 1,
+      "exit_bar": 100,
+      "pnl_pct": 0.015287489489425383,
+      "pnl_dollar": 2.6068316356306784,
+      "margin_cost_pct": 0,
+      "reason": "Hold timeout (8.1h)"
+    }
+  ],
+  "current_bar": 227,
+  "last_update": "2026-03-28T15:42:55.240860"
 }
