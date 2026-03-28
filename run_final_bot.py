@@ -675,20 +675,10 @@ class FinalTradingBot:
         return 0.0, 1.0
     
     def rebalance_capital(self):
-        """UPGRADE 4: Rebalance capital allocation if needed."""
+        """Rebalance capital allocation. Grid disabled — 100% active."""
         grid_pct, active_pct = self.get_capital_allocation()
-        new_grid_balance = self.total_balance * grid_pct
-        new_active_balance = self.total_balance * active_pct
-        
-        # Only rebalance if shift is >= 5% to avoid thrashing
-        grid_shift = abs(new_grid_balance - self.grid_balance) / self.grid_balance
-        if grid_shift >= 0.05:
-            old_grid_pct = self.grid_balance / self.total_balance
-            logger.info(f"[REBALANCE] Grid: {old_grid_pct:.0%} → {grid_pct:.0%}, "
-                       f"Active: {(1-old_grid_pct):.0%} → {active_pct:.0%} (F&G={self.current_fng})")
-            
-            self.grid_balance = new_grid_balance
-            self.active_balance = new_active_balance
+        self.grid_balance = self.total_balance * grid_pct
+        self.active_balance = self.total_balance * active_pct
     
     def _initialize_tool_stats(self):
         """Initialize tool performance stats with validated results."""
