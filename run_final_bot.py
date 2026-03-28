@@ -75,12 +75,12 @@ PAIRS = ORIGINAL_PAIRS + NEW_PAIRS  # 40 total
 # Dynamic pair selection — refresh volatile pairs every hour
 VOLATILITY_REFRESH_INTERVAL = 3600  # 1 hour
 MAX_TRADING_PAIRS = 60  # Top N most volatile pairs to scan
-MIN_PAIR_VOLUME_USD = 500000   # Min 24h volume — need real liquidity to enter AND exit
-MIN_PAIR_PRICE_USD = 0.01      # No sub-penny coins — spread kills you
-MAX_POSITION_PCT_OF_VOLUME = 0.01  # Never be more than 1% of daily volume
+MIN_PAIR_VOLUME_USD = 1_000_000  # Min $1M 24h volume — real liquidity only
+MIN_PAIR_PRICE_USD = 0.01       # No sub-penny coins — spread/slippage kills you
+MAX_POSITION_PCT_OF_VOLUME = 0.005  # Never be more than 0.5% of daily volume
 
-# Coins restricted for US:FL or known rug/dead projects
-GEO_BLOCKED_PAIRS = {'BLUAIUSD', 'B3USD'}
+# Coins restricted for US:FL, known rugs, or naming collisions
+GEO_BLOCKED_PAIRS = {'BLUAIUSD', 'B3USD', 'GUSD'}
 
 # Grid configurations (ATR-based spacing per pair) - now with 40 pairs
 GRID_CONFIGS = {
@@ -3113,6 +3113,12 @@ class FinalTradingBot:
             
         data = market_data[pair]
         current_price = data["price"]
+        
+        # Hard price floor — never trade sub-penny coins regardless of scanner
+        if current_price < MIN_PAIR_PRICE_USD:
+            logger.warning(f"[PRICE GUARD] {pair} @ ${current_price:.6f} below ${MIN_PAIR_PRICE_USD} minimum, skipping")
+            self._log_rejection(pair, tool, direction, score, f"price_too_low_{current_price:.6f}")
+            return
         
         # UPGRADE 1: Use LIMIT orders for entry (maker fees)
         if direction == 'long':
