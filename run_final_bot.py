@@ -3306,8 +3306,12 @@ class FinalTradingBot:
             # 6. Scan for signals FIRST (needed for opportunity cost checks)
             all_signals = []
             for pair, data in market_data.items():
-                signals = self.scan_signals(pair, data)
-                all_signals.extend(signals)
+                try:
+                    signals = self.scan_signals(pair, data)
+                    all_signals.extend(signals)
+                except Exception as e:
+                    logger.debug(f"Signal scan failed for {pair}: {e}")
+                    continue
             self._current_cycle_signals = all_signals
             
             # 7. UPGRADE 1: Manage pending limit orders (can now compare vs fresh signals)
