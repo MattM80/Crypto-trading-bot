@@ -2737,11 +2737,8 @@ class FinalTradingBot:
         direction = signal['direction']
         tool = signal['tool']
         
-        # CRITICAL: Cannot short on Kraken spot without margin enabled
-        # Only allow shorts if we have margin capability, otherwise skip entirely
-        if direction == 'short' and ENABLE_LIVE_TRADING:
-            logger.debug(f"Skipping {tool} ({pair}) — short on spot not supported without margin")
-            return
+        # Shorts use Kraken margin (leverage=2) — account has margin enabled
+        # place_order passes leverage param which Kraken handles natively
         
         # Skip if we already have a position in this pair
         if pair in self.active_positions:
@@ -2776,9 +2773,14 @@ class FinalTradingBot:
                 logger.info(f"Skipping {tool} ({pair}) - bull tool blocked in fear/bear (F&G={fng}, {bullish_pct:.0f}% bullish)")
                 return
         
-        # UPGRADE 3: Determine if this is a Tier 1 tool (2x leverage)
-        use_leverage = tool in TIER1_TOOLS
-        leverage = 2 if use_leverage else 1
+        # UPGRADE 3: Determine leverage
+        # Tier 1 tools get 2x, ALL shorts need leverage=2 (margin required to sell short)
+        if direction == 'short':
+            leverage = 2  # Shorts always need margin
+        elif tool in TIER1_TOOLS:
+            leverage = 2  # Tier 1 longs get 2x
+        else:
+            leverage = 1
         
         # UPGRADE 9: Kelly Criterion position sizing
         # Uses historical win rate and avg win/loss ratio per tool to optimize bet size
