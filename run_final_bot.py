@@ -2241,6 +2241,12 @@ class FinalTradingBot:
         direction = signal['direction']
         tool = signal['tool']
         
+        # CRITICAL: Cannot short on Kraken spot without margin enabled
+        # Only allow shorts if we have margin capability, otherwise skip entirely
+        if direction == 'short' and ENABLE_LIVE_TRADING:
+            logger.debug(f"Skipping {tool} ({pair}) — short on spot not supported without margin")
+            return
+        
         # Skip if we already have a position in this pair
         if pair in self.active_positions:
             return
@@ -2363,6 +2369,13 @@ class FinalTradingBot:
                 else:
                     order_id = self.client.place_order(pair, side, "limit", qty, entry_price)
                 
+                # Check if order actually placed
+                if order_id is None:
+                    logger.warning(f"Order failed for {pair} — no order_id returned, aborting position")
+                    if leverage == 2:
+                        self.active_balance += margin_opening_cost
+                    return
+                
                 # Track pending limit order
                 self.pending_limit_orders[pair] = {
                     "direction": direction,
@@ -2375,7 +2388,6 @@ class FinalTradingBot:
                 
             except Exception as e:
                 logger.error(f"Failed to execute {direction} limit order for {pair}: {e}")
-                # Refund margin opening cost
                 if leverage == 2:
                     self.active_balance += margin_opening_cost
                 return
