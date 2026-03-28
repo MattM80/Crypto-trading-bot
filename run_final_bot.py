@@ -72,6 +72,11 @@ NEW_PAIRS = [
 
 PAIRS = ORIGINAL_PAIRS + NEW_PAIRS  # 40 total
 
+# Dynamic pair selection — refresh volatile pairs every hour
+VOLATILITY_REFRESH_INTERVAL = 3600  # 1 hour
+MAX_TRADING_PAIRS = 60  # Top N most volatile pairs to scan
+MIN_PAIR_VOLUME_USD = 50000  # Min 24h volume to avoid illiquid pairs
+
 # Grid configurations (ATR-based spacing per pair) - now with 40 pairs
 GRID_CONFIGS = {
     # Original 16 pairs
@@ -89,8 +94,8 @@ GRID_CONFIGS = {
 }
 
 # Constants
-MAX_ACTIVE_POSITIONS = 5    # Max simultaneous active positions
-RISK_PER_TRADE = 0.05       # 5% of active balance per trade
+MAX_ACTIVE_POSITIONS = 8    # Max simultaneous active positions
+RISK_PER_TRADE = 0.08       # 8% of active balance per trade
 GRID_REANCHOR_PCT = 0.10    # Reanchor grid when price moves >10% from center
 LIMIT_ORDER_TIMEOUT = 2     # Cancel and re-place limit orders after 2 cycles (10 min)
 MAX_LIMIT_RETRIES = 3       # Max re-places before giving up (3 retries = ~15 min total)
@@ -666,21 +671,8 @@ class FinalTradingBot:
     
     # UPGRADE 4: Dynamic capital allocation based on Fear & Greed
     def get_capital_allocation(self) -> Tuple[float, float]:
-        """Get capital allocation based on market regime."""
-        fng = self.current_fng  # Fear & Greed index (0-100)
-        
-        if fng < 20:  # Extreme fear — crash tools firing everywhere
-            grid_pct, active_pct = 0.35, 0.65
-        elif fng < 35:  # Fear — good for crash buys
-            grid_pct, active_pct = 0.45, 0.55
-        elif fng > 80:  # Extreme greed — shorts firing
-            grid_pct, active_pct = 0.45, 0.55
-        elif fng > 65:  # Greed — moderate short opportunities
-            grid_pct, active_pct = 0.50, 0.50
-        else:  # Neutral — grid grinds
-            grid_pct, active_pct = 0.65, 0.35
-        
-        return grid_pct, active_pct
+        """100% active trading — grid disabled at low balance."""
+        return 0.0, 1.0
     
     def rebalance_capital(self):
         """UPGRADE 4: Rebalance capital allocation if needed."""
@@ -821,7 +813,7 @@ class FinalTradingBot:
         """Fetch 1h and 4h market data for all pairs with multi-timeframe support."""
         market_data = {}
         
-        for pair in PAIRS:
+        for pair in self.get_active_pairs():
             try:
                 # Get 1h klines (last 200 bars for indicators)
                 klines = self.client.get_klines(pair, interval="1h", limit=200)
@@ -892,6 +884,113 @@ class FinalTradingBot:
                 continue
                 
         return market_data
+    
+    def _refresh_volatile_pairs(self):
+        """Scan all Kraken USD pairs and pick the most volatile ones.
+        
+        Runs every VOLATILITY_REFRESH_INTERVAL seconds. Uses 24h price range
+        as volatility proxy. Keeps a minimum set of blue-chips always included.
+        """
+        now = datetime.now(timezone.utc).timestamp()
+        if hasattr(self, '_vol_pairs_cache_ts') and now - self._vol_pairs_cache_ts < VOLATILITY_REFRESH_INTERVAL:
+            return  # Use cached list
+        
+        try:
+            # Always include blue chips
+            ALWAYS_INCLUDE = {'XBTUSD', 'ETHUSD', 'SOLUSD', 'XRPUSD', 'ADAUSD', 'AVAXUSD', 
+                            'LINKUSD', 'DOTUSD', 'BNBUSD', 'LTCUSD'}
+            
+            # Get all asset pairs
+            all_pairs_info = self.client._request('public/AssetPairs', {})
+            if not all_pairs_info:
+                return
+            
+            # Filter to USD pairs only
+            usd_pairs = []
+            for pair_name, info in all_pairs_info.items():
+                # Skip non-USD, stablecoins, and leveraged tokens
+                if not pair_name.endswith('USD'):
+                    continue
+                base = info.get('base', '')
+                if base in ('ZUSD', 'USDT', 'USDC', 'DAI', 'USDG', 'PYUSD', 'TUSD'):
+                    continue
+                wsname = info.get('wsname', pair_name)
+                altname = info.get('altname', pair_name)
+                usd_pairs.append(altname)
+            
+            logger.info(f"[VOLATILITY] Scanning {len(usd_pairs)} USD pairs for volatility...")
+            
+            # Fetch 24h tickers in batches
+            pair_volatility = {}
+            batch_size = 50
+            for i in range(0, len(usd_pairs), batch_size):
+                batch = usd_pairs[i:i+batch_size]
+                pair_str = ','.join(batch)
+                try:
+                    tickers = self.client._request('public/Ticker', {'pair': pair_str})
+                    if not tickers:
+                        continue
+                    for pair_key, data in tickers.items():
+                        # Normalize pair name back to our format
+                        # Try to find matching altname
+                        normalized = pair_key
+                        for p in usd_pairs:
+                            if p in pair_key or pair_key in p:
+                                normalized = p
+                                break
+                        
+                        try:
+                            high_24h = float(data['h'][1])  # 24h high
+                            low_24h = float(data['l'][1])   # 24h low
+                            last = float(data['c'][0])       # Last price
+                            vol_usd = float(data['v'][1]) * last  # 24h volume in USD
+                            
+                            if low_24h > 0 and vol_usd >= MIN_PAIR_VOLUME_USD:
+                                volatility = (high_24h - low_24h) / low_24h
+                                pair_volatility[normalized] = {
+                                    'volatility': volatility,
+                                    'volume_usd': vol_usd,
+                                    'price': last
+                                }
+                        except (KeyError, ValueError, ZeroDivisionError):
+                            pass
+                except Exception as e:
+                    logger.debug(f"Ticker batch error: {e}")
+                    continue
+            
+            if not pair_volatility:
+                return
+            
+            # Sort by volatility, pick top N
+            sorted_pairs = sorted(pair_volatility.items(), key=lambda x: x[1]['volatility'], reverse=True)
+            
+            # Build final list: always-include + top volatile
+            selected = set(ALWAYS_INCLUDE)
+            for pair, info in sorted_pairs:
+                if len(selected) >= MAX_TRADING_PAIRS:
+                    break
+                selected.add(pair)
+            
+            self._dynamic_pairs = list(selected)
+            self._vol_pairs_cache_ts = now
+            self._pair_volatility = pair_volatility
+            
+            # Log what changed
+            top5 = sorted_pairs[:5]
+            top5_str = ", ".join([f"{p} ({v['volatility']:.1%})" for p, v in top5])
+            logger.info(f"[VOLATILITY] Selected {len(self._dynamic_pairs)} pairs "
+                       f"(from {len(pair_volatility)} liquid). Top 5: {top5_str}")
+            
+        except Exception as e:
+            logger.error(f"Volatility scan failed: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+    
+    def get_active_pairs(self) -> list:
+        """Return current trading pairs — dynamic if available, fallback to static."""
+        if hasattr(self, '_dynamic_pairs') and self._dynamic_pairs:
+            return self._dynamic_pairs
+        return PAIRS
     
     # ===== INDICATOR CALCULATIONS - EXACT COPY =====
     
@@ -1874,6 +1973,8 @@ class FinalTradingBot:
     
     def update_grids(self, market_data: dict):
         """UPGRADE 5 & 6: Smart grid with scaling balance."""
+        # Grid disabled — all capital to active trading
+        return
         # UPGRADE 5: Scale grid balance with current total balance
         grid_pct, _ = self.get_capital_allocation()
         grid_balance_for_allocation = self.total_balance * grid_pct
@@ -2814,6 +2915,14 @@ class FinalTradingBot:
         else:  # short
             position_size = risk_amount / stop_loss_pct
         
+        # EXTREME FEAR BOOST: Double down on crash buys when F&G < 15
+        fear_boost_tools = {'crash_buy', 'mega_crash', 'blood_in_streets', 'volatile_oversold',
+                           'crash_neg_ac', 'crash_mean_revert', 'quick_crash', 'flash_crash',
+                           'market_panic_70', 'deep_dip_8h'}
+        if tool in fear_boost_tools and getattr(self, 'current_fng', 50) < 15:
+            position_size *= 1.5  # 50% bigger in extreme fear
+            logger.info(f"[FEAR BOOST] {tool} {pair} — 1.5x size in extreme fear (F&G={self.current_fng})")
+        
         # Apply leverage to position sizing (controls 2x notional with same risk)
         if leverage == 2:
             # Position size stays the same but controls 2x the notional
@@ -2960,6 +3069,10 @@ class FinalTradingBot:
         except:
             return 50  # Neutral on error
     
+    def get_fng(self) -> int:
+        """Alias for get_fear_greed()."""
+        return self.get_fear_greed()
+    
     def run_cycle(self):
         """Run one complete trading cycle with all upgrades."""
         try:
@@ -2998,6 +3111,9 @@ class FinalTradingBot:
             # 5. UPGRADE 6: Update smart grid engine
             self.update_grids(market_data)
             
+            # Refresh dynamic pair selection (hourly)
+            self._refresh_volatile_pairs()
+            
             # 6. Scan for signals FIRST (needed for opportunity cost checks)
             all_signals = []
             for pair, data in market_data.items():
@@ -3025,7 +3141,7 @@ class FinalTradingBot:
                            'HBARUSD', 'ARBUSD', 'OPUSD', 'TIAUSD', 'ONDOUSD', 'RENDERUSD',
                            'ENAUSD', 'HYPEUSD', 'TAOUSD', 'INJUSD', 'KAVAUSD'},
             }
-            MAX_PER_GROUP = 2  # Max same-direction positions in a correlated group
+            MAX_PER_GROUP = 3  # Max same-direction positions in a correlated group
             
             if all_signals:
                 all_signals.sort(key=lambda x: x[1], reverse=True)
