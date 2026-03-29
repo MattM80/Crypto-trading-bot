@@ -1,5 +1,5 @@
 {
-  "total_balance": 338.49648192025467,
+  "total_balance": 338.1058800984394,
   "grid_positions": {
     "NEARUSD": [],
     "UNIUSD": [],
@@ -433,6 +433,22 @@
       "score": 5.3,
       "total_margin_cost": 0,
       "_reconciled": false
+    },
+    "RIVERUSD": {
+      "pair": "RIVERUSD",
+      "tool": "reconciled",
+      "direction": "long",
+      "leverage": 1,
+      "entry_price": 13.788,
+      "entry_bar": 306,
+      "entry_time": 1774750465.128987,
+      "position_size": 53.151361200000004,
+      "qty": 3.8549,
+      "sl_pct": 0.08,
+      "hold": 48,
+      "score": 0,
+      "total_margin_cost": 0,
+      "_reconciled": true
     }
   },
   "active_profit": 2.6068316356306784,
@@ -833,6 +849,6 @@
       "reason": "reconciled_exit (market fallback)"
     }
   ],
-  "current_bar": 306,
-  "last_update": "2026-03-28T22:06:11.707497"
+  "current_bar": 308,
+  "last_update": "2026-03-28T22:19:47.167781"
 }

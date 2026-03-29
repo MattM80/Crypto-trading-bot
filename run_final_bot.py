@@ -98,6 +98,26 @@ GRID_CONFIGS = {
     "STXUSD": 0.012, "KAVAUSD": 0.012, "ENAUSD": 0.012, "FLOKIUSD": 0.012
 }
 
+# Kraken pair name normalization (API key → standard name)
+KRAKEN_PAIR_MAP = {
+    'XETHZUSD': 'ETHUSD', 'XXBTZUSD': 'XBTUSD', 'XXLMZUSD': 'XLMUSD',
+    'XXRPZUSD': 'XRPUSD', 'XLTCZUSD': 'LTCUSD', 'XXMRZUSD': 'XMRUSD',
+    'XZECZUSD': 'ZECUSD', 'XETCZUSD': 'ETCUSD', 'XMLNZUSD': 'MLNUSD',
+    'XREPZUSD': 'REPUSD', 'USDTZUSD': 'USDTUSD',
+}
+KRAKEN_PAIR_MAP_REVERSE = {v: k for k, v in KRAKEN_PAIR_MAP.items()}
+
+def normalize_pair(pair: str) -> str:
+    """Normalize Kraken pair names to standard format."""
+    return KRAKEN_PAIR_MAP.get(pair, pair)
+
+# Kraken asset → pair mapping for balance reconciliation
+KRAKEN_ASSET_TO_PAIR = {
+    'XETH': 'ETHUSD', 'XXBT': 'XBTUSD', 'XXLM': 'XLMUSD',
+    'XXRP': 'XRPUSD', 'XLTC': 'LTCUSD', 'XXMR': 'XMRUSD',
+    'XZEC': 'ZECUSD', 'XETC': 'ETCUSD', 'XREP': 'REPUSD',
+}
+
 # Constants
 MAX_ACTIVE_POSITIONS = 8    # Max simultaneous active positions
 RISK_PER_TRADE = 0.08       # 8% of active balance per trade
@@ -326,12 +346,10 @@ class FinalTradingBot:
             held_assets = {}  # asset -> qty
             for asset, amount in balances.items():
                 if asset not in usd_assets and amount > 0:
-                    # Normalize asset name to match PAIRS format (e.g., KAVA -> KAVAUSD)
-                    pair = f"{asset}USD"
-                    # Also handle Kraken's X/Z prefix (XXBT -> XBTUSD, XETH -> ETHUSD)
-                    if asset.startswith('X') and len(asset) == 4:
-                        pair = f"{asset[1:]}USD"
-                    elif asset.startswith('X') and len(asset) > 4:
+                    # Normalize asset name to pair format using mapping
+                    if asset in KRAKEN_ASSET_TO_PAIR:
+                        pair = KRAKEN_ASSET_TO_PAIR[asset]
+                    else:
                         pair = f"{asset}USD"
                     
                     # Check ALL held assets — don't filter by pair list
@@ -972,9 +990,11 @@ class FinalTradingBot:
                     break
                 selected.add(pair)
             
-            self._dynamic_pairs = list(selected)
+            # Normalize all pair names
+            self._dynamic_pairs = [normalize_pair(p) for p in selected]
             self._vol_pairs_cache_ts = now
-            self._pair_volatility = pair_volatility
+            # Also normalize volatility data keys
+            self._pair_volatility = {normalize_pair(k): v for k, v in pair_volatility.items()}
             
             # Log what changed
             top5 = sorted_pairs[:5]
@@ -988,10 +1008,22 @@ class FinalTradingBot:
             logger.error(traceback.format_exc())
     
     def get_active_pairs(self) -> list:
-        """Return current trading pairs — dynamic if available, fallback to static."""
+        """Return current trading pairs — dynamic if available, fallback to static.
+        Always includes pairs we currently hold positions in."""
         if hasattr(self, '_dynamic_pairs') and self._dynamic_pairs:
-            return self._dynamic_pairs
-        return PAIRS
+            pairs = set(self._dynamic_pairs)
+        else:
+            pairs = set(PAIRS)
+        
+        # Always include pairs with active positions or pending orders
+        for pair in self.active_positions:
+            pairs.add(pair)
+        for pair in self.pending_limit_orders:
+            pairs.add(pair)
+        for pair in self.pending_exit_orders:
+            pairs.add(pair)
+        
+        return list(pairs)
     
     # ===== INDICATOR CALCULATIONS - EXACT COPY =====
     
@@ -2576,9 +2608,16 @@ class FinalTradingBot:
             
             # Order is gone from Kraken. Check if we hold the asset.
             base_asset = pair.replace('USD', '')
+            # Also check Kraken's prefixed versions (XXBT, XETH, etc.)
+            possible_assets = {base_asset, 'X' + base_asset, 'XX' + base_asset}
+            # Add reverse mapping (e.g., ETHUSD → XETH)
+            for kraken_asset, mapped_pair in KRAKEN_ASSET_TO_PAIR.items():
+                if mapped_pair == pair:
+                    possible_assets.add(kraken_asset)
+            
             held_qty = 0
             for asset, amount in balances.items():
-                if asset == base_asset or asset == 'X' + base_asset:
+                if asset in possible_assets:
                     held_qty = float(amount)
                     break
             
