@@ -1,5 +1,5 @@
 {
-  "total_balance": 334.19981219681813,
+  "total_balance": 334.4824731278595,
   "grid_positions": {
     "NEARUSD": [],
     "UNIUSD": [],
@@ -417,7 +417,24 @@
       "num_levels": 3
     }
   },
-  "active_positions": {},
+  "active_positions": {
+    "SUIUSD": {
+      "pair": "SUIUSD",
+      "tool": "entropy_dip",
+      "direction": "long",
+      "leverage": 1,
+      "entry_price": 0.8543,
+      "entry_bar": 287,
+      "entry_time": 1774744865.932549,
+      "position_size": 268.20047280200004,
+      "qty": 313.20854,
+      "sl_pct": 0.04,
+      "hold": 24,
+      "score": 5.3,
+      "total_margin_cost": 0,
+      "_reconciled": false
+    }
+  },
   "active_profit": 2.6068316356306784,
   "tool_stats": {
     "volatile_oversold": {
@@ -816,6 +833,6 @@
       "reason": "reconciled_exit (market fallback)"
     }
   ],
-  "current_bar": 287,
-  "last_update": "2026-03-28T20:38:42.773758"
+  "current_bar": 288,
+  "last_update": "2026-03-28T20:41:45.528351"
 }

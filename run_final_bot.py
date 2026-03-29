@@ -3213,6 +3213,27 @@ class FinalTradingBot:
         self.active_positions[pair] = position
         self.active_balance -= position_size  # Reserve capital
         
+        # Place TP order on Kraken immediately so it's waiting on the book
+        exit_mode, take_profit_pct, trailing_stop_pct, _ = self._get_exit_params(tool, entry_price, {})
+        if take_profit_pct and ENABLE_LIVE_TRADING:
+            try:
+                if direction == 'long':
+                    tp_price = entry_price * (1 + take_profit_pct)
+                    tp_side = "sell"
+                else:
+                    tp_price = entry_price * (1 - take_profit_pct)
+                    tp_side = "buy"
+                # Place TP for 50% of position (partial TP)
+                tp_qty = qty * 0.5
+                tp_result = self.client.place_order(pair, tp_side, "limit", tp_qty, tp_price)
+                if tp_result:
+                    position['_tp_order_id'] = tp_result.get('txid', [None])[0] if isinstance(tp_result, dict) else tp_result
+                    position['_tp_price'] = tp_price
+                    position['_tp_qty'] = tp_qty
+                    logger.info(f"[TP PLACED] {pair} {tp_side} {tp_qty:.4f} @ ${tp_price:.4f} ({take_profit_pct:.0%} TP)")
+            except Exception as e:
+                logger.warning(f"Failed to place TP order for {pair}: {e}")
+        
         # Update daily stats
         self._daily_stats["trades_opened"] += 1
         
