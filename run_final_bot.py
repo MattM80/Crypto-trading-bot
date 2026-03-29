@@ -3458,6 +3458,9 @@ class FinalTradingBot:
             
             if self.active_positions:
                 for pair, pos in self.active_positions.items():
+                    if pair not in market_data:
+                        logger.info(f"  → {pair} {pos['direction']} (no market data this cycle)")
+                        continue
                     current_price = market_data[pair]["price"]
                     if pos['direction'] == 'long':
                         pnl_pct = (current_price - pos['entry_price']) / pos['entry_price']
