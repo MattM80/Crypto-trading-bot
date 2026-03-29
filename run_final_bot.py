@@ -334,7 +334,8 @@ class FinalTradingBot:
                     elif asset.startswith('X') and len(asset) > 4:
                         pair = f"{asset}USD"
                     
-                    if pair in PAIRS or pair.replace('X', '', 1) + 'USD' in PAIRS:
+                    active_pairs = set(self.get_active_pairs()) | set(PAIRS)
+                    if pair in active_pairs or pair.replace('X', '', 1) + 'USD' in active_pairs:
                         # Get current price
                         try:
                             result = self.client._request('public/Ticker', {'pair': pair})
