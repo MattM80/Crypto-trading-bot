@@ -334,8 +334,9 @@ class FinalTradingBot:
                     elif asset.startswith('X') and len(asset) > 4:
                         pair = f"{asset}USD"
                     
-                    active_pairs = set(self.get_active_pairs()) | set(PAIRS)
-                    if pair in active_pairs or pair.replace('X', '', 1) + 'USD' in active_pairs:
+                    # Check ALL held assets — don't filter by pair list
+                    # If we hold it on Kraken, we need to track it regardless
+                    if True:
                         # Get current price
                         try:
                             result = self.client._request('public/Ticker', {'pair': pair})

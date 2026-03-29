@@ -1,5 +1,5 @@
 {
-  "total_balance": 337.9497893865128,
+  "total_balance": 338.49648192025467,
   "grid_positions": {
     "NEARUSD": [],
     "UNIUSD": [],
@@ -833,6 +833,6 @@
       "reason": "reconciled_exit (market fallback)"
     }
   ],
-  "current_bar": 305,
-  "last_update": "2026-03-28T22:03:26.453886"
+  "current_bar": 306,
+  "last_update": "2026-03-28T22:06:11.707497"
 }
