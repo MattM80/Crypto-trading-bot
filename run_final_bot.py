@@ -2539,8 +2539,39 @@ class FinalTradingBot:
             else:
                 txid = None
             
-            # 1. Order still open → leave it alone
+            # 1. Order still open on Kraken — check if we should cancel it
             if txid and txid in open_txids:
+                should_cancel = False
+                cancel_reason = ""
+                
+                # Price drifted too far from entry
+                original_price = order_info.get("original_price", order_info.get("price", 0))
+                if pair in market_data and original_price > 0:
+                    current_price = market_data[pair]["price"]
+                    drift = abs(current_price - original_price) / original_price
+                    if drift > PRICE_DRIFT_ABANDON:
+                        should_cancel = True
+                        cancel_reason = f"price drift {drift:.1%} (was ${original_price:.4f}, now ${current_price:.4f})"
+                
+                # Better executable signal available (ignore blocked shorts)
+                if not should_cancel and hasattr(self, '_current_cycle_signals'):
+                    original_score = order_info.get("original_score", 0)
+                    for sig, sig_score in self._current_cycle_signals:
+                        if sig['direction'] == 'short' and ENABLE_LIVE_TRADING:
+                            continue
+                        if sig['pair'] != pair and sig['pair'] not in self.active_positions and sig_score > original_score * 1.5:
+                            should_cancel = True
+                            cancel_reason = f"stronger signal: {sig['tool']} {sig['pair']} (score {sig_score:.1f} vs {original_score:.1f})"
+                            break
+                
+                if should_cancel:
+                    # Cancel on Kraken — next cycle the reality check handles the rest
+                    logger.info(f"[CANCEL] {pair} — {cancel_reason}")
+                    try:
+                        self.client.cancel_order(txid)
+                    except Exception as e:
+                        logger.warning(f"Cancel failed for {pair}: {e}")
+                
                 continue
             
             # Order is gone from Kraken. Check if we hold the asset.
