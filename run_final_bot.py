@@ -2496,210 +2496,114 @@ class FinalTradingBot:
     
     # UPGRADE 1: Handle pending limit orders
     def manage_pending_limit_orders(self, market_data: dict):
-        """Check if pending limit orders filled, cancel stale ones."""
-        current_bar = self.current_bar
+        """Simple order management: check Kraken reality, not heuristics.
         
-        # First: check if any pending orders already filled
+        For each pending order:
+        1. Order still open on Kraken → leave it alone
+        2. Order gone + we hold the asset → it filled, confirm position
+        3. Order gone + we don't hold it → cancelled/expired, free capital
+        """
+        if not self.pending_limit_orders:
+            return
+        
+        # Get open orders and balances from Kraken
+        open_txids = set()
+        balances = {}
         if ENABLE_LIVE_TRADING:
             try:
                 open_orders = self.client.get_open_orders()
-                open_txids = set()
                 if isinstance(open_orders, dict) and 'open' in open_orders:
                     open_txids = set(open_orders['open'].keys())
                 elif isinstance(open_orders, dict):
                     open_txids = set(open_orders.keys())
-                
-                for pair, order_info in list(self.pending_limit_orders.items()):
-                    order_id = order_info.get("order_id")
-                    # If order_id is a dict with txid, extract it
-                    if isinstance(order_id, dict) and 'txid' in order_id:
-                        txid = order_id['txid'][0] if isinstance(order_id['txid'], list) else order_id['txid']
-                    elif isinstance(order_id, str):
-                        txid = order_id
-                    else:
-                        txid = None
-                    
-                    if txid and txid not in open_txids:
-                        # Order not in open orders = it filled (or was cancelled)
-                        # Check if we hold the asset
-                        direction = order_info["direction"]
-                        if direction == 'long':
-                            logger.info(f"[FILLED] {pair} {direction} limit order filled! Moving to active positions.")
-                            # Move to active positions
-                            if pair not in self.active_positions:
-                                self.active_positions[pair] = {
-                                    'pair': pair,
-                                    'tool': order_info.get("tool", "unknown"),
-                                    'direction': direction,
-                                    'leverage': 1,
-                                    'entry_price': order_info["price"],
-                                    'entry_bar': order_info["placed_bar"],
-                                    'entry_time': datetime.now(timezone.utc).timestamp(),
-                                    'position_size': order_info["qty"] * order_info["price"],
-                                    'qty': order_info["qty"],
-                                    'sl_pct': 0.04,
-                                    'hold': 24,
-                                    'score': 0,
-                                    'total_margin_cost': 0
-                                }
-                        del self.pending_limit_orders[pair]
-                        continue
             except Exception as e:
                 logger.debug(f"Error checking open orders: {e}")
+                return  # Can't check — don't make decisions
+            
+            try:
+                balances = self.client.get_account_balance() or {}
+            except Exception as e:
+                logger.debug(f"Error checking balances: {e}")
+                return
         
         for pair, order_info in list(self.pending_limit_orders.items()):
-            if current_bar - order_info["placed_bar"] >= LIMIT_ORDER_TIMEOUT:
-                retries = order_info.get("retries", 0)
-                original_price = order_info.get("original_price", order_info["price"])
-                original_score = order_info.get("original_score", 0)
-                tool = order_info["tool"]
-                direction = order_info["direction"]
+            order_id = order_info.get("order_id")
+            tool = order_info.get("tool", "unknown")
+            direction = order_info.get("direction", "long")
+            
+            # Extract txid
+            if isinstance(order_id, dict) and 'txid' in order_id:
+                txid = order_id['txid'][0] if isinstance(order_id['txid'], list) else order_id['txid']
+            elif isinstance(order_id, str):
+                txid = order_id
+            else:
+                txid = None
+            
+            # 1. Order still open → leave it alone
+            if txid and txid in open_txids:
+                continue
+            
+            # Order is gone from Kraken. Check if we hold the asset.
+            base_asset = pair.replace('USD', '')
+            held_qty = 0
+            for asset, amount in balances.items():
+                if asset == base_asset or asset == 'X' + base_asset:
+                    held_qty = float(amount)
+                    break
+            
+            expected_qty = order_info.get("qty", 0)
+            
+            if held_qty > expected_qty * 0.5:
+                # 2. We hold it → order filled
+                logger.info(f"[FILLED] {pair} {direction} — holding {held_qty:.4f} on Kraken")
                 
-                # Check if we should ABANDON this order entirely
-                should_abandon = False
-                abandon_reason = ""
-                
-                # 1. Max retries exceeded
-                if retries >= MAX_LIMIT_RETRIES:
-                    should_abandon = True
-                    abandon_reason = f"max retries ({retries}/{MAX_LIMIT_RETRIES})"
-                
-                # 2. Price drifted too far from original entry
-                if not should_abandon and pair in market_data:
-                    current_price = market_data[pair]["price"]
-                    drift = abs(current_price - original_price) / original_price
-                    if drift > PRICE_DRIFT_ABANDON:
-                        should_abandon = True
-                        abandon_reason = f"price drift {drift:.1%} > {PRICE_DRIFT_ABANDON:.0%} (was ${original_price:.4f}, now ${current_price:.4f})"
-                
-                # 3. Opportunity cost — better EXECUTABLE signal available
-                # Only compare against signals that can actually trade (skip blocked shorts)
-                if not should_abandon and hasattr(self, '_current_cycle_signals'):
-                    for sig, sig_score in self._current_cycle_signals:
-                        # Skip shorts — they're blocked by US margin restriction
-                        if sig['direction'] == 'short' and ENABLE_LIVE_TRADING:
-                            continue
-                        if sig['pair'] != pair and sig['pair'] not in self.active_positions and sig_score > original_score * 1.5:
-                            should_abandon = True
-                            abandon_reason = f"stronger signal: {sig['tool']} {sig['pair']} (score {sig_score:.1f} vs {original_score:.1f})"
-                            break
-                
-                # BEFORE cancelling: check if we actually hold this asset on Kraken
-                # If the order already filled, DON'T abandon — keep the position
-                if ENABLE_LIVE_TRADING and should_abandon:
-                    try:
-                        balances = self.client.get_account_balance()
-                        # Extract base asset from pair (e.g., SUIUSD -> SUI, RIVERUSD -> RIVER)
-                        base_asset = pair.replace('USD', '')
-                        held_qty = 0
-                        for asset, amount in balances.items():
-                            if asset == base_asset or asset == 'X' + base_asset:
-                                held_qty = float(amount)
-                                break
-                        
-                        expected_qty = order_info.get("qty", 0)
-                        if held_qty > expected_qty * 0.5:  # We hold at least half = order filled
-                            logger.info(f"[ALREADY FILLED] {pair} — holding {held_qty:.4f} on Kraken. Keeping position.")
-                            del self.pending_limit_orders[pair]
-                            # Make sure active_positions has this
-                            if pair not in self.active_positions:
-                                self.active_positions[pair] = {
-                                    'pair': pair,
-                                    'tool': tool,
-                                    'direction': direction,
-                                    'leverage': 1,
-                                    'entry_price': order_info["price"],
-                                    'entry_bar': order_info.get("placed_bar", self.current_bar),
-                                    'entry_time': datetime.now(timezone.utc).timestamp(),
-                                    'position_size': held_qty * order_info["price"],
-                                    'qty': held_qty,
-                                    'sl_pct': 0.04,
-                                    'hold': 24,
-                                    'score': original_score,
-                                    'total_margin_cost': 0
-                                }
-                                # Place TP order
-                                exit_mode, take_profit_pct, _, _ = self._get_exit_params(tool, order_info["price"], {})
-                                if take_profit_pct:
-                                    tp_price = order_info["price"] * (1 + take_profit_pct) if direction == 'long' else order_info["price"] * (1 - take_profit_pct)
-                                    tp_side = "sell" if direction == 'long' else "buy"
-                                    try:
-                                        tp_result = self.client.place_order(pair, tp_side, "limit", held_qty * 0.5, tp_price)
-                                        if tp_result:
-                                            logger.info(f"[TP PLACED] {pair} {tp_side} @ ${tp_price:.4f}")
-                                    except Exception:
-                                        pass
-                            continue
-                    except Exception as e:
-                        logger.debug(f"Balance check failed for {pair}: {e}")
-                
-                # Try to cancel the order on Kraken
-                logger.info(f"[LIMIT TIMEOUT] Cancelling stale limit order for {pair} (retry #{retries})")
-                if ENABLE_LIVE_TRADING:
-                    try:
-                        if "order_id" in order_info:
-                            self.client.cancel_order(order_info["order_id"])
-                    except Exception as e:
-                        logger.warning(f"Cancel failed for {pair}: {e}")
-                
-                # Remove from pending
-                del self.pending_limit_orders[pair]
-                
-                if should_abandon:
-                    # ABANDON: release all capital back
-                    logger.info(f"[ABANDON] {pair} {direction} — {abandon_reason}")
-                    if pair in self.active_positions:
-                        pos = self.active_positions[pair]
-                        self.active_balance += pos['position_size']
-                        if pos.get('leverage', 1) == 2:
-                            self.active_balance += pos.get('total_margin_cost', 0)
-                        del self.active_positions[pair]
-                        logger.info(f"[CAPITAL FREED] ${pos['position_size']:.2f} returned to active balance (now ${self.active_balance:.2f})")
-                    # Log rejection
-                    self._log_rejection(pair, tool, direction, original_score, f"pending_abandoned: {abandon_reason}")
-                    continue
-                
-                # RE-PLACE at current price (still worth trying)
-                if pair in market_data:
-                    current_price = market_data[pair]["price"]
-                    qty = order_info["qty"]
+                if pair not in self.active_positions:
+                    entry_price = order_info.get("price", 0)
+                    self.active_positions[pair] = {
+                        'pair': pair,
+                        'tool': tool,
+                        'direction': direction,
+                        'leverage': 1,
+                        'entry_price': entry_price,
+                        'entry_bar': order_info.get("placed_bar", self.current_bar),
+                        'entry_time': datetime.now(timezone.utc).timestamp(),
+                        'position_size': held_qty * entry_price,
+                        'qty': held_qty,
+                        'sl_pct': 0.04,
+                        'hold': 24,
+                        'score': order_info.get("original_score", 0),
+                        'total_margin_cost': 0
+                    }
                     
-                    if direction == 'long':
-                        entry_price = market_data[pair].get("bid", current_price)
-                    else:
-                        entry_price = market_data[pair].get("ask", current_price)
-                    
-                    if ENABLE_LIVE_TRADING:
+                    # Place TP order immediately
+                    exit_mode, take_profit_pct, _, _ = self._get_exit_params(tool, entry_price, {})
+                    if take_profit_pct and ENABLE_LIVE_TRADING:
                         try:
-                            side = "buy" if direction == 'long' else "sell"
-                            new_order_id = self.client.place_order(pair, side, "limit", qty, entry_price)
-                            self.pending_limit_orders[pair] = {
-                                "direction": direction,
-                                "qty": qty,
-                                "price": entry_price,
-                                "original_price": original_price,
-                                "original_score": original_score,
-                                "placed_bar": current_bar,
-                                "order_id": new_order_id,
-                                "tool": tool,
-                                "retries": retries + 1
-                            }
-                            logger.info(f"[LIMIT RETRY #{retries + 1}] {pair} {direction} limit @ ${entry_price:.4f}")
+                            tp_price = entry_price * (1 + take_profit_pct) if direction == 'long' else entry_price * (1 - take_profit_pct)
+                            tp_side = "sell" if direction == 'long' else "buy"
+                            tp_qty = held_qty * 0.5
+                            tp_result = self.client.place_order(pair, tp_side, "limit", tp_qty, tp_price)
+                            if tp_result:
+                                self.active_positions[pair]['_tp_order_id'] = tp_result.get('txid', [None])[0] if isinstance(tp_result, dict) else tp_result
+                                self.active_positions[pair]['_tp_price'] = tp_price
+                                logger.info(f"[TP PLACED] {pair} {tp_side} {tp_qty:.4f} @ ${tp_price:.4f}")
                         except Exception as e:
-                            logger.error(f"Failed to re-place limit order: {e}")
-                    else:
-                        logger.info(f"[DRY RUN] {pair} {direction} limit RETRY #{retries + 1} @ ${entry_price:.4f}")
-                        self.pending_limit_orders[pair] = {
-                            "direction": direction,
-                            "qty": qty,
-                            "price": entry_price,
-                            "original_price": original_price,
-                            "original_score": original_score,
-                            "placed_bar": current_bar,
-                            "order_id": None,
-                            "tool": tool,
-                            "retries": retries + 1
-                        }
+                            logger.warning(f"Failed to place TP for {pair}: {e}")
+                
+                del self.pending_limit_orders[pair]
+            
+            else:
+                # 3. We don't hold it → order expired/cancelled, free capital
+                logger.info(f"[EXPIRED] {pair} {direction} — order gone, not holding asset. Freeing capital.")
+                
+                if pair in self.active_positions:
+                    pos = self.active_positions[pair]
+                    self.active_balance += pos['position_size']
+                    del self.active_positions[pair]
+                    logger.info(f"[CAPITAL FREED] ${pos['position_size']:.2f} returned to active balance")
+                
+                self._log_rejection(pair, tool, direction, order_info.get("original_score", 0), "order_expired")
+                del self.pending_limit_orders[pair]
     
     def _partial_close(self, pair: str, price: float, close_pct: float, reason: str):
         """Close a percentage of a position and keep the rest running.
