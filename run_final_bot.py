@@ -2570,22 +2570,38 @@ class FinalTradingBot:
                         should_abandon = True
                         abandon_reason = f"price drift {drift:.1%} > {PRICE_DRIFT_ABANDON:.0%} (was ${original_price:.4f}, now ${current_price:.4f})"
                 
-                # 3. Opportunity cost — better signal available
+                # 3. Opportunity cost — better EXECUTABLE signal available
+                # Only compare against signals that can actually trade (skip blocked shorts)
                 if not should_abandon and hasattr(self, '_current_cycle_signals'):
                     for sig, sig_score in self._current_cycle_signals:
+                        # Skip shorts — they're blocked by US margin restriction
+                        if sig['direction'] == 'short' and ENABLE_LIVE_TRADING:
+                            continue
                         if sig['pair'] != pair and sig['pair'] not in self.active_positions and sig_score > original_score * 1.5:
                             should_abandon = True
                             abandon_reason = f"stronger signal: {sig['tool']} {sig['pair']} (score {sig_score:.1f} vs {original_score:.1f})"
                             break
                 
-                # Cancel the order on Kraken
+                # Cancel the order on Kraken — but check if it already filled first
                 logger.info(f"[LIMIT TIMEOUT] Cancelling stale limit order for {pair} (retry #{retries})")
+                cancel_succeeded = False
                 if ENABLE_LIVE_TRADING:
                     try:
                         if "order_id" in order_info:
-                            self.client.cancel_order(order_info["order_id"])
+                            cancel_result = self.client.cancel_order(order_info["order_id"])
+                            cancel_succeeded = cancel_result is not None
                     except Exception as e:
-                        logger.error(f"Failed to cancel order: {e}")
+                        # Cancel failed — order may have already filled
+                        logger.warning(f"Cancel failed for {pair}: {e} — checking if filled")
+                        cancel_succeeded = False
+                    
+                    # If cancel failed, the order likely filled — DON'T abandon
+                    if not cancel_succeeded:
+                        logger.info(f"[LIKELY FILLED] {pair} cancel failed — keeping position, will reconcile")
+                        del self.pending_limit_orders[pair]
+                        continue
+                else:
+                    cancel_succeeded = True
                 
                 # Remove from pending
                 del self.pending_limit_orders[pair]

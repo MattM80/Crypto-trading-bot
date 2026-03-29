@@ -1,5 +1,5 @@
 {
-  "total_balance": 337.95638997886164,
+  "total_balance": 334.19981219681813,
   "grid_positions": {
     "NEARUSD": [],
     "UNIUSD": [],
@@ -417,23 +417,7 @@
       "num_levels": 3
     }
   },
-  "active_positions": {
-    "GUSD": {
-      "pair": "GUSD",
-      "tool": "btc_alt_spread",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 0.0034092945,
-      "entry_bar": 269,
-      "entry_time": 1774739428.277619,
-      "position_size": 52.4044,
-      "qty": 15371.039374861868,
-      "sl_pct": 0.05,
-      "hold": 24,
-      "score": 6.911245576259531,
-      "total_margin_cost": 0
-    }
-  },
+  "active_positions": {},
   "active_profit": 2.6068316356306784,
   "tool_stats": {
     "volatile_oversold": {
@@ -832,6 +816,6 @@
       "reason": "reconciled_exit (market fallback)"
     }
   ],
-  "current_bar": 271,
-  "last_update": "2026-03-28T19:20:16.671897"
+  "current_bar": 287,
+  "last_update": "2026-03-28T20:38:42.773758"
 }
