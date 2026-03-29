@@ -1,5 +1,5 @@
 {
-  "total_balance": 334.4824731278595,
+  "total_balance": 336.8297946663578,
   "grid_positions": {
     "NEARUSD": [],
     "UNIUSD": [],
@@ -433,6 +433,24 @@
       "score": 5.3,
       "total_margin_cost": 0,
       "_reconciled": false
+    },
+    "RIVERUSD": {
+      "pair": "RIVERUSD",
+      "tool": "flash_crash",
+      "direction": "long",
+      "leverage": 1,
+      "entry_price": 13.4952,
+      "entry_bar": 300,
+      "entry_time": 1774744893.075458,
+      "position_size": 52.0,
+      "qty": 3.8549,
+      "sl_pct": 0.07,
+      "hold": 24,
+      "score": 28.6,
+      "total_margin_cost": 0,
+      "_tp_order_id": "OHGVFU-2QMTK-RTOVV3",
+      "_tp_price": 14.8447,
+      "_tp_qty": 3.8549
     }
   },
   "active_profit": 2.6068316356306784,
@@ -833,6 +851,6 @@
       "reason": "reconciled_exit (market fallback)"
     }
   ],
-  "current_bar": 288,
-  "last_update": "2026-03-28T20:41:45.528351"
+  "current_bar": 300,
+  "last_update": "2026-03-28T21:40:38.582510"
 }

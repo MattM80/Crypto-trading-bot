@@ -2582,26 +2582,63 @@ class FinalTradingBot:
                             abandon_reason = f"stronger signal: {sig['tool']} {sig['pair']} (score {sig_score:.1f} vs {original_score:.1f})"
                             break
                 
-                # Cancel the order on Kraken — but check if it already filled first
+                # BEFORE cancelling: check if we actually hold this asset on Kraken
+                # If the order already filled, DON'T abandon — keep the position
+                if ENABLE_LIVE_TRADING and should_abandon:
+                    try:
+                        balances = self.client.get_account_balance()
+                        # Extract base asset from pair (e.g., SUIUSD -> SUI, RIVERUSD -> RIVER)
+                        base_asset = pair.replace('USD', '')
+                        held_qty = 0
+                        for asset, amount in balances.items():
+                            if asset == base_asset or asset == 'X' + base_asset:
+                                held_qty = float(amount)
+                                break
+                        
+                        expected_qty = order_info.get("qty", 0)
+                        if held_qty > expected_qty * 0.5:  # We hold at least half = order filled
+                            logger.info(f"[ALREADY FILLED] {pair} — holding {held_qty:.4f} on Kraken. Keeping position.")
+                            del self.pending_limit_orders[pair]
+                            # Make sure active_positions has this
+                            if pair not in self.active_positions:
+                                self.active_positions[pair] = {
+                                    'pair': pair,
+                                    'tool': tool,
+                                    'direction': direction,
+                                    'leverage': 1,
+                                    'entry_price': order_info["price"],
+                                    'entry_bar': order_info.get("placed_bar", self.current_bar),
+                                    'entry_time': datetime.now(timezone.utc).timestamp(),
+                                    'position_size': held_qty * order_info["price"],
+                                    'qty': held_qty,
+                                    'sl_pct': 0.04,
+                                    'hold': 24,
+                                    'score': original_score,
+                                    'total_margin_cost': 0
+                                }
+                                # Place TP order
+                                exit_mode, take_profit_pct, _, _ = self._get_exit_params(tool, order_info["price"], {})
+                                if take_profit_pct:
+                                    tp_price = order_info["price"] * (1 + take_profit_pct) if direction == 'long' else order_info["price"] * (1 - take_profit_pct)
+                                    tp_side = "sell" if direction == 'long' else "buy"
+                                    try:
+                                        tp_result = self.client.place_order(pair, tp_side, "limit", held_qty * 0.5, tp_price)
+                                        if tp_result:
+                                            logger.info(f"[TP PLACED] {pair} {tp_side} @ ${tp_price:.4f}")
+                                    except Exception:
+                                        pass
+                            continue
+                    except Exception as e:
+                        logger.debug(f"Balance check failed for {pair}: {e}")
+                
+                # Try to cancel the order on Kraken
                 logger.info(f"[LIMIT TIMEOUT] Cancelling stale limit order for {pair} (retry #{retries})")
-                cancel_succeeded = False
                 if ENABLE_LIVE_TRADING:
                     try:
                         if "order_id" in order_info:
-                            cancel_result = self.client.cancel_order(order_info["order_id"])
-                            cancel_succeeded = cancel_result is not None
+                            self.client.cancel_order(order_info["order_id"])
                     except Exception as e:
-                        # Cancel failed — order may have already filled
-                        logger.warning(f"Cancel failed for {pair}: {e} — checking if filled")
-                        cancel_succeeded = False
-                    
-                    # If cancel failed, the order likely filled — DON'T abandon
-                    if not cancel_succeeded:
-                        logger.info(f"[LIKELY FILLED] {pair} cancel failed — keeping position, will reconcile")
-                        del self.pending_limit_orders[pair]
-                        continue
-                else:
-                    cancel_succeeded = True
+                        logger.warning(f"Cancel failed for {pair}: {e}")
                 
                 # Remove from pending
                 del self.pending_limit_orders[pair]
