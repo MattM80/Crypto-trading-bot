@@ -1,5 +1,5 @@
 {
-  "total_balance": 339.40182049700707,
+  "total_balance": 320.41635076187123,
   "grid_positions": {
     "NEARUSD": [],
     "UNIUSD": [],
@@ -397,67 +397,62 @@
     }
   },
   "active_positions": {
-    "AAVEUSD": {
-      "pair": "AAVEUSD",
+    "TAOUSD": {
+      "pair": "TAOUSD",
       "tool": "mega_crash",
       "direction": "long",
       "leverage": 1,
-      "entry_price": 92.48024531405778,
-      "entry_bar": 4110,
-      "entry_time": 1776605822.99213,
-      "position_size": 102.17641020442245,
-      "qty": 1.1048457955257043,
+      "entry_price": 264.18234275000003,
+      "entry_bar": 1918,
+      "entry_time": 1775829770.890515,
+      "position_size": 248.2696423345477,
+      "qty": 0.9397662226407358,
       "sl_pct": 0.08,
       "hold": 24,
-      "score": 32.542736955159775,
-      "total_margin_cost": 0,
-      "_dca_done": true,
-      "_dca_price": 90.5,
-      "_dca_size": 34.05880340147415,
-      "stop_loss": 85.08182568893316
-    },
-    "ZECUSD": {
-      "pair": "ZECUSD",
-      "tool": "dip_buy_5pct",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 312.74354999999997,
-      "entry_bar": 4152,
-      "entry_time": 1776618600.968364,
-      "position_size": 64.5159449300641,
-      "qty": 0.20629024940742696,
-      "sl_pct": 0.04,
-      "hold": 8,
-      "score": 6.734260505458363,
+      "score": 53.11746821448315,
       "total_margin_cost": 0
     },
-    "HYPEUSD": {
-      "pair": "HYPEUSD",
-      "tool": "btc_alt_spread",
+    "RIVERUSD": {
+      "pair": "RIVERUSD",
+      "tool": "crash_neg_ac",
       "direction": "long",
       "leverage": 1,
-      "entry_price": 41.5792,
-      "entry_bar": 4182,
-      "entry_time": 1776627721.670819,
-      "position_size": 68.2489974580414,
-      "qty": 1.6414216112393072,
+      "entry_price": 8.8945505,
+      "entry_bar": 1955,
+      "entry_time": 1775841017.247369,
+      "position_size": 52.32736,
+      "qty": 5.883080881940015,
       "sl_pct": 0.05,
-      "hold": 24,
-      "score": 9.109320638356877,
+      "hold": 8,
+      "score": 270.6809109776065,
       "total_margin_cost": 0,
-      "_tp_order_id": "OWQKHW-4JV3I-2ODYLB",
-      "_tp_price": 44.905536000000005,
-      "_tp_qty": 0.8207108056196536
+      "_tp_order_id": "OLXEP6-IPRXW-RT3XM5",
+      "_tp_price": 9.60611454,
+      "_tp_qty": 2.9415404409700074
+    },
+    "WLFIUSD": {
+      "pair": "WLFIUSD",
+      "tool": "mega_crash",
+      "direction": "long",
+      "leverage": 1,
+      "entry_price": 0.0797601,
+      "entry_bar": 1962,
+      "entry_time": 1775843145.7029,
+      "position_size": 10.380960000000002,
+      "qty": 130.1522941922089,
+      "sl_pct": 0.08,
+      "hold": 24,
+      "score": 39.27659574468087,
+      "total_margin_cost": 0
     }
   },
-  "active_profit": -71.62360216360734,
+  "active_profit": -62.531493002379584,
   "tool_stats": {
     "volatile_oversold": {
-      "trades": 101,
+      "trades": 100,
       "wins": 74,
-      "pnl": 196.77204713365182,
-      "score_adj": 1.0,
-      "avg_loss_pct": -0.0009909303143802474
+      "pnl": 207.0,
+      "score_adj": 1.0
     },
     "crash_buy": {
       "trades": 120,
@@ -472,11 +467,10 @@
       "score_adj": 1.0
     },
     "crash_neg_ac": {
-      "trades": 81,
-      "wins": 51,
-      "pnl": 127.83341303092497,
-      "score_adj": 1.0,
-      "avg_win_pct": 0.0008600447148328255
+      "trades": 80,
+      "wins": 50,
+      "pnl": 125.0,
+      "score_adj": 1.0
     },
     "blood_in_streets": {
       "trades": 60,
@@ -485,11 +479,10 @@
       "score_adj": 1.0
     },
     "quick_crash": {
-      "trades": 92,
+      "trades": 90,
       "wins": 53,
-      "pnl": 85.93656004805352,
-      "score_adj": 1.0,
-      "avg_loss_pct": -0.0005313389379694681
+      "pnl": 98.0,
+      "score_adj": 1.0
     },
     "crash_mean_revert": {
       "trades": 80,
@@ -522,12 +515,12 @@
       "score_adj": 1.0
     },
     "entropy_dip": {
-      "trades": 66,
+      "trades": 62,
       "wins": 33,
-      "pnl": 40.872445930130695,
-      "score_adj": 0.5,
+      "pnl": 45.20425079947234,
+      "score_adj": 1.0,
       "avg_win_pct": 0.00015287489489425383,
-      "avg_loss_pct": -0.00010182400260090938
+      "avg_loss_pct": -8.958152873697754e-05
     },
     "vpin_toxic": {
       "trades": 67,
@@ -538,20 +531,19 @@
       "avg_win_pct": 0.0016175336992146482
     },
     "btc_alt_spread": {
-      "trades": 67,
-      "wins": 36,
-      "pnl": 43.030245064788666,
+      "trades": 58,
+      "wins": 32,
+      "pnl": 44.575802832014865,
       "score_adj": 1.0,
-      "avg_win_pct": 0.00014409586847060688,
-      "avg_loss_pct": -0.001045143964874743
+      "avg_win_pct": 9.903195379235846e-05,
+      "avg_loss_pct": -0.0011932966350032869
     },
     "quick_dip": {
-      "trades": 99,
-      "wins": 53,
-      "pnl": -54.13725441873022,
+      "trades": 92,
+      "wins": 50,
+      "pnl": -46.643138695344206,
       "score_adj": 1.0,
-      "avg_loss_pct": -0.0014055297813907071,
-      "avg_win_pct": 0.002250630951301188
+      "avg_loss_pct": -0.0014680144323862626
     },
     "mega_pump_sell_t1": {
       "trades": 70,
@@ -638,12 +630,10 @@
       "score_adj": 1.0
     },
     "dip_buy_5pct": {
-      "trades": 83,
-      "wins": 44,
-      "pnl": 6.752390553320007,
-      "score_adj": 1.0,
-      "avg_win_pct": 0.0005536360874048036,
-      "avg_loss_pct": -0.001227357427400138
+      "trades": 80,
+      "wins": 42,
+      "pnl": 11.0,
+      "score_adj": 1.0
     },
     "accumulation_breakout": {
       "trades": 0,
@@ -684,8 +674,8 @@
   },
   "tool_streaks": {
     "volatile_oversold": {
-      "streak": 1,
-      "type": "L"
+      "streak": 0,
+      "type": null
     },
     "crash_buy": {
       "streak": 0,
@@ -696,16 +686,16 @@
       "type": null
     },
     "crash_neg_ac": {
-      "streak": 1,
-      "type": "W"
+      "streak": 0,
+      "type": null
     },
     "blood_in_streets": {
       "streak": 0,
       "type": null
     },
     "quick_crash": {
-      "streak": 2,
-      "type": "L"
+      "streak": 0,
+      "type": null
     },
     "crash_mean_revert": {
       "streak": 0,
@@ -728,7 +718,7 @@
       "type": null
     },
     "entropy_dip": {
-      "streak": 5,
+      "streak": 1,
       "type": "L"
     },
     "vpin_toxic": {
@@ -800,8 +790,8 @@
       "type": null
     },
     "dip_buy_5pct": {
-      "streak": 1,
-      "type": "L"
+      "streak": 0,
+      "type": null
     },
     "accumulation_breakout": {
       "streak": 0,
@@ -830,19 +820,6 @@
   },
   "pending_limit_orders": {},
   "pending_exit_orders": {},
-  "pair_cooldowns": {
-    "RAVEUSD": {
-      "expires": 1776707724.910619,
-      "stop_price": 1.06499,
-      "hard_until": 1776707724.910619
-    }
-  },
-  "pair_daily_stops": {
-    "RAVEUSD": {
-      "count": 1,
-      "date": "2026-04-19"
-    }
-  },
   "trade_history": [
     {
       "pair": "KAVAUSD",
@@ -1011,386 +988,8 @@
       "pnl_dollar": 3.670526880662271,
       "margin_cost_pct": 0,
       "reason": "Take profit (remaining) @ $1.3853 (retry)"
-    },
-    {
-      "pair": "RAVEUSD",
-      "tool": "quick_dip",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 2.043907535,
-      "exit_price": 2.5291,
-      "entry_bar": 2074,
-      "exit_bar": 2151,
-      "pnl_pct": 0.23088474304318266,
-      "pnl_dollar": 7.389053911577199,
-      "margin_cost_pct": 0,
-      "reason": "Take profit (remaining) @ $2.1665 (retry)"
-    },
-    {
-      "pair": "JITOSOLUSD",
-      "tool": "entropy_dip",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 106.28683000000001,
-      "exit_price": 104.72,
-      "entry_bar": 2088,
-      "exit_bar": 2187,
-      "pnl_pct": -0.02124152536113844,
-      "pnl_dollar": -1.3669065394961588,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (8.1h) \u2014 no signal conviction"
-    },
-    {
-      "pair": "ETHUSD",
-      "tool": "entropy_dip",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 2253.742565,
-      "exit_price": 2215.74,
-      "entry_bar": 2088,
-      "exit_bar": 2187,
-      "pnl_pct": -0.023361981306192454,
-      "pnl_dollar": -1.5033593153081353,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (8.1h) \u2014 no signal conviction"
-    },
-    {
-      "pair": "LINKUSD",
-      "tool": "entropy_dip",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 8.921926805,
-      "exit_price": 8.79123,
-      "entry_bar": 2088,
-      "exit_bar": 2188,
-      "pnl_pct": -0.021148943872388054,
-      "pnl_dollar": -1.3609488580087117,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (8.2h) \u2014 no signal conviction"
-    },
-    {
-      "pair": "SOLUSD",
-      "tool": "entropy_dip",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 82.57869000000001,
-      "exit_price": 82.25,
-      "entry_bar": 2090,
-      "exit_bar": 2190,
-      "pnl_pct": -0.01048032470604715,
-      "pnl_dollar": -0.10059015652864056,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (8.2h) \u2014 no signal conviction"
-    },
-    {
-      "pair": "RAVEUSD",
-      "tool": "quick_dip",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 2.55720076,
-      "exit_price": 2.78734,
-      "entry_bar": 2191,
-      "exit_bar": 2221,
-      "pnl_pct": 0.08349654763124649,
-      "pnl_dollar": 2.827675021491063,
-      "margin_cost_pct": 0,
-      "reason": "Take profit (remaining) @ $2.7106 (retry)"
-    },
-    {
-      "pair": "TAOUSD",
-      "tool": "quick_dip",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 263.2904889,
-      "exit_price": 258.3136,
-      "entry_bar": 2089,
-      "exit_bar": 2283,
-      "pnl_pct": -0.025402653570179935,
-      "pnl_dollar": -1.2312198776640524,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (16.1h) \u2014 no signal conviction"
-    },
-    {
-      "pair": "DOTUSD",
-      "tool": "btc_alt_spread",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 1.2243875000000002,
-      "exit_price": 1.1601,
-      "entry_bar": 2168,
-      "exit_bar": 2423,
-      "pnl_pct": -0.05900584475911447,
-      "pnl_dollar": -4.0060813394241475,
-      "margin_cost_pct": 0,
-      "reason": "Stop loss @ $1.1632"
-    },
-    {
-      "pair": "DOTUSD",
-      "tool": "btc_alt_spread",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 1.1663165500000001,
-      "exit_price": 1.2023,
-      "entry_bar": 2423,
-      "exit_bar": 2589,
-      "pnl_pct": 0.02435221589284642,
-      "pnl_dollar": 1.6313338823956378,
-      "margin_cost_pct": 0,
-      "reason": "RT volume spike 4.8x, pnl +3.1%"
-    },
-    {
-      "pair": "ZECUSD",
-      "tool": "btc_alt_spread",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 346.23679500000003,
-      "exit_price": 380.52,
-      "entry_bar": 2540,
-      "exit_bar": 2621,
-      "pnl_pct": 0.09251664264192357,
-      "pnl_dollar": 3.1388169835930526,
-      "margin_cost_pct": 0,
-      "reason": "Take profit (remaining) @ $373.9357"
-    },
-    {
-      "pair": "RAVEUSD",
-      "tool": "quick_dip",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 16.09338928,
-      "exit_price": 14.99997,
-      "entry_bar": 2818,
-      "exit_bar": 2838,
-      "pnl_pct": -0.07444213828897085,
-      "pnl_dollar": -5.16908027869884,
-      "margin_cost_pct": 0,
-      "reason": "Stop loss @ $15.2887"
-    },
-    {
-      "pair": "RAVEUSD",
-      "tool": "quick_dip",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 15.461665300000002,
-      "exit_price": 16.64024,
-      "entry_bar": 2844,
-      "exit_bar": 2916,
-      "pnl_pct": 0.06972559906273464,
-      "pnl_dollar": 2.3652664604305356,
-      "margin_cost_pct": 0,
-      "reason": "Take profit (remaining) @ $16.3894"
-    },
-    {
-      "pair": "RAVEUSD",
-      "tool": "quick_dip",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 17.271789785,
-      "exit_price": 15.3717,
-      "entry_bar": 2973,
-      "exit_bar": 2997,
-      "pnl_pct": -0.11651116900173059,
-      "pnl_dollar": -8.062333387609714,
-      "margin_cost_pct": 0,
-      "reason": "Stop loss @ $16.4082"
-    },
-    {
-      "pair": "RAVEUSD",
-      "tool": "quick_dip",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 15.570260975,
-      "exit_price": 14.37259,
-      "entry_bar": 2999,
-      "exit_bar": 3022,
-      "pnl_pct": -0.08342041751406801,
-      "pnl_dollar": -5.613477572912205,
-      "margin_cost_pct": 0,
-      "reason": "Stop loss @ $14.7917"
-    },
-    {
-      "pair": "RAVEUSD",
-      "tool": "quick_crash",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 13.965088042332404,
-      "exit_price": 13.32888,
-      "entry_bar": 3024,
-      "exit_bar": 3048,
-      "pnl_pct": -0.052057037693129124,
-      "pnl_dollar": -2.6052936754412244,
-      "margin_cost_pct": 0,
-      "reason": "Stop loss @ $13.5461"
-    },
-    {
-      "pair": "TAOUSD",
-      "tool": "btc_alt_spread",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 248.885495,
-      "exit_price": 248.0336,
-      "entry_bar": 2773,
-      "exit_bar": 3059,
-      "pnl_pct": -0.009922839085098088,
-      "pnl_dollar": -0.6875216206213925,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24.0h) \u2014 no signal conviction"
-    },
-    {
-      "pair": "RAVEUSD",
-      "tool": "quick_crash",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 13.797754469068684,
-      "exit_price": 12.5897,
-      "entry_bar": 3048,
-      "exit_bar": 3068,
-      "pnl_pct": -0.09405442574201889,
-      "pnl_dollar": -9.458146276505248,
-      "margin_cost_pct": 0,
-      "reason": "Stop loss @ $12.8319"
-    },
-    {
-      "pair": "RAVEUSD",
-      "tool": "crash_neg_ac",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 10.84167645,
-      "exit_price": 11.84458,
-      "entry_bar": 3204,
-      "exit_bar": 3236,
-      "pnl_pct": 0.08600447148328255,
-      "pnl_dollar": 2.833413030924967,
-      "margin_cost_pct": 0,
-      "reason": "Take profit (remaining) @ $11.7090"
-    },
-    {
-      "pair": "RAVEUSD",
-      "tool": "dip_buy_5pct",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 16.16223484,
-      "exit_price": 17.15492,
-      "entry_bar": 3300,
-      "exit_bar": 3376,
-      "pnl_pct": 0.054920043071221746,
-      "pnl_dollar": 1.8866347796868743,
-      "margin_cost_pct": 0,
-      "reason": "Take profit (remaining) @ $17.1320"
-    },
-    {
-      "pair": "JITOSOLUSD",
-      "tool": "btc_alt_spread",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 105.76709,
-      "exit_price": 114.23,
-      "entry_bar": 3049,
-      "exit_bar": 3546,
-      "pnl_pct": 0.07351458676796353,
-      "pnl_dollar": 2.471708266964595,
-      "margin_cost_pct": 0,
-      "reason": "Take profit (remaining) @ $114.2285"
-    },
-    {
-      "pair": "RAVEUSD",
-      "tool": "dip_buy_5pct",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 16.908081730000003,
-      "exit_price": 18.27657,
-      "entry_bar": 3548,
-      "exit_bar": 3568,
-      "pnl_pct": 0.07443693251860076,
-      "pnl_dollar": 2.6101105335765555,
-      "margin_cost_pct": 0,
-      "reason": "Take profit (remaining) @ $17.9226"
-    },
-    {
-      "pair": "RAVEUSD",
-      "tool": "dip_buy_5pct",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 24.59635567,
-      "exit_price": 21.73738,
-      "entry_bar": 3765,
-      "exit_bar": 3803,
-      "pnl_pct": -0.1227357427400138,
-      "pnl_dollar": -8.744354759943423,
-      "margin_cost_pct": 0,
-      "reason": "Stop loss @ $23.6125"
-    },
-    {
-      "pair": "TAOUSD",
-      "tool": "btc_alt_spread",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 248.99883830000002,
-      "exit_price": 246.9398,
-      "entry_bar": 3795,
-      "exit_bar": 4081,
-      "pnl_pct": -0.01476926870043966,
-      "pnl_dollar": -1.054237668307287,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24.1h) \u2014 no signal conviction"
-    },
-    {
-      "pair": "AVAXUSD",
-      "tool": "btc_alt_spread",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 9.425285,
-      "exit_price": 9.25,
-      "entry_bar": 3795,
-      "exit_bar": 4083,
-      "pnl_pct": -0.02509731562493872,
-      "pnl_dollar": -1.7914587405685023,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24.2h) \u2014 no signal conviction"
-    },
-    {
-      "pair": "SUIUSD",
-      "tool": "btc_alt_spread",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 0.9743126000000001,
-      "exit_price": 0.9528,
-      "entry_bar": 3795,
-      "exit_bar": 4083,
-      "pnl_pct": -0.028579771933566395,
-      "pnl_dollar": -2.040038185716003,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24.2h) \u2014 no signal conviction"
-    },
-    {
-      "pair": "ZECUSD",
-      "tool": "btc_alt_spread",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 324.75754,
-      "exit_price": 330.59,
-      "entry_bar": 3807,
-      "exit_bar": 4094,
-      "pnl_pct": 0.011459429055904198,
-      "pnl_dollar": 0.7919206544578423,
-      "margin_cost_pct": 0,
-      "reason": "Hold timeout (24.1h) \u2014 no signal conviction"
-    },
-    {
-      "pair": "RAVEUSD",
-      "tool": "volatile_oversold",
-      "direction": "long",
-      "leverage": 1,
-      "entry_price": 1.173663016593047,
-      "exit_price": 1.06499,
-      "entry_bar": 4088,
-      "exit_bar": 4161,
-      "pnl_pct": -0.09909303143802474,
-      "pnl_dollar": -10.227952866348165,
-      "margin_cost_pct": 0,
-      "reason": "Stop loss @ $1.0798 (retry)"
     }
   ],
-  "current_bar": 4196,
-  "last_update": "2026-04-19T16:51:58.969053"
+  "current_bar": 1970,
+  "last_update": "2026-04-10T14:27:49.098623"
 }

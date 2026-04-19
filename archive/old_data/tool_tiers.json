@@ -1,0 +1,109 @@
+{
+  "updated_at": "2026-04-14T03:16:45",
+  "tiers": {
+    "alt_btc_revert_t3": {
+      "tier": 3,
+      "enabled": true,
+      "size_mult": 0.5,
+      "win_rate": 1.0,
+      "profit_factor": Infinity,
+      "trades": 2
+    },
+    "blood_in_streets": {
+      "tier": 3,
+      "enabled": true,
+      "size_mult": 0.5,
+      "win_rate": 0.0,
+      "profit_factor": 0.0,
+      "trades": 1
+    },
+    "btc_alt_spread": {
+      "tier": 3,
+      "enabled": true,
+      "size_mult": 0.5,
+      "win_rate": 0.556,
+      "profit_factor": 0.96,
+      "trades": 9
+    },
+    "crash_neg_ac": {
+      "tier": 3,
+      "enabled": true,
+      "size_mult": 0.5,
+      "win_rate": 0,
+      "profit_factor": 0,
+      "trades": 0
+    },
+    "distribution_short": {
+      "tier": 3,
+      "enabled": true,
+      "size_mult": 0.5,
+      "win_rate": 0.0,
+      "profit_factor": 0.0,
+      "trades": 1
+    },
+    "ema_cross_short": {
+      "tier": 3,
+      "enabled": true,
+      "size_mult": 0.5,
+      "win_rate": 0.4,
+      "profit_factor": 0.98,
+      "trades": 5
+    },
+    "entropy_dip": {
+      "tier": 3,
+      "enabled": true,
+      "size_mult": 0.5,
+      "win_rate": 0.167,
+      "profit_factor": 0.18,
+      "trades": 6
+    },
+    "falling_wedge_short": {
+      "tier": 3,
+      "enabled": true,
+      "size_mult": 0.5,
+      "win_rate": 1.0,
+      "profit_factor": Infinity,
+      "trades": 1
+    },
+    "flash_crash": {
+      "tier": 3,
+      "enabled": true,
+      "size_mult": 0.5,
+      "win_rate": 0,
+      "profit_factor": 0,
+      "trades": 0
+    },
+    "mega_crash": {
+      "tier": 3,
+      "enabled": true,
+      "size_mult": 0.5,
+      "win_rate": 0,
+      "profit_factor": 0,
+      "trades": 0
+    },
+    "quick_dip": {
+      "tier": 3,
+      "enabled": true,
+      "size_mult": 0.5,
+      "win_rate": 0.571,
+      "profit_factor": 1.96,
+      "trades": 7
+    },
+    "reconciled": {
+      "tier": 3,
+      "enabled": true,
+      "size_mult": 0.5,
+      "win_rate": 0.0,
+      "profit_factor": 0.0,
+      "trades": 3
+    },
+    "vpin_toxic": {
+      "tier": 3,
+      "enabled": true,
+      "size_mult": 0.5,
+      "win_rate": 0.667,
+      "profit_factor": 3.97,
+      "trades": 3
+    }
+  }
+}

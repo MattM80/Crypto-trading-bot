@@ -79,8 +79,8 @@ MIN_PAIR_VOLUME_USD = 5_000_000  # Min $5M 24h volume — real liquidity only
 MIN_PAIR_PRICE_USD = 0.50       # No sub-dollar coins — spread/slippage/microcap kills you
 MAX_POSITION_PCT_OF_VOLUME = 0.005  # Never be more than 0.5% of daily volume
 
-# Coins restricted for US:FL, known rugs, naming collisions, or proven losers (microcap/illiquid)
-GEO_BLOCKED_PAIRS = {'BLUAIUSD', 'B3USD', 'GUSD', 'DRIFTUSD', 'NIGHTUSD', 'PTBUSD', 'GHSTUSD'}
+# Coins restricted for US:FL, known rugs, or naming collisions
+GEO_BLOCKED_PAIRS = {'BLUAIUSD', 'B3USD', 'GUSD'}
 
 # Grid configurations (ATR-based spacing per pair) - now with 40 pairs
 GRID_CONFIGS = {
@@ -132,7 +132,6 @@ GRID_REANCHOR_PCT = 0.10    # Reanchor grid when price moves >10% from center
 LIMIT_ORDER_TIMEOUT = 2     # Cancel and re-place limit orders after 2 cycles (10 min)
 MAX_LIMIT_RETRIES = 3       # Max re-places before giving up (3 retries = ~15 min total)
 PRICE_DRIFT_ABANDON = 0.02  # Abandon pending order if price drifted >2% from original entry
-MAX_TRADES_PER_PAIR_PER_DAY = 3   # Max entries on same pair per day (prevents RAVE-type over-concentration)
 
 # Multi-timeframe confirmation
 ENABLE_MTF = True  # Multi-timeframe confirmation
@@ -150,11 +149,9 @@ GRID_FEE_MULTIPLIER = 0.995  # Updated from 0.996
 
 # UPGRADE 3: Tier 1 tools with 2x margin
 TIER1_TOOLS = {
-    'crash_buy', 'crash_neg_ac', 'blood_in_streets',
-    'crash_mean_revert', 'mega_pump_sell_t1', 'rsi_pump_8h',
+    'crash_buy', 'volatile_oversold', 'crash_neg_ac', 'blood_in_streets',
+    'quick_crash', 'crash_mean_revert', 'mega_pump_sell_t1', 'rsi_pump_8h',
     'mega_crash', 'vpin_dip'
-    # quick_crash removed: 33% WR, -$8.84 live — knife catcher
-    # volatile_oversold removed: 0% WR live (1 trade, -$10.23) — ATR entries too early in crashes
 }
 
 # Margin costs for 2x leverage
@@ -164,11 +161,9 @@ MARGIN_COST_PER_BAR = 0.0002  # 0.02% every 4 hours (per bar)
 # VALIDATED TOOLS - exact same 30 from production bot
 # CRASH/BEAR TOOLS (LONG) - 15 tools
 CRASH_BEAR_TOOLS = [
-    "crash_buy", "mega_crash", "crash_neg_ac", "blood_in_streets",
-    "crash_mean_revert", "vpin_dip", "market_panic_70", "flash_crash",
-    "deep_dip_8h", "vpin_toxic", "btc_alt_spread"
-    # KILLED: quick_dip (-$54 PnL), entropy_dip (0% WR, -$4.33), quick_crash (33% WR, -$8.84 — falling knives)
-    # KILLED: volatile_oversold (0% WR, -$10.23 — ATR entries too early in crashes)
+    "volatile_oversold", "crash_buy", "mega_crash", "crash_neg_ac", "blood_in_streets",
+    "quick_crash", "crash_mean_revert", "vpin_dip", "market_panic_70", "flash_crash",
+    "deep_dip_8h", "entropy_dip", "vpin_toxic", "btc_alt_spread"  # quick_dip killed: -$54 lifetime PnL
 ]
 
 # BULL/GREED TOOLS (SHORT) - 13 tools  
@@ -575,9 +570,8 @@ class FinalTradingBot:
         if not ENABLE_MTF or not htf_context or not htf_context.get("htf_available", False):
             return 1.0
         crash_signals = {
-            'crash_buy', 'mega_crash', 'crash_neg_ac',
-            'blood_in_streets', 'crash_mean_revert', 'mega_pump_sell_t1'
-            # REMOVED: volatile_oversold (0% WR), quick_crash (33% WR) — killed tools
+            'volatile_oversold', 'crash_buy', 'mega_crash', 'crash_neg_ac',
+            'blood_in_streets', 'quick_crash', 'crash_mean_revert', 'mega_pump_sell_t1'
         }
         if tool in crash_signals:
             return 1.0
@@ -745,18 +739,18 @@ class FinalTradingBot:
         # Initialize stats for all validated tools based on OOS testing
         validated_stats = {
             # CRASH/BEAR TOOLS - from VALIDATED_TOOLS.md
-            "volatile_oversold": {"trades": 1, "wins": 0, "pnl": -10.23, "score_adj": 0.0},  # KILLED: 0% WR live
+            "volatile_oversold": {"trades": 100, "wins": 74, "pnl": 207.0, "score_adj": 1.0},
             "crash_buy": {"trades": 120, "wins": 78, "pnl": 190.0, "score_adj": 1.0},
             "mega_crash": {"trades": 40, "wins": 21, "pnl": 135.0, "score_adj": 1.0},
             "crash_neg_ac": {"trades": 80, "wins": 50, "pnl": 125.0, "score_adj": 1.0},
             "blood_in_streets": {"trades": 60, "wins": 37, "pnl": 110.0, "score_adj": 1.0},
-            "quick_crash": {"trades": 3, "wins": 1, "pnl": -8.84, "score_adj": 0.0},  # KILLED: 33% WR live
+            "quick_crash": {"trades": 90, "wins": 53, "pnl": 98.0, "score_adj": 1.0},
             "crash_mean_revert": {"trades": 80, "wins": 49, "pnl": 98.0, "score_adj": 1.0},
             "vpin_dip": {"trades": 70, "wins": 41, "pnl": 73.0, "score_adj": 1.0},
             "market_panic_70": {"trades": 50, "wins": 30, "pnl": 75.0, "score_adj": 1.0},
             "flash_crash": {"trades": 60, "wins": 33, "pnl": 51.0, "score_adj": 1.0},
             "deep_dip_8h": {"trades": 70, "wins": 38, "pnl": 22.0, "score_adj": 1.0},
-            "entropy_dip": {"trades": 4, "wins": 0, "pnl": -4.33, "score_adj": 0.0},  # KILLED: 0% WR live
+            "entropy_dip": {"trades": 60, "wins": 32, "pnl": 45.0, "score_adj": 1.0},
             "vpin_toxic": {"trades": 65, "wins": 35, "pnl": 45.0, "score_adj": 1.0},
             "btc_alt_spread": {"trades": 55, "wins": 30, "pnl": 45.0, "score_adj": 1.0},
             "quick_dip": {"trades": 90, "wins": 50, "pnl": 13.0, "score_adj": 1.0},
@@ -1346,9 +1340,8 @@ class FinalTradingBot:
             
             # Crash signals bypass MTF (they're counter-trend by nature)
             crash_signals = {
-                'crash_buy', 'mega_crash', 'crash_neg_ac', 
-                'blood_in_streets', 'crash_mean_revert', 'mega_pump_sell_t1'
-                # REMOVED: volatile_oversold (0% WR), quick_crash (33% WR) — killed tools
+                'volatile_oversold', 'crash_buy', 'mega_crash', 'crash_neg_ac', 
+                'blood_in_streets', 'quick_crash', 'crash_mean_revert', 'mega_pump_sell_t1'
             }
             if tool in crash_signals:
                 return base_score
@@ -1377,17 +1370,16 @@ class FinalTradingBot:
         
         # ===== CRASH/BEAR SIGNALS (LONG) - 15 tools =====
         
-        # KILLED: 0% WR live (1 trade, -$10.23). ATR-based entries too early in crashes.
         # 1. volatile_oversold: atr_pct>3 AND rsi7<25 → LONG | WR_8h=73.8%, Ret_8h=+2.07%
-        # if cur_atr_pct > 3 and cur_rsi < 25:
-        #     base_score = cur_atr_pct * (25 - cur_rsi) * 0.5  # 30-50 range
-        #     score = adjust_score('volatile_oversold', base_score)
-        #     score = apply_mtf_confirmation('volatile_oversold', 'long', score)  # MTF confirmation
-        #     signals.append(({
-        #         'pair': pair, 'tool': 'volatile_oversold', 'direction': 'long',
-        #         'hold': 8, 'sl_pct': 0.08,
-        #         'reason': f"VOLATILE OVERSOLD: ATR={cur_atr_pct:.1f}%, RSI={cur_rsi:.1f}"
-        #     }, score))
+        if cur_atr_pct > 3 and cur_rsi < 25:
+            base_score = cur_atr_pct * (25 - cur_rsi) * 0.5  # 30-50 range
+            score = adjust_score('volatile_oversold', base_score)
+            score = apply_mtf_confirmation('volatile_oversold', 'long', score)  # MTF confirmation
+            signals.append(({
+                'pair': pair, 'tool': 'volatile_oversold', 'direction': 'long',
+                'hold': 8, 'sl_pct': 0.08,
+                'reason': f"VOLATILE OVERSOLD: ATR={cur_atr_pct:.1f}%, RSI={cur_rsi:.1f}"
+            }, score))
         
         # 2. crash_buy: ret_24h<-10 AND rsi7<20 → LONG | WR_8h=65.1%, Ret_24h=+1.90%
         if ret_24h < -10 and cur_rsi < 20:
@@ -1439,17 +1431,16 @@ class FinalTradingBot:
                     'reason': f"BLOOD IN STREETS: {panic_pct:.0f}% panic + RSI={cur_rsi:.1f}"
                 }, score))
         
-        # KILLED: 33% WR live, -$8.84. Knife catcher.
         # 6. quick_crash: ret_8h<-10 → LONG (8h hold only) | WR_8h=59.1%, Ret_8h=+0.98%
-        # if ret_8h < -10:
-        #     base_score = abs(ret_8h) * 2  # 20-30 range
-        #     score = adjust_score('quick_crash', base_score)
-        #     score = apply_mtf_confirmation('quick_crash', 'long', score)  # MTF confirmation
-        #     signals.append(({
-        #         'pair': pair, 'tool': 'quick_crash', 'direction': 'long',
-        #         'hold': 8, 'sl_pct': 0.07,
-        #         'reason': f"QUICK CRASH: {ret_8h:.1f}% drop 8h"
-        #     }, score))
+        if ret_8h < -10:
+            base_score = abs(ret_8h) * 2  # 20-30 range
+            score = adjust_score('quick_crash', base_score)
+            score = apply_mtf_confirmation('quick_crash', 'long', score)  # MTF confirmation
+            signals.append(({
+                'pair': pair, 'tool': 'quick_crash', 'direction': 'long',
+                'hold': 8, 'sl_pct': 0.07,
+                'reason': f"QUICK CRASH: {ret_8h:.1f}% drop 8h"
+            }, score))
         
         # 7. crash_mean_revert: ret_24h<-8 AND Hurst<0.45 → LONG | WR_8h=61.3%, Ret_8h=+0.98%
         if ret_24h < -8:
@@ -1512,21 +1503,20 @@ class FinalTradingBot:
             score = apply_mtf_confirmation('deep_dip_8h', 'long', score)  # MTF confirmation
             signals.append(({
                 'pair': pair, 'tool': 'deep_dip_8h', 'direction': 'long',
-                'hold': 8, 'sl_pct': 0.04,  # Tightened from 0.05 — wins avg +2-3%, losses were hitting -8%
+                'hold': 8, 'sl_pct': 0.05,
                 'reason': f"DEEP DIP 8h: {ret_8h:.1f}% drop"
             }, score))
         
-        # KILLED: 0% WR live (4 trades, -$4.33). Entropy too noisy for real markets.
         # 12. entropy_dip: entropy<2.5 AND ret_4h<-2 → LONG | WR_8h=52.8%, Ret_8h=+0.45%
-        # if ret_4h < -2:
-        #     entropy = self.calc_entropy(close[-30:]) if len(close) >= 30 else 3.0
-        #     if entropy < 2.5:
-        #         score = adjust_score('entropy_dip', (2.5 - entropy) * abs(ret_4h) * 2)  # 10-20 range
-        #         signals.append(({
-        #             'pair': pair, 'tool': 'entropy_dip', 'direction': 'long',
-        #             'hold': 8, 'sl_pct': 0.04,
-        #             'reason': f"ENTROPY DIP: entropy={entropy:.2f}, {ret_4h:.1f}% drop 4h"
-        #         }, score))
+        if ret_4h < -2:
+            entropy = self.calc_entropy(close[-30:]) if len(close) >= 30 else 3.0
+            if entropy < 2.5:
+                score = adjust_score('entropy_dip', (2.5 - entropy) * abs(ret_4h) * 2)  # 10-20 range
+                signals.append(({
+                    'pair': pair, 'tool': 'entropy_dip', 'direction': 'long',
+                    'hold': 8, 'sl_pct': 0.04,
+                    'reason': f"ENTROPY DIP: entropy={entropy:.2f}, {ret_4h:.1f}% drop 4h"
+                }, score))
         
         # 13. vpin_toxic: VPIN>0.7 AND red candle → LONG | WR_8h=53.8%, Ret_8h=+0.45%
         if len(df) >= 2:
@@ -1553,7 +1543,7 @@ class FinalTradingBot:
                     score = adjust_score('btc_alt_spread', (btc_ret24 - ret_24h) * (35 - cur_rsi) * 0.1)  # 10-15 range
                     signals.append(({
                         'pair': pair, 'tool': 'btc_alt_spread', 'direction': 'long',
-                        'hold': 24, 'sl_pct': 0.04,  # Tightened from 0.05 — wins avg +2-3%, losses were hitting -8%
+                        'hold': 24, 'sl_pct': 0.05,
                         'reason': f"BTC ALT SPREAD: BTC {btc_ret24:+.1f}% vs {pair} {ret_24h:+.1f}%, RSI={cur_rsi:.1f}"
                     }, score))
         
@@ -2136,17 +2126,15 @@ class FinalTradingBot:
         """Get exit parameters for validated tools only."""
         # Mean reversion strategies — TP at 8-10%
         MEAN_REVERSION = {
-            'crash_neg_ac', 'crash_mean_revert', 
-            'blood_in_streets', 'vpin_dip', 'vpin_toxic',
+            'volatile_oversold', 'crash_neg_ac', 'crash_mean_revert', 
+            'blood_in_streets', 'vpin_dip', 'vpin_toxic', 'entropy_dip',
             'btc_alt_spread'
-            # REMOVED: volatile_oversold (killed), entropy_dip (killed)
         }
         
         # Crash buy strategies — TP at 10-12%
         CRASH_BUY = {
-            'crash_buy', 'mega_crash', 'flash_crash',
+            'crash_buy', 'mega_crash', 'quick_crash', 'flash_crash',
             'market_panic_70', 'deep_dip_8h'
-            # REMOVED: quick_crash (killed)
         }
         
         # Short strategies — TP at 6%
@@ -2379,10 +2367,9 @@ class FinalTradingBot:
         6. NOT past daily drawdown limit
         7. NOT past total account drawdown limit
         """
-        DCA_TOOLS = {'crash_buy', 'mega_crash', 'blood_in_streets',
-                    'crash_neg_ac', 'crash_mean_revert', 'flash_crash',
-                    'market_panic_70', 'deep_dip_8h', 'vpin_dip'}
-        # REMOVED from DCA: volatile_oversold, quick_crash, entropy_dip — killed tools
+        DCA_TOOLS = {'crash_buy', 'mega_crash', 'blood_in_streets', 'volatile_oversold',
+                    'crash_neg_ac', 'crash_mean_revert', 'quick_crash', 'flash_crash',
+                    'market_panic_70', 'deep_dip_8h', 'entropy_dip', 'vpin_dip'}
         
         if pos['tool'] not in DCA_TOOLS:
             return
@@ -3374,44 +3361,6 @@ class FinalTradingBot:
             else:
                 del self._pair_cooldowns[pair]  # Cooldown expired
         
-        # PER-PAIR DAILY LIMIT: Prevent over-concentration on one pair
-        today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-        if not hasattr(self, '_pair_daily_trades'):
-            self._pair_daily_trades = {}
-        # Reset if new day
-        if getattr(self, '_pair_daily_trades_date', '') != today_str:
-            self._pair_daily_trades = {}
-            self._pair_daily_trades_date = today_str
-        pair_today = self._pair_daily_trades.get(pair, 0)
-        if pair_today >= MAX_TRADES_PER_PAIR_PER_DAY:
-            logger.info(f"[PAIR LIMIT] {pair} hit {MAX_TRADES_PER_PAIR_PER_DAY} trades today — skipping {tool}")
-            self._log_rejection(pair, tool, direction, score, f"pair_daily_limit_{pair_today}")
-            return
-        
-        # REGIME GATE: Reduce activity in strong bear markets
-        # Only high-conviction crash tools bypass this
-        crash_bypass_tools = {
-            'crash_buy', 'mega_crash', 'crash_neg_ac', 'blood_in_streets',
-            'crash_mean_revert', 'flash_crash', 'market_panic_70'
-        }
-        if direction == 'long' and tool not in crash_bypass_tools:
-            bullish_pct = getattr(self, '_bullish_4h_pct', 50)
-            avg_rsi_4h = getattr(self, '_avg_rsi_4h', 50)
-            fng = self.get_fng()
-            
-            # Strong bear: 100% bearish on 4h AND RSI < 35 AND F&G < 30
-            if bullish_pct <= 10 and avg_rsi_4h < 35 and fng < 30:
-                # In strong bear, need score > 15 to enter (filters out weak signals)
-                if score < 15:
-                    logger.info(f"[REGIME GATE] {tool} {pair} blocked — strong bear (F&G={fng}, {bullish_pct:.0f}% bull, RSI4h={avg_rsi_4h:.0f}) and weak score {score:.1f} < 15")
-                    self._log_rejection(pair, tool, direction, score, f"regime_gate_strong_bear_score_{score:.1f}")
-                    return
-                # Even high-score signals get 50% size reduction in strong bear
-                # (this will be applied later — set a flag)
-                self._bear_regime_size_cut = True
-            else:
-                self._bear_regime_size_cut = False
-        
         # DAILY DRAWDOWN LIMIT: Stop trading if we've lost too much today
         daily_pnl_pct = self._daily_stats["pnl"] / max(self._daily_stats.get("start_balance", self.total_balance), 1)
         if daily_pnl_pct < -DAILY_MAX_LOSS_PCT:
@@ -3507,12 +3456,6 @@ class FinalTradingBot:
             risk_pct = base_risk
         
         risk_amount = self.active_balance * risk_pct
-        
-        # Apply bear regime size reduction
-        if getattr(self, '_bear_regime_size_cut', False):
-            risk_amount *= 0.5
-            logger.info(f"[BEAR CUT] {tool} {pair} — 50% size reduction in strong bear regime")
-        
         stop_loss_pct = signal['sl_pct']
         
         if direction == 'long':
@@ -3521,10 +3464,9 @@ class FinalTradingBot:
             position_size = risk_amount / stop_loss_pct
         
         # EXTREME FEAR BOOST: Slightly bigger on crash buys when F&G < 15
-        fear_boost_tools = {'crash_buy', 'mega_crash', 'blood_in_streets',
-                           'crash_neg_ac', 'crash_mean_revert', 'flash_crash',
+        fear_boost_tools = {'crash_buy', 'mega_crash', 'blood_in_streets', 'volatile_oversold',
+                           'crash_neg_ac', 'crash_mean_revert', 'quick_crash', 'flash_crash',
                            'market_panic_70', 'deep_dip_8h'}
-        # REMOVED from fear_boost: volatile_oversold (0% WR), quick_crash (33% WR) — killed
         if tool in fear_boost_tools and getattr(self, 'current_fng', 50) < 15:
             position_size *= 1.25  # 25% bigger in extreme fear (was 1.5x — too aggressive)
             logger.info(f"[FEAR BOOST] {tool} {pair} — 1.25x size in extreme fear (F&G={self.current_fng})")
@@ -3675,10 +3617,6 @@ class FinalTradingBot:
         
         self.active_positions[pair] = position
         self.active_balance -= position_size  # Reserve capital
-        
-        # Increment per-pair daily trade counter
-        if hasattr(self, '_pair_daily_trades'):
-            self._pair_daily_trades[pair] = self._pair_daily_trades.get(pair, 0) + 1
         
         # Place TP order on Kraken immediately so it's waiting on the book
         exit_mode, take_profit_pct, trailing_stop_pct, _ = self._get_exit_params(tool, entry_price, {})
@@ -4016,9 +3954,8 @@ class FinalTradingBot:
                     avg_rsi_4h = sum(htf_rsi_values) / len(htf_rsi_values)
                     mtf_str = ", ".join(regime_pcts) + f" | Avg 4h RSI: {avg_rsi_4h:.1f}"
                     logger.info(f"MTF: {mtf_str}")
-                    # Track bullish percentage and avg RSI for regime filter
+                    # Track bullish percentage for regime filter
                     self._bullish_4h_pct = regime_counts.get("bullish", 0) / total_pairs * 100
-                    self._avg_rsi_4h = avg_rsi_4h
             
             # UPGRADE 7: Show tool streaks
             hot_tools = []
