@@ -214,13 +214,28 @@ class KrakenClient:
     def _normalize_order_type(self, order_type: str) -> str:
         if not order_type:
             return "market"
-        t = order_type.strip().lower()
-        if t in {"market", "limit"}:
+        t = order_type.strip().lower().replace("_", "-")
+        # Kraken-supported ordertypes we pass through verbatim
+        passthrough = {
+            "market",
+            "limit",
+            "stop-loss",
+            "stop-loss-limit",
+            "take-profit",
+            "take-profit-limit",
+            "trailing-stop",
+            "trailing-stop-limit",
+        }
+        if t in passthrough:
             return t
         if t == "m":
             return "market"
         if t == "l":
             return "limit"
+        if t in {"stop", "sl"}:
+            return "stop-loss"
+        if t in {"tp"}:
+            return "take-profit"
         return "limit" if "limit" in t else "market"
 
     def _rate_limit_wait(self, cost: float = 1.0) -> None:
@@ -439,30 +454,40 @@ class KrakenClient:
         self,
         symbol: str,
         side: str,  # "buy" or "sell"
-        order_type: str,  # "market" or "limit"
+        order_type: str,  # "market", "limit", "stop-loss", "stop-loss-limit", "take-profit", "take-profit-limit", "trailing-stop", "trailing-stop-limit"
         quantity: float,
         price: Optional[float] = None,
+        price2: Optional[float] = None,
         post_only: bool = False,
-        leverage: Optional[int] = None
+        leverage: Optional[int] = None,
+        reduce_only: bool = False,
     ) -> Optional[Dict]:
         """
         Place an order.
-        
+
         Args:
             symbol: Kraken pair (e.g., 'XBTUSD')
             side: 'buy' or 'sell'
-            order_type: 'market' or 'limit'
+            order_type: 'market' | 'limit' | 'stop-loss' | 'stop-loss-limit' |
+                        'take-profit' | 'take-profit-limit' |
+                        'trailing-stop' | 'trailing-stop-limit'
             quantity: Amount to trade
-            price: Price for limit orders
-            post_only: If True, set post-only flag (guarantees maker fee, order
-                       is cancelled if it would cross the spread)
+            price: Primary price. For limit/stop-loss/take-profit this is the
+                   trigger (stop) or limit price. For trailing-stop this is the
+                   offset (e.g. "+5%" passed as a pre-formatted string via price).
+            price2: Secondary price used only for *-limit stop variants
+                    (limit price once the stop triggers).
+            post_only: Maker-only flag for limit orders.
             leverage: Margin leverage (e.g. 2 for 2:1). None = no margin.
+            reduce_only: Add 'reduce_only' oflag (Kraken derivatives only;
+                         harmless for spot but we only set it when explicitly
+                         requested).
         """
         try:
             if quantity <= 0:
                 logger.error("Order quantity must be positive")
                 return None
-            
+
             side_norm = self._normalize_order_side(side)
             order_type_norm = self._normalize_order_type(order_type)
 
@@ -479,31 +504,60 @@ class KrakenClient:
                 except Exception:
                     pass
 
-            if order_type_norm == "limit" and price is None:
-                logger.error("Price required for limit orders")
+            # Validation by order type
+            needs_price = order_type_norm in {
+                "limit",
+                "stop-loss",
+                "stop-loss-limit",
+                "take-profit",
+                "take-profit-limit",
+                "trailing-stop",
+                "trailing-stop-limit",
+            }
+            needs_price2 = order_type_norm in {
+                "stop-loss-limit",
+                "take-profit-limit",
+                "trailing-stop-limit",
+            }
+            if needs_price and price is None:
+                logger.error(f"Price required for {order_type_norm} orders")
                 return None
-            
+            if needs_price2 and price2 is None:
+                logger.error(f"price2 (limit price) required for {order_type_norm}")
+                return None
+
             params = {
                 "pair": symbol,
                 "type": side_norm,
                 "ordertype": order_type_norm,
                 "volume": self._format_volume(symbol, quantity),
             }
-            
-            if price:
-                params["price"] = self._format_price(symbol, float(price))
 
-            # Post-only flag: guarantees maker fee (0.16%) by cancelling
-            # the order if it would immediately match (cross the spread).
+            if price is not None:
+                # Trailing-stop "price" is typically a relative offset string
+                # (e.g. "+5%"); only numeric-format if it's a plain number.
+                if isinstance(price, str) and not price.replace(".", "", 1).lstrip("+-").isdigit():
+                    params["price"] = price
+                else:
+                    params["price"] = self._format_price(symbol, float(price))
+
+            if price2 is not None:
+                params["price2"] = self._format_price(symbol, float(price2))
+
+            oflags = []
             if post_only and order_type_norm == "limit":
-                params["oflags"] = "post"
+                oflags.append("post")
+            if reduce_only:
+                oflags.append("reduce_only")
+            if oflags:
+                params["oflags"] = ",".join(oflags)
 
-            # Margin leverage (e.g. leverage=2 for 2:1 margin)
             if leverage is not None and leverage >= 2:
                 params["leverage"] = str(leverage)
-            
+
             logger.info(
-                f"Placing {side_norm} {order_type_norm} order: {params['volume']} {symbol} @ {params.get('price', price)}"
+                f"Placing {side_norm} {order_type_norm} order: {params['volume']} {symbol} "
+                f"price={params.get('price')} price2={params.get('price2')}"
             )
             
             result = self._request("private/AddOrder", params, private=True)
@@ -517,7 +571,52 @@ class KrakenClient:
         except Exception as e:
             logger.error(f"Error placing order: {e}")
             return None
-    
+
+    def place_stop_loss(
+        self,
+        symbol: str,
+        side: str,
+        quantity: float,
+        stop_price: float,
+        limit_price: Optional[float] = None,
+    ) -> Optional[str]:
+        """Place an exchange-native stop-loss (or stop-loss-limit) order and
+        return the txid string on success, or None on failure.
+
+        For a long position, pass side='sell' and stop_price below entry.
+        If limit_price is provided, a stop-loss-limit is used; otherwise a
+        plain stop-loss that fires a market order on trigger.
+        """
+        try:
+            if limit_price is not None:
+                result = self.place_order(
+                    symbol=symbol,
+                    side=side,
+                    order_type="stop-loss-limit",
+                    quantity=quantity,
+                    price=stop_price,
+                    price2=limit_price,
+                )
+            else:
+                result = self.place_order(
+                    symbol=symbol,
+                    side=side,
+                    order_type="stop-loss",
+                    quantity=quantity,
+                    price=stop_price,
+                )
+            if not result:
+                return None
+            txids = result.get("txid") if isinstance(result, dict) else None
+            if isinstance(txids, list) and txids:
+                return str(txids[0])
+            if isinstance(txids, str):
+                return txids
+            return None
+        except Exception as e:
+            logger.error(f"Error placing stop-loss on {symbol}: {e}")
+            return None
+
     def get_open_orders(self) -> List[Dict]:
         """Get all open orders"""
         try:

@@ -1,0 +1,9 @@
+date,forward_tool_quarantine_rejections,meta_model_veto_rejections,bearish_overlay_rejections,conviction_decay_exits,hold_timeout_no_conviction_exits
+2026-04-23,0,0,8,0,0
+2026-04-24,0,0,3,0,2
+2026-04-25,0,0,84,0,1
+2026-04-26,0,0,48,0,0
+2026-04-27,0,0,75,0,0
+2026-04-28,0,0,0,2,0
+2026-04-29,0,0,116,2,1,1
+2026-04-30,0,0,20,0,0,1
